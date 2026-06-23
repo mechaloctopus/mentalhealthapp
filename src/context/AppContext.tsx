@@ -4,6 +4,8 @@ import type { User } from '../lib/auth';
 import type { Baseline, CheckIn } from '../lib/voice';
 import { DEFAULT_NOTIF_PREFS, scheduleDailyMessages, type NotifPrefs } from '../lib/notifications';
 import { setHapticsEnabled } from '../lib/haptics';
+import { firebaseAuth } from '../lib/firebase';
+import { signOut as firebaseSignOut } from 'firebase/auth';
 
 interface Prefs {
   notif: NotifPrefs;
@@ -147,6 +149,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       async signOut() {
         setState((s) => ({ ...s, user: null }));
         await removeItem(KEYS.user);
+        // Best-effort Firebase sign-out when configured.
+        try {
+          if (firebaseAuth) await firebaseSignOut(firebaseAuth);
+        } catch {
+          /* not configured */
+        }
       },
       async resetAll() {
         await clearAll();

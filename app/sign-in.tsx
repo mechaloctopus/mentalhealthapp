@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,8 @@ import { GradientButton } from '../src/components/GradientButton';
 import { BrandMark } from '../src/components/BrandMark';
 import { GoogleGlyph } from '../src/components/GoogleGlyph';
 import { useApp } from '../src/context/AppContext';
-import { signInWithGoogle, continueAnonymously } from '../src/lib/auth';
+import { signInWithGoogle, continueAnonymously, type User } from '../src/lib/auth';
+import { useGoogleSignIn } from '../src/lib/googleAuth';
 import { scheduleDailyMessages } from '../src/lib/notifications';
 import { colors, font, spacing } from '../src/theme/theme';
 import { success } from '../src/lib/haptics';
@@ -18,18 +19,32 @@ export default function SignIn() {
   const { setUser, prefs } = useApp();
   const [busy, setBusy] = useState<'google' | 'anon' | null>(null);
 
-  const finish = async () => {
+  const finish = useCallback(async () => {
     success();
     // Best-effort: arm the year of daily affirmations now that we have consent context.
     scheduleDailyMessages(prefs.notif).catch(() => {});
     router.replace('/baseline');
-  };
+  }, [prefs.notif, router]);
+
+  // Real Google → Firebase (active once keys are configured in app.json `extra`).
+  const onGoogleUser = useCallback(async (user: User) => {
+    await setUser(user);
+    await finish();
+  }, [setUser, finish]);
+
+  const google = useGoogleSignIn(onGoogleUser, () => setBusy(null));
 
   const onGoogle = async () => {
     setBusy('google');
-    const user = await signInWithGoogle();
-    await setUser(user);
-    await finish();
+    if (google.configured) {
+      // Opens the real Google account picker; onGoogleUser fires on success.
+      await google.prompt();
+    } else {
+      // Demo mode: simulated Google identity so the full app is usable now.
+      const user = await signInWithGoogle();
+      await setUser(user);
+      await finish();
+    }
   };
 
   const onAnon = async () => {
@@ -69,7 +84,8 @@ export default function SignIn() {
       </Animated.View>
 
       <Muted center style={styles.legal}>
-        MoodSignal supports self-reflection and wellness. It is not a medical device and does not diagnose or treat any condition. Sign-in here is a demo.
+        MoodSignal supports self-reflection and wellness. It is not a medical device and does not diagnose or treat any condition.
+        {google.configured ? '' : ' Google sign-in runs in demo mode until Firebase keys are added.'}
       </Muted>
     </Screen>
   );

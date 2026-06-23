@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "scheme": "moodsignal",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "cover",
@@ -58,6 +58,21 @@
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "extra": {
+      "firebase": {
+        "apiKey": "",
+        "authDomain": "",
+        "projectId": "",
+        "storageBucket": "",
+        "messagingSenderId": "",
+        "appId": ""
+      },
+      "google": {
+        "webClientId": "",
+        "androidClientId": "",
+        "iosClientId": ""
+      }
     }
   }
 }
