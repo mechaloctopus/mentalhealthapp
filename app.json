@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "MoodSignal",
+    "slug": "moodsignal",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "moodsignal",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#090b0b"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.moodsignal.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "MoodSignal uses your microphone for short voice check-ins to estimate mood signals. Audio is analyzed on-device for wellness reflection only."
+      }
+    },
+    "android": {
+      "package": "io.moodsignal.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#090b0b"
+      },
+      "permissions": [
+        "RECORD_AUDIO",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "MoodSignal uses your microphone for short voice check-ins to estimate mood signals."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#66e0ca"
+        }
+      ],
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
