@@ -53,6 +53,7 @@ export interface CheckIn {
   baselineShift: number;
   note?: string;
   source: 'voice' | 'self';
+  factors?: string[];
   recommendation: Recommendation;
 }
 
@@ -181,8 +182,9 @@ export function buildCheckIn(opts: {
   baseline?: Baseline | null;
   selfEmotion?: string;
   note?: string;
+  factors?: string[];
 }): CheckIn {
-  const { affect, baseline, selfEmotion, note } = opts;
+  const { affect, baseline, selfEmotion, note, factors } = opts;
   const finalId = selfEmotion ?? affect.voiceEmotion;
   const finalEmotion = getEmotion(finalId);
   return {
@@ -201,13 +203,14 @@ export function buildCheckIn(opts: {
     tone: finalEmotion.label,
     baselineShift: baselineShift(affect, baseline),
     note,
-    source: selfEmotion ? 'voice' : 'voice',
+    factors,
+    source: 'voice',
     recommendation: recommendFor(finalEmotion),
   };
 }
 
 /** A self-report-only check-in (no voice), e.g. the quick "how do you feel" wheel. */
-export function buildSelfCheckIn(emotionId: string, note?: string): CheckIn {
+export function buildSelfCheckIn(emotionId: string, note?: string, factors?: string[]): CheckIn {
   const e = getEmotion(emotionId);
   return {
     id: Math.random().toString(36).slice(2),
@@ -225,6 +228,7 @@ export function buildSelfCheckIn(emotionId: string, note?: string): CheckIn {
     tone: e.label,
     baselineShift: 0,
     note,
+    factors,
     source: 'self',
     recommendation: recommendFor(e),
   };

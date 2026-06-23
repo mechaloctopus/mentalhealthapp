@@ -10,7 +10,7 @@ import { select } from '../lib/haptics';
 
 const ICONS: Record<string, { on: keyof typeof Ionicons.glyphMap; off: keyof typeof Ionicons.glyphMap; label: string }> = {
   index: { on: 'today', off: 'today-outline', label: 'Today' },
-  voice: { on: 'mic', off: 'mic-outline', label: 'Voice' },
+  voice: { on: 'stats-chart', off: 'stats-chart-outline', label: 'Insights' },
   practices: { on: 'leaf', off: 'leaf-outline', label: 'Practices' },
   messages: { on: 'sparkles', off: 'sparkles-outline', label: '365' },
   profile: { on: 'person', off: 'person-outline', label: 'You' },

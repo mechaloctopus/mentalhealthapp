@@ -48,5 +48,6 @@ export const KEYS = {
   prefs: 'prefs',
   savedMessages: 'savedMessages',
   sessions: 'sessions',
+  journal: 'journal',
   notificationsScheduled: 'notificationsScheduled',
 } as const;

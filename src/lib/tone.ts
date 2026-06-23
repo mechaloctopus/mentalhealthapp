@@ -92,6 +92,71 @@ function writeStr(view: DataView, offset: number, s: string) {
   for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i));
 }
 
+export type NoiseKind = 'white' | 'brown' | 'rain' | 'ocean';
+
+// Looping ambient noise as a data URI. A short seam crossfade keeps the loop smooth.
+export function noiseUri(kind: NoiseKind, amplitude = 0.16, seconds = 4): string {
+  const total = SAMPLE_RATE * seconds;
+  const fade = Math.floor(SAMPLE_RATE * 0.05); // 50ms seam crossfade
+  const gen = total + fade;
+  const mono = new Float32Array(gen);
+
+  let brown = 0;
+  let lp = 0; // simple low-pass state for rain/ocean
+  for (let i = 0; i < gen; i++) {
+    const white = Math.random() * 2 - 1;
+    let v: number;
+    if (kind === 'white') {
+      v = white;
+    } else if (kind === 'brown') {
+      brown = (brown + 0.02 * white) / 1.02;
+      v = brown * 3.2;
+    } else if (kind === 'rain') {
+      lp += 0.2 * (white - lp);
+      v = (white * 0.4 + lp * 1.4);
+    } else {
+      // ocean: brown noise slowly swelling like waves
+      brown = (brown + 0.02 * white) / 1.02;
+      const swell = 0.5 + 0.5 * Math.sin((2 * Math.PI * i) / (SAMPLE_RATE * 6));
+      v = brown * 3.2 * swell;
+    }
+    mono[i] = v;
+  }
+  // crossfade the head with the tail so the loop point is seamless.
+  for (let i = 0; i < fade; i++) {
+    const w = i / fade;
+    mono[i] = mono[i] * w + mono[total + i] * (1 - w);
+  }
+
+  const n = total;
+  const channels = 2;
+  const dataLen = n * channels * 2;
+  const buffer = new ArrayBuffer(44 + dataLen);
+  const view = new DataView(buffer);
+  writeStr(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataLen, true);
+  writeStr(view, 8, 'WAVE');
+  writeStr(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channels, true);
+  view.setUint32(24, SAMPLE_RATE, true);
+  view.setUint32(28, SAMPLE_RATE * channels * 2, true);
+  view.setUint16(32, channels * 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(view, 36, 'data');
+  view.setUint32(40, dataLen, true);
+
+  const amp = amplitude * 0x7fff;
+  let off = 44;
+  for (let i = 0; i < n; i++) {
+    const s = Math.max(-1, Math.min(1, mono[i])) * amp;
+    view.setInt16(off, s, true); off += 2;
+    view.setInt16(off, s, true); off += 2;
+  }
+  return `data:audio/wav;base64,${base64FromBytes(new Uint8Array(buffer))}`;
+}
+
 export interface SoundPreset {
   key: string;
   name: string;

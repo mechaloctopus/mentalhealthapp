@@ -18,6 +18,15 @@ interface SessionLog {
   at: number;
 }
 
+export interface JournalEntry {
+  id: string;
+  at: number;
+  text: string;
+  prompt?: string;
+  emotion?: string;
+  source?: 'journal' | 'coach';
+}
+
 interface AppState {
   ready: boolean;
   user: User | null;
@@ -25,6 +34,7 @@ interface AppState {
   baseline: Baseline | null;
   checkins: CheckIn[];
   sessions: SessionLog[];
+  journal: JournalEntry[];
   saved: number[]; // saved message ids
   prefs: Prefs;
 }
@@ -35,6 +45,8 @@ interface AppActions {
   setBaseline: (b: Baseline) => Promise<void>;
   addCheckIn: (c: CheckIn) => Promise<void>;
   addSession: (s: Omit<SessionLog, 'id' | 'at'>) => Promise<void>;
+  addJournal: (e: Omit<JournalEntry, 'id' | 'at'>) => Promise<void>;
+  deleteJournal: (id: string) => Promise<void>;
   toggleSaved: (id: number) => Promise<void>;
   updateNotifPrefs: (p: Partial<NotifPrefs>) => Promise<void>;
   setHaptics: (on: boolean) => Promise<void>;
@@ -54,6 +66,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     baseline: null,
     checkins: [],
     sessions: [],
+    journal: [],
     saved: [],
     prefs: DEFAULT_PREFS,
   });
@@ -68,12 +81,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     (async () => {
       try {
-        const [user, onboarded, baseline, checkins, sessions, saved, prefs] = await Promise.all([
+        const [user, onboarded, baseline, checkins, sessions, journal, saved, prefs] = await Promise.all([
           getItem<User | null>(KEYS.user, null),
           getItem<boolean>(KEYS.onboarded, false),
           getItem<Baseline | null>(KEYS.baseline, null),
           getItem<CheckIn[]>(KEYS.checkins, []),
           getItem<SessionLog[]>(KEYS.sessions, []),
+          getItem<JournalEntry[]>(KEYS.journal, []),
           getItem<number[]>(KEYS.savedMessages, []),
           getItem<Prefs>(KEYS.prefs, DEFAULT_PREFS),
         ]);
@@ -84,6 +98,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           baseline,
           checkins,
           sessions,
+          journal,
           saved,
           prefs: { ...DEFAULT_PREFS, ...prefs, notif: { ...DEFAULT_NOTIF_PREFS, ...prefs?.notif } },
         });
@@ -131,6 +146,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const sessions = [entry, ...s.sessions].slice(0, 300);
           setItem(KEYS.sessions, sessions);
           return { ...s, sessions };
+        });
+      },
+      async addJournal(e0) {
+        const entry: JournalEntry = { ...e0, id: Math.random().toString(36).slice(2), at: Date.now() };
+        setState((s) => {
+          const journal = [entry, ...s.journal].slice(0, 500);
+          setItem(KEYS.journal, journal);
+          return { ...s, journal };
+        });
+      },
+      async deleteJournal(id) {
+        setState((s) => {
+          const journal = s.journal.filter((e) => e.id !== id);
+          setItem(KEYS.journal, journal);
+          return { ...s, journal };
         });
       },
       async toggleSaved(id) {
@@ -182,6 +212,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           baseline: null,
           checkins: [],
           sessions: [],
+          journal: [],
           saved: [],
           prefs: DEFAULT_PREFS,
         });

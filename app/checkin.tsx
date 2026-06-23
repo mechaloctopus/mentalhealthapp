@@ -12,6 +12,7 @@ import { SignalBar } from '../src/components/SignalBar';
 import { BreathOrb, PATTERNS } from '../src/components/BreathOrb';
 import { EmotionWheel } from '../src/components/EmotionWheel';
 import { EmotionAura } from '../src/components/EmotionAura';
+import { FactorPicker } from '../src/components/FactorPicker';
 import { useApp } from '../src/context/AppContext';
 import { useRecorder } from '../src/lib/useRecorder';
 import { analyzeVoice, buildCheckIn, type Affect, type CheckIn } from '../src/lib/voice';
@@ -37,6 +38,7 @@ export default function CheckIn() {
   const [step, setStep] = useState<Step>('ready');
   const [affect, setAffect] = useState<Affect | null>(null);
   const [selfEmotion, setSelfEmotion] = useState<string | undefined>(undefined);
+  const [factors, setFactors] = useState<string[]>([]);
   const [checkin, setCheckin] = useState<CheckIn | null>(null);
   const prompt = useRef(PROMPTS[Math.floor(Math.random() * PROMPTS.length)]).current;
   const autoStop = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -69,7 +71,7 @@ export default function CheckIn() {
 
   const confirm = () => {
     if (!affect) return;
-    const c = buildCheckIn({ affect, baseline, selfEmotion });
+    const c = buildCheckIn({ affect, baseline, selfEmotion, factors });
     setCheckin(c);
     addCheckIn(c);
     success();
@@ -136,6 +138,8 @@ export default function CheckIn() {
               Does that feel right? Tap the wheel to name it for yourself.
             </Serif>
             <EmotionWheel value={affect.voiceEmotion} onChange={setSelfEmotion} size={300} />
+            <Label style={{ marginTop: spacing.xl, marginBottom: 10 }}>WHAT’S SHAPING THIS? (OPTIONAL)</Label>
+            <FactorPicker value={factors} onChange={setFactors} accent={getEmotion(selfEmotion ?? affect.voiceEmotion).color} />
             <View style={{ height: spacing.xl }} />
             <GradientButton label="Confirm this feeling" onPress={confirm} full />
             <View style={{ height: 60 }} />

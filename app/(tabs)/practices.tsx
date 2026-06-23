@@ -22,6 +22,7 @@ const PRACTICES: Practice[] = [
   { title: 'Perfect Stillness', subtitle: 'A slow body scan — observation before story', icon: 'moon', route: '/stillness', color: colors.blue, meta: '8 min' },
   { title: 'Loving-kindness', subtitle: 'Meta meditation: forgiveness and goodwill', icon: 'heart', route: '/meta', color: colors.coral, meta: '6 min' },
   { title: 'Sound', subtitle: 'Frequency-assisted relaxation & ambient tones', icon: 'musical-notes', route: '/sound', color: colors.lavender, meta: 'Presets' },
+  { title: 'Sleep mixer', subtitle: 'Layer rain, waves & tones into a soundscape', icon: 'bed', route: '/sleep', color: colors.amber, meta: 'Mixer' },
 ];
 
 const HABITS = [

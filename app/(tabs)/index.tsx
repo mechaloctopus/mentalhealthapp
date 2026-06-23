@@ -10,6 +10,8 @@ import { GradientButton } from '../../src/components/GradientButton';
 import { useApp } from '../../src/context/AppContext';
 import { todaysMessage } from '../../src/data/messages';
 import { getEmotion } from '../../src/lib/emotions';
+import { computeProgress } from '../../src/lib/progress';
+import { Companion } from '../../src/components/Companion';
 import { initials } from '../../src/lib/auth';
 import { colors, font, radius, spacing } from '../../src/theme/theme';
 import { tap } from '../../src/lib/haptics';
@@ -32,7 +34,8 @@ function greeting() {
 
 export default function Today() {
   const router = useRouter();
-  const { user, checkins, baseline } = useApp();
+  const { user, checkins, baseline, sessions, journal } = useApp();
+  const progress = computeProgress({ checkins, sessions, journal });
   const msg = todaysMessage();
   const last = checkins[0];
   const firstName = (user?.name ?? 'Friend').split(' ')[0];
@@ -109,8 +112,32 @@ export default function Today() {
         </View>
       </Animated.View>
 
+      {/* Deepen: guide, journal, sleep */}
+      <Animated.View entering={FadeInDown.delay(200).duration(500)} style={{ marginTop: spacing.xl }}>
+        <Label style={{ marginBottom: 12 }}>DEEPEN</Label>
+        <View style={{ gap: spacing.sm }}>
+          <ToolRow icon="chatbubbles" color={colors.lavender} title="Reflect with your guide" sub="A short CBT-grounded conversation" onPress={() => { tap(); router.push('/coach'); }} />
+          <ToolRow icon="book" color={colors.amber} title="Journal" sub={journal.length ? `${journal.length} ${journal.length === 1 ? 'entry' : 'entries'}` : 'Think on paper'} onPress={() => { tap(); router.push('/journal'); }} />
+          <ToolRow icon="bed" color={colors.blue} title="Sleep mixer" sub="Layer a soundscape for rest" onPress={() => { tap(); router.push('/sleep'); }} />
+        </View>
+      </Animated.View>
+
+      {/* Companion strip */}
+      <Animated.View entering={FadeInDown.delay(240).duration(500)} style={{ marginTop: spacing.xl }}>
+        <Pressable onPress={() => { tap(); router.push('/voice'); }}>
+          <GlassCard style={styles.lumenRow} accent={colors.teal}>
+            <Companion progress={progress} size={64} />
+            <View style={{ flex: 1 }}>
+              <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>Lumen · {progress.levelName}</Body>
+              <Muted style={{ fontSize: 12.5 }}>{progress.streak}-day streak · tap for insights</Muted>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+          </GlassCard>
+        </Pressable>
+      </Animated.View>
+
       {/* Daily flow */}
-      <Animated.View entering={FadeInDown.delay(220).duration(500)} style={{ marginTop: spacing.xl }}>
+      <Animated.View entering={FadeInDown.delay(280).duration(500)} style={{ marginTop: spacing.xl }}>
         <GlassCard style={{ gap: spacing.md }}>
           <Label>THE DAILY FLOW</Label>
           {['Notification prompt', 'Voice check-in', 'Mood profile', 'Matched practice', 'Trend archive'].map((s, i, arr) => (
@@ -143,6 +170,23 @@ function Metric({ label, value, color, isText }: { label: string; value: number 
   );
 }
 
+function ToolRow({ icon, color, title, sub, onPress }: { icon: keyof typeof Ionicons.glyphMap; color: string; title: string; sub: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress}>
+      <GlassCard style={styles.toolRow}>
+        <View style={[styles.toolIcon, { backgroundColor: color + '1a' }]}>
+          <Ionicons name={icon} size={19} color={color} />
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>{title}</Body>
+          <Muted style={{ fontSize: 12.5 }}>{sub}</Muted>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+      </GlassCard>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg, marginTop: spacing.xs },
   avatar: { width: 46, height: 46, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
@@ -152,5 +196,8 @@ const styles = StyleSheet.create({
   flowNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.teal + '22', alignItems: 'center', justifyContent: 'center' },
   emoDot: { width: 14, height: 14, borderRadius: 7 },
   feelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingTop: 4 },
+  toolRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: spacing.md },
+  toolIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  lumenRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   flowLine: { width: 1, height: 14, backgroundColor: colors.panelBorder, marginLeft: 11, marginVertical: 2 },
 });
