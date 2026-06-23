@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { firebaseAuth } from './firebase';
+import { getFirebaseAuth, getAuthHelpers } from './firebase';
 import { googleClientIds, isFirebaseConfigured, isGoogleConfigured } from './authConfig';
 import type { User } from './auth';
 
@@ -46,9 +45,11 @@ export function useGoogleSignIn(onUser: (u: User) => void, onError?: (msg: strin
       (async () => {
         try {
           const idToken = response.authentication?.idToken ?? (response.params as any)?.id_token;
-          if (isFirebaseConfigured && firebaseAuth && idToken) {
-            const credential = GoogleAuthProvider.credential(idToken);
-            const result = await signInWithCredential(firebaseAuth, credential);
+          const fbAuth = getFirebaseAuth();
+          const helpers = getAuthHelpers();
+          if (isFirebaseConfigured && fbAuth && helpers && idToken) {
+            const credential = helpers.GoogleAuthProvider.credential(idToken);
+            const result = await helpers.signInWithCredential(fbAuth, credential);
             onUser(mapUser(result.user));
           } else if (idToken) {
             // Firebase not configured but Google succeeded — proceed with the Google identity.

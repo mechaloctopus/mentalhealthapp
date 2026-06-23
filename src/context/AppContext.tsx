@@ -4,8 +4,7 @@ import type { User } from '../lib/auth';
 import type { Baseline, CheckIn } from '../lib/voice';
 import { DEFAULT_NOTIF_PREFS, scheduleDailyMessages, type NotifPrefs } from '../lib/notifications';
 import { setHapticsEnabled } from '../lib/haptics';
-import { firebaseAuth } from '../lib/firebase';
-import { signOut as firebaseSignOut } from 'firebase/auth';
+import { getFirebaseAuth, getAuthHelpers } from '../lib/firebase';
 
 interface Prefs {
   notif: NotifPrefs;
@@ -60,27 +59,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
+    let done = false;
+    // Safety net: never let the app hang on the loading screen — flip ready after 4s
+    // even if storage is unexpectedly slow.
+    const safety = setTimeout(() => {
+      if (!done) setState((s) => ({ ...s, ready: true }));
+    }, 4000);
+
     (async () => {
-      const [user, onboarded, baseline, checkins, sessions, saved, prefs] = await Promise.all([
-        getItem<User | null>(KEYS.user, null),
-        getItem<boolean>(KEYS.onboarded, false),
-        getItem<Baseline | null>(KEYS.baseline, null),
-        getItem<CheckIn[]>(KEYS.checkins, []),
-        getItem<SessionLog[]>(KEYS.sessions, []),
-        getItem<number[]>(KEYS.savedMessages, []),
-        getItem<Prefs>(KEYS.prefs, DEFAULT_PREFS),
-      ]);
-      setState({
-        ready: true,
-        user,
-        onboarded,
-        baseline,
-        checkins,
-        sessions,
-        saved,
-        prefs: { ...DEFAULT_PREFS, ...prefs, notif: { ...DEFAULT_NOTIF_PREFS, ...prefs?.notif } },
-      });
+      try {
+        const [user, onboarded, baseline, checkins, sessions, saved, prefs] = await Promise.all([
+          getItem<User | null>(KEYS.user, null),
+          getItem<boolean>(KEYS.onboarded, false),
+          getItem<Baseline | null>(KEYS.baseline, null),
+          getItem<CheckIn[]>(KEYS.checkins, []),
+          getItem<SessionLog[]>(KEYS.sessions, []),
+          getItem<number[]>(KEYS.savedMessages, []),
+          getItem<Prefs>(KEYS.prefs, DEFAULT_PREFS),
+        ]);
+        setState({
+          ready: true,
+          user,
+          onboarded,
+          baseline,
+          checkins,
+          sessions,
+          saved,
+          prefs: { ...DEFAULT_PREFS, ...prefs, notif: { ...DEFAULT_NOTIF_PREFS, ...prefs?.notif } },
+        });
+      } catch {
+        setState((s) => ({ ...s, ready: true }));
+      } finally {
+        done = true;
+        clearTimeout(safety);
+      }
     })();
+
+    return () => clearTimeout(safety);
   }, []);
 
   // Keep the global haptics flag in sync with preferences.
@@ -151,7 +166,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         await removeItem(KEYS.user);
         // Best-effort Firebase sign-out when configured.
         try {
-          if (firebaseAuth) await firebaseSignOut(firebaseAuth);
+          const fbAuth = getFirebaseAuth();
+          const helpers = getAuthHelpers();
+          if (fbAuth && helpers) await helpers.signOut(fbAuth);
         } catch {
           /* not configured */
         }

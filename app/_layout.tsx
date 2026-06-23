@@ -16,8 +16,8 @@ import {
   Newsreader_500Medium,
   Newsreader_600SemiBold,
 } from '@expo-google-fonts/newsreader';
-import { View } from 'react-native';
 import { AppProvider } from '../src/context/AppContext';
+import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { colors } from '../src/theme/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -50,7 +50,7 @@ function NotificationRouter() {
 }
 
 export default function RootLayout() {
-  const [loaded] = useFonts({
+  const [loaded, error] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -59,39 +59,49 @@ export default function RootLayout() {
     Newsreader_600SemiBold,
   });
 
+  // Hide the splash as soon as fonts resolve (success OR error) — never block on them.
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync().catch(() => {});
-  }, [loaded]);
+    if (loaded || error) SplashScreen.hideAsync().catch(() => {});
+  }, [loaded, error]);
 
-  if (!loaded) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  // Absolute safety: hide the splash shortly after mount no matter what, so the
+  // app can never sit frozen on the native splash screen.
+  useEffect(() => {
+    const t = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
+  // Render immediately even before fonts finish — text falls back to the system
+  // font and swaps to Inter/Newsreader once loaded.
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <AppProvider>
-          <StatusBar style="light" />
-          <NotificationRouter />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.bg },
-              animation: 'fade',
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="onboarding" />
-            <Stack.Screen name="sign-in" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="baseline" options={{ animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="checkin" options={{ animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="breath" options={{ animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="sound" options={{ animation: 'slide_from_bottom' }} />
-            <Stack.Screen name="message/[id]" options={{ presentation: 'modal', animation: 'fade' }} />
-          </Stack>
-        </AppProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <AppProvider>
+            <StatusBar style="light" />
+            <NotificationRouter />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.bg },
+                animation: 'fade',
+              }}
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="onboarding" />
+              <Stack.Screen name="sign-in" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="baseline" options={{ animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="checkin" options={{ animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="breath" options={{ animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="sound" options={{ animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="message/[id]" options={{ presentation: 'modal', animation: 'fade' }} />
+            </Stack>
+          </AppProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
