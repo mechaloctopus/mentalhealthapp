@@ -1,18 +1,57 @@
 import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Screen, Display, Body, Muted, GlassCard, Serif } from '../src/components/ui';
+import { Screen, Display, Body, Muted, GlassCard } from '../src/components/ui';
 import { GradientButton } from '../src/components/GradientButton';
 import { BrandMark } from '../src/components/BrandMark';
 import { GoogleGlyph } from '../src/components/GoogleGlyph';
 import { useApp } from '../src/context/AppContext';
 import { signInWithGoogle, continueAnonymously, type User } from '../src/lib/auth';
 import { useGoogleSignIn } from '../src/lib/googleAuth';
+import { isGoogleConfigured } from '../src/lib/authConfig';
 import { scheduleDailyMessages } from '../src/lib/notifications';
 import { colors, font, spacing } from '../src/theme/theme';
 import { success } from '../src/lib/haptics';
+
+/** Shared presentational Google button so demo + real paths look identical. */
+function GoogleCardButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
+  return (
+    <Pressable onPress={onPress} disabled={disabled}>
+      <GlassCard style={styles.googleBtn}>
+        <GoogleGlyph size={22} />
+        <Body color={colors.text} style={styles.googleLabel}>{label}</Body>
+      </GlassCard>
+    </Pressable>
+  );
+}
+
+/**
+ * Real Google → Firebase button. The auth hook (which requires client IDs on
+ * Android) lives here so it is ONLY mounted when keys are configured — never in
+ * demo mode, where it would throw.
+ */
+function RealGoogleButton({
+  busy,
+  setBusy,
+  onUser,
+}: {
+  busy: boolean;
+  setBusy: (b: 'google' | 'anon' | null) => void;
+  onUser: (u: User) => void;
+}) {
+  const google = useGoogleSignIn(onUser, () => setBusy(null));
+  return (
+    <GoogleCardButton
+      label={busy ? 'Signing in…' : 'Continue with Google'}
+      disabled={busy}
+      onPress={async () => {
+        setBusy('google');
+        await google.prompt();
+      }}
+    />
+  );
+}
 
 export default function SignIn() {
   const router = useRouter();
@@ -26,25 +65,17 @@ export default function SignIn() {
     router.replace('/baseline');
   }, [prefs.notif, router]);
 
-  // Real Google → Firebase (active once keys are configured in app.json `extra`).
   const onGoogleUser = useCallback(async (user: User) => {
     await setUser(user);
     await finish();
   }, [setUser, finish]);
 
-  const google = useGoogleSignIn(onGoogleUser, () => setBusy(null));
-
-  const onGoogle = async () => {
+  // Demo mode: simulated Google identity so the full app is usable without keys.
+  const onGoogleDemo = async () => {
     setBusy('google');
-    if (google.configured) {
-      // Opens the real Google account picker; onGoogleUser fires on success.
-      await google.prompt();
-    } else {
-      // Demo mode: simulated Google identity so the full app is usable now.
-      const user = await signInWithGoogle();
-      await setUser(user);
-      await finish();
-    }
+    const user = await signInWithGoogle();
+    await setUser(user);
+    await finish();
   };
 
   const onAnon = async () => {
@@ -65,14 +96,15 @@ export default function SignIn() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(150).duration(600)} style={{ gap: spacing.md, alignSelf: 'stretch' }}>
-        <Pressable onPress={onGoogle} disabled={!!busy}>
-          <GlassCard style={styles.googleBtn}>
-            <GoogleGlyph size={22} />
-            <Body color={colors.text} style={styles.googleLabel}>
-              {busy === 'google' ? 'Signing in…' : 'Continue with Google'}
-            </Body>
-          </GlassCard>
-        </Pressable>
+        {isGoogleConfigured ? (
+          <RealGoogleButton busy={busy === 'google'} setBusy={setBusy} onUser={onGoogleUser} />
+        ) : (
+          <GoogleCardButton
+            label={busy === 'google' ? 'Signing in…' : 'Continue with Google'}
+            disabled={!!busy}
+            onPress={onGoogleDemo}
+          />
+        )}
 
         <GradientButton
           label={busy === 'anon' ? 'Starting…' : 'Continue without an account'}
@@ -85,7 +117,7 @@ export default function SignIn() {
 
       <Muted center style={styles.legal}>
         MoodSignal supports self-reflection and wellness. It is not a medical device and does not diagnose or treat any condition.
-        {google.configured ? '' : ' Google sign-in runs in demo mode until Firebase keys are added.'}
+        {isGoogleConfigured ? '' : ' Google sign-in runs in demo mode until Firebase keys are added.'}
       </Muted>
     </Screen>
   );
