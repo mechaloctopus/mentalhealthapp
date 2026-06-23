@@ -93,6 +93,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="baseline" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="checkin" options={{ animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="feel" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="breath" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />

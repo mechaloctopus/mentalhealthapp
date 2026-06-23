@@ -9,6 +9,7 @@ import { BrandMark } from '../../src/components/BrandMark';
 import { GradientButton } from '../../src/components/GradientButton';
 import { useApp } from '../../src/context/AppContext';
 import { todaysMessage } from '../../src/data/messages';
+import { getEmotion } from '../../src/lib/emotions';
 import { initials } from '../../src/lib/auth';
 import { colors, font, radius, spacing } from '../../src/theme/theme';
 import { tap } from '../../src/lib/haptics';
@@ -66,7 +67,10 @@ export default function Today() {
           </Row>
           {last ? (
             <>
-              <Serif style={{ fontSize: 21 }}>{last.tone}</Serif>
+              <Row gap={10}>
+                <View style={[styles.emoDot, { backgroundColor: getEmotion(last.emotion).color }]} />
+                <Serif style={{ fontSize: 22 }}>{getEmotion(last.emotion).label}</Serif>
+              </Row>
               <Row gap={spacing.lg}>
                 <Metric label="Energy" value={last.energy} color={colors.amber} />
                 <Metric label="Calm" value={last.calmness} color={colors.teal} />
@@ -77,10 +81,14 @@ export default function Today() {
           ) : (
             <>
               <Serif style={{ fontSize: 21 }}>How are you arriving today?</Serif>
-              <Body>A 30–60 second voice check-in estimates your energy, calmness, and stress — then suggests one practice.</Body>
+              <Body>A 30–60 second voice check-in reads your emotion across 12 feelings — then suggests one practice.</Body>
               <GradientButton label="Start voice check-in" onPress={() => router.push('/checkin')} full />
             </>
           )}
+          <Pressable onPress={() => { tap(); router.push('/feel'); }} style={styles.feelRow} hitSlop={6}>
+            <Ionicons name="color-palette-outline" size={16} color={colors.lavender} />
+            <Muted color={colors.lavender}>Or just name how you feel →</Muted>
+          </Pressable>
         </GlassCard>
       </Animated.View>
 
@@ -142,5 +150,7 @@ const styles = StyleSheet.create({
   quickTile: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: spacing.md },
   quickIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   flowNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.teal + '22', alignItems: 'center', justifyContent: 'center' },
+  emoDot: { width: 14, height: 14, borderRadius: 7 },
+  feelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingTop: 4 },
   flowLine: { width: 1, height: 14, backgroundColor: colors.panelBorder, marginLeft: 11, marginVertical: 2 },
 });

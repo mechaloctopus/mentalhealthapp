@@ -10,7 +10,7 @@ import { Waveform } from '../src/components/Waveform';
 import { SignalBar } from '../src/components/SignalBar';
 import { useApp } from '../src/context/AppContext';
 import { useRecorder } from '../src/lib/useRecorder';
-import { analyze, type MoodProfile } from '../src/lib/voice';
+import { analyzeVoice, type Affect } from '../src/lib/voice';
 import { colors, font, radius, spacing } from '../src/theme/theme';
 import { success, select } from '../src/lib/haptics';
 
@@ -28,7 +28,7 @@ export default function Baseline() {
   const rec = useRecorder();
   const [step, setStep] = useState<Step>('intro');
   const [settleCycles, setSettleCycles] = useState(0);
-  const [profile, setProfile] = useState<MoodProfile | null>(null);
+  const [profile, setProfile] = useState<Affect | null>(null);
   const autoStop = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-stop the capture once we have enough audio.
@@ -52,11 +52,18 @@ export default function Baseline() {
     if (autoStop.current) clearTimeout(autoStop.current);
     const { meters, durationMs } = await rec.stop();
     setStep('analyzing');
-    const p = analyze(meters, durationMs, null);
+    const p = analyzeVoice(meters, durationMs);
     // Let the analyzing animation breathe for a beat.
     setTimeout(async () => {
       setProfile(p);
-      await setBaseline({ energy: p.energy, calmness: p.calmness, stability: p.stability, capturedAt: Date.now() });
+      await setBaseline({
+        energy: p.energy,
+        calmness: p.calmness,
+        stability: p.stability,
+        valence: p.valence,
+        arousal: p.arousal,
+        capturedAt: Date.now(),
+      });
       success();
       setStep('done');
     }, 1700);

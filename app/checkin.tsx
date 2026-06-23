@@ -10,13 +10,16 @@ import { GradientButton } from '../src/components/GradientButton';
 import { Waveform } from '../src/components/Waveform';
 import { SignalBar } from '../src/components/SignalBar';
 import { BreathOrb, PATTERNS } from '../src/components/BreathOrb';
+import { EmotionWheel } from '../src/components/EmotionWheel';
+import { EmotionAura } from '../src/components/EmotionAura';
 import { useApp } from '../src/context/AppContext';
 import { useRecorder } from '../src/lib/useRecorder';
-import { analyze, type MoodProfile } from '../src/lib/voice';
+import { analyzeVoice, buildCheckIn, type Affect, type CheckIn } from '../src/lib/voice';
+import { getEmotion, matchEmotion } from '../src/lib/emotions';
 import { colors, font, radius, spacing } from '../src/theme/theme';
 import { success, select, tap } from '../src/lib/haptics';
 
-type Step = 'ready' | 'recording' | 'analyzing' | 'result';
+type Step = 'ready' | 'recording' | 'analyzing' | 'confirm' | 'result';
 
 const PROMPTS = [
   'Tell me, in your own words, how today has actually felt so far.',
@@ -32,7 +35,9 @@ export default function CheckIn() {
   const { baseline, addCheckIn } = useApp();
   const rec = useRecorder();
   const [step, setStep] = useState<Step>('ready');
-  const [profile, setProfile] = useState<MoodProfile | null>(null);
+  const [affect, setAffect] = useState<Affect | null>(null);
+  const [selfEmotion, setSelfEmotion] = useState<string | undefined>(undefined);
+  const [checkin, setCheckin] = useState<CheckIn | null>(null);
   const prompt = useRef(PROMPTS[Math.floor(Math.random() * PROMPTS.length)]).current;
   const autoStop = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -54,20 +59,28 @@ export default function CheckIn() {
     if (autoStop.current) clearTimeout(autoStop.current);
     const { meters, durationMs } = await rec.stop();
     setStep('analyzing');
-    const p = analyze(meters, durationMs, baseline);
+    const a = analyzeVoice(meters, durationMs);
     setTimeout(() => {
-      setProfile(p);
-      addCheckIn({ ...p, id: Math.random().toString(36).slice(2), at: Date.now() });
-      success();
-      setStep('result');
+      setAffect(a);
+      setSelfEmotion(a.voiceEmotion);
+      setStep('confirm');
     }, 1700);
+  };
+
+  const confirm = () => {
+    if (!affect) return;
+    const c = buildCheckIn({ affect, baseline, selfEmotion });
+    setCheckin(c);
+    addCheckIn(c);
+    success();
+    setStep('result');
   };
 
   const close = () => { tap(); router.canGoBack() ? router.back() : router.replace('/(tabs)'); };
 
   return (
     <View style={{ flex: 1 }}>
-      <AnimatedBackground tint={colors.teal} />
+      <AnimatedBackground tint={checkin ? getEmotion(checkin.emotion).color : affect ? getEmotion(affect.voiceEmotion).color : colors.teal} />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
         <View style={styles.topBar}>
           <Pressable onPress={close} hitSlop={12} style={styles.iconBtn}>
@@ -113,46 +126,75 @@ export default function CheckIn() {
           </Animated.View>
         )}
 
-        {step === 'result' && profile && (
-          <Animated.ScrollView
-            entering={FadeInDown.duration(500)}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ padding: spacing.lg, paddingBottom: 40 }}
-          >
-            <Label center color={colors.teal}>TODAY YOU SOUND</Label>
-            <Display center style={{ fontSize: 32, marginTop: 8, marginBottom: spacing.xl }}>{profile.tone}</Display>
+        {step === 'confirm' && affect && (
+          <Animated.ScrollView entering={FadeInDown.duration(500)} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+            <Label center color={getEmotion(affect.voiceEmotion).color}>YOUR VOICE SOUNDED</Label>
+            <View style={{ alignItems: 'center', marginVertical: spacing.md }}>
+              <EmotionAura emotionId={affect.voiceEmotion} confidence={affect.confidence} size={220} />
+            </View>
+            <Serif center style={{ fontSize: 18, marginBottom: spacing.lg, paddingHorizontal: spacing.md }}>
+              Does that feel right? Tap the wheel to name it for yourself.
+            </Serif>
+            <EmotionWheel value={affect.voiceEmotion} onChange={setSelfEmotion} size={300} />
+            <View style={{ height: spacing.xl }} />
+            <GradientButton label="Confirm this feeling" onPress={confirm} full />
+            <View style={{ height: 60 }} />
+          </Animated.ScrollView>
+        )}
 
-            <GlassCard style={{ gap: spacing.lg }}>
-              <SignalBar label="Energy" value={profile.energy} color={colors.amber} />
-              <SignalBar label="Calmness" value={profile.calmness} color={colors.teal} delay={120} />
-              <SignalBar label="Stability" value={profile.stability} color={colors.blue} delay={240} />
+        {step === 'result' && checkin && (
+          <Animated.ScrollView entering={FadeInDown.duration(500)} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+            <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
+              <EmotionAura emotionId={checkin.emotion} size={230} subtitle={getEmotion(checkin.emotion).blurb} />
+            </View>
+
+            {affect && (() => {
+              const sec = matchEmotion(affect.valence, affect.arousal).secondary.filter((e) => e.id !== checkin.emotion);
+              return sec.length ? (
+                <View style={styles.secRow}>
+                  <Muted style={{ marginRight: 4 }}>Also sensing</Muted>
+                  {sec.map((e) => (
+                    <View key={e.id} style={[styles.secChip, { borderColor: e.color + '66' }]}>
+                      <View style={[styles.secDot, { backgroundColor: e.color }]} />
+                      <Body color={colors.text} style={{ fontSize: 12.5 }}>{e.label}</Body>
+                    </View>
+                  ))}
+                </View>
+              ) : null;
+            })()}
+
+            <GlassCard style={{ gap: spacing.lg, marginTop: spacing.md }}>
+              <SignalBar label="Energy" value={checkin.energy} color={colors.amber} />
+              <SignalBar label="Calmness" value={checkin.calmness} color={colors.teal} delay={120} />
+              <SignalBar label="Stability" value={checkin.stability} color={colors.blue} delay={240} />
               <Row style={{ justifyContent: 'space-between', marginTop: 4 }}>
                 <Muted>Stress signal</Muted>
                 <Row gap={8}>
-                  <View style={[styles.dot, { backgroundColor: profile.stress === 'Elevated' ? colors.coral : profile.stress === 'Mild' ? colors.amber : colors.moss }]} />
-                  <Body color={colors.text} style={{ fontFamily: font.sansSemibold }}>{profile.stress}</Body>
+                  <View style={[styles.dot, { backgroundColor: checkin.stress === 'Elevated' ? colors.coral : checkin.stress === 'Mild' ? colors.amber : colors.moss }]} />
+                  <Body color={colors.text} style={{ fontFamily: font.sansSemibold }}>{checkin.stress}</Body>
                 </Row>
               </Row>
               {baseline ? (
                 <Row style={{ justifyContent: 'space-between' }}>
                   <Muted>Vs. baseline</Muted>
-                  <Body color={profile.baselineShift >= 0 ? colors.moss : colors.coral} style={{ fontFamily: font.sansSemibold }}>
-                    {profile.baselineShift >= 0 ? '+' : ''}{profile.baselineShift}
+                  <Body color={checkin.baselineShift >= 0 ? colors.moss : colors.coral} style={{ fontFamily: font.sansSemibold }}>
+                    {checkin.baselineShift >= 0 ? '+' : ''}{checkin.baselineShift}
                   </Body>
                 </Row>
               ) : null}
             </GlassCard>
 
-            <GlassCard accent={colors.lavender} style={{ marginTop: spacing.lg, gap: 8 }}>
-              <Label color={colors.lavender}>ONE GENTLE NEXT STEP</Label>
-              <Serif style={{ fontSize: 20 }}>{profile.recommendation.practice}</Serif>
-              <Body>{profile.recommendation.reason}</Body>
+            <GlassCard accent={getEmotion(checkin.emotion).color} style={{ marginTop: spacing.lg, gap: 8 }}>
+              <Label color={getEmotion(checkin.emotion).color}>ONE GENTLE NEXT STEP</Label>
+              <Serif style={{ fontSize: 20 }}>{checkin.recommendation.practice}</Serif>
+              <Body>{checkin.recommendation.reason}</Body>
             </GlassCard>
 
             <View style={{ height: spacing.xl }} />
-            <GradientButton label={`Begin ${profile.recommendation.practice}`} onPress={() => { tap(); router.replace(profile.recommendation.route as any); }} full />
+            <GradientButton label={`Begin ${checkin.recommendation.practice}`} onPress={() => { tap(); router.replace(checkin.recommendation.route as any); }} full />
             <View style={{ height: spacing.md }} />
             <GradientButton label="Back to today" variant="ghost" onPress={() => router.replace('/(tabs)')} full />
+            <View style={{ height: 40 }} />
           </Animated.ScrollView>
         )}
 
@@ -179,6 +221,10 @@ const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   iconBtn: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.xl },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 24, alignItems: 'stretch' },
   footer: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   dot: { width: 12, height: 12, borderRadius: 6 },
+  secRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 8 },
+  secChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.03)' },
+  secDot: { width: 8, height: 8, borderRadius: 4 },
 });

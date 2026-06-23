@@ -8,6 +8,7 @@ import { GradientButton } from '../../src/components/GradientButton';
 import { SignalBar } from '../../src/components/SignalBar';
 import { Sparkline } from '../../src/components/Sparkline';
 import { useApp } from '../../src/context/AppContext';
+import { getEmotion } from '../../src/lib/emotions';
 import { colors, font, spacing } from '../../src/theme/theme';
 
 export default function Voice() {
@@ -31,9 +32,10 @@ export default function Voice() {
           </View>
           <Serif center style={{ fontSize: 22 }}>30–60 second check-in</Serif>
           <Body center style={{ maxWidth: 300 }}>
-            Read a short line or speak freely. We estimate energy, calmness, and stress on-device, then suggest one practice.
+            Speak freely. We read your emotion across 12 feelings on-device, you confirm it, then we suggest one practice.
           </Body>
           <GradientButton label="Start check-in" onPress={() => router.push('/checkin')} full />
+          <GradientButton label="Just name how you feel" variant="ghost" onPress={() => router.push('/feel')} full />
         </GlassCard>
       </Animated.View>
 
@@ -68,8 +70,12 @@ export default function Voice() {
           <View style={{ gap: spacing.sm }}>
             {checkins.slice(0, 20).map((c) => (
               <GlassCard key={c.id} style={styles.histRow}>
+                <View style={[styles.histEmoDot, { backgroundColor: getEmotion(c.emotion).color }]} />
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>{c.tone}</Body>
+                  <Row gap={6}>
+                    <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>{getEmotion(c.emotion).label}</Body>
+                    {c.source === 'self' ? <Ionicons name="hand-left" size={11} color={colors.textDim} /> : <Ionicons name="mic" size={11} color={colors.textDim} />}
+                  </Row>
                   <Muted style={{ fontSize: 12.5 }}>
                     {new Date(c.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {new Date(c.at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
                   </Muted>
@@ -77,7 +83,6 @@ export default function Voice() {
                 <Row gap={spacing.md}>
                   <Stat label="E" value={c.energy} color={colors.amber} />
                   <Stat label="C" value={c.calmness} color={colors.teal} />
-                  <View style={[styles.stressDot, { backgroundColor: c.stress === 'Elevated' ? colors.coral : c.stress === 'Mild' ? colors.amber : colors.moss }]} />
                 </Row>
               </GlassCard>
             ))}
@@ -105,6 +110,6 @@ const styles = StyleSheet.create({
   header: { marginTop: spacing.xs, marginBottom: spacing.lg },
   micHalo: { width: 64, height: 64, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.teal + '1a', borderWidth: 1, borderColor: colors.teal + '55' },
   histRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
-  stressDot: { width: 12, height: 12, borderRadius: 6 },
+  histEmoDot: { width: 12, height: 12, borderRadius: 6 },
   disclaimer: { marginTop: spacing.xl, fontSize: 12, lineHeight: 18 },
 });
