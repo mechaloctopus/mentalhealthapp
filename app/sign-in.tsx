@@ -90,6 +90,7 @@ export default function SignIn() {
       <Animated.View entering={FadeInDown.duration(600)} style={styles.hero}>
         <BrandMark size={72} />
         <Display style={styles.title}>MoodSignal</Display>
+        <Muted center style={{ fontSize: 10.5, letterSpacing: 2.5, color: colors.gold, marginTop: -4 }}>A MENDED LIGHT APP</Muted>
         <Body center style={{ maxWidth: 320 }}>
           Research-informed emotional calibration. Sign in to keep your baseline, trends, and saved words in sync.
         </Body>

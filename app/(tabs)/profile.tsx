@@ -143,13 +143,14 @@ export default function Profile() {
 
       {/* About / actions */}
       <Animated.View entering={FadeInDown.delay(240).duration(500)} style={{ marginTop: spacing.xl, gap: spacing.sm }}>
+        <ActionRow icon="clipboard-outline" label="Research & data · screeners, export" color={colors.lavender} onPress={() => { tap(); router.push('/research'); }} />
         <ActionRow icon="refresh-outline" label="Re-take voice baseline" color={colors.teal} onPress={() => { tap(); router.push('/baseline'); }} />
         <ActionRow icon="log-out-outline" label="Sign out" color={colors.amber} onPress={onSignOut} />
         <ActionRow icon="trash-outline" label="Reset all data" color={colors.coral} onPress={onReset} />
       </Animated.View>
 
       <Muted center style={styles.about}>
-        MoodSignal · Research-informed emotional calibration. A wellness and self-reflection aid — not a medical device, and not a substitute for professional care. Voice analysis happens on-device.
+        MoodSignal · A Mended Light app. Research-informed emotional calibration — a wellness and self-reflection aid, not a medical device, and not a substitute for professional care. Voice analysis happens on-device.
       </Muted>
     </Screen>
   );

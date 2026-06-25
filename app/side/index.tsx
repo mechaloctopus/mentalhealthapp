@@ -99,11 +99,16 @@ export default function SideHome() {
             <Label color={colors.lavender} style={{ marginTop: 4 }}>YOUR MENTOR</Label>
           </Row>
           <Serif style={{ fontSize: 17, lineHeight: 25 }}>{nudge.line}</Serif>
-          {nudge.cta ? (
-            <Pressable onPress={() => { tap(); router.push(nudge.cta!.route as any); }} style={styles.mentorCta}>
-              <Body color={colors.lavender} style={{ fontFamily: font.sansSemibold, fontSize: 13.5 }}>{nudge.cta.label} →</Body>
+          <Row style={{ justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+            {nudge.cta ? (
+              <Pressable onPress={() => { tap(); router.push(nudge.cta!.route as any); }}>
+                <Body color={colors.lavender} style={{ fontFamily: font.sansSemibold, fontSize: 13.5 }}>{nudge.cta.label} →</Body>
+              </Pressable>
+            ) : <View />}
+            <Pressable onPress={() => { tap(); router.push('/side/mentor'); }}>
+              <Muted style={{ fontSize: 12.5, color: colors.textMuted }}>Open mentor →</Muted>
             </Pressable>
-          ) : null}
+          </Row>
         </GlassCard>
       </Animated.View>
 
@@ -189,6 +194,21 @@ export default function SideHome() {
         </GlassCard>
       </Animated.View>
 
+      {/* Gatherings */}
+      <Animated.View entering={FadeInDown.delay(280).duration(500)} style={{ marginTop: spacing.xl, gap: spacing.sm }}>
+        <Label style={{ marginBottom: 4 }}>GATHERINGS</Label>
+        <Pressable onPress={() => { tap(); router.push('/side/community'); }}>
+          <GlassCard style={styles.linkRow} accent={colors.coral}>
+            <View style={[styles.linkIcon, { backgroundColor: colors.coral + '1a' }]}><Ionicons name="people" size={19} color={colors.coral} /></View>
+            <View style={{ flex: 1 }}>
+              <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>Community</Body>
+              <Muted style={{ fontSize: 12.5 }}>Compassion wall · sit together · weekly challenge</Muted>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+          </GlassCard>
+        </Pressable>
+      </Animated.View>
+
       <Muted center style={{ marginTop: spacing.xl, fontSize: 11.5, lineHeight: 17 }}>
         These practices are drawn from many traditions and offered for reflection and well-being — not as religious instruction or a substitute for professional care.
       </Muted>
@@ -220,4 +240,6 @@ const styles = StyleSheet.create({
   pathIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   treeTrack: { height: 6, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' },
   treeFill: { height: 6, borderRadius: 6 },
+  linkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: spacing.md },
+  linkIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });

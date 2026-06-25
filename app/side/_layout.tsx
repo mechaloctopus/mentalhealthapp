@@ -15,6 +15,8 @@ export default function SideLayout() {
       >
         <Stack.Screen name="index" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="trees" />
+        <Stack.Screen name="mentor" />
+        <Stack.Screen name="community" />
         <Stack.Screen name="path/[id]" />
         <Stack.Screen name="quest/[id]" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       </Stack>

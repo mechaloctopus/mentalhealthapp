@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { getItem, setItem, removeItem, clearAll, KEYS } from '../lib/storage';
 import type { User } from '../lib/auth';
 import type { Baseline, CheckIn } from '../lib/voice';
+import type { ScreenerResult } from '../lib/screeners';
 import { DEFAULT_NOTIF_PREFS, scheduleDailyMessages, type NotifPrefs } from '../lib/notifications';
 import { setHapticsEnabled } from '../lib/haptics';
 import { getFirebaseAuth, getAuthHelpers } from '../lib/firebase';
@@ -35,6 +36,8 @@ interface AppState {
   checkins: CheckIn[];
   sessions: SessionLog[];
   journal: JournalEntry[];
+  screeners: ScreenerResult[];
+  researchConsent: boolean;
   saved: number[]; // saved message ids
   prefs: Prefs;
 }
@@ -47,6 +50,8 @@ interface AppActions {
   addSession: (s: Omit<SessionLog, 'id' | 'at'>) => Promise<void>;
   addJournal: (e: Omit<JournalEntry, 'id' | 'at'>) => Promise<void>;
   deleteJournal: (id: string) => Promise<void>;
+  addScreener: (r: ScreenerResult) => Promise<void>;
+  setResearchConsent: (v: boolean) => Promise<void>;
   toggleSaved: (id: number) => Promise<void>;
   updateNotifPrefs: (p: Partial<NotifPrefs>) => Promise<void>;
   setHaptics: (on: boolean) => Promise<void>;
@@ -67,6 +72,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     checkins: [],
     sessions: [],
     journal: [],
+    screeners: [],
+    researchConsent: false,
     saved: [],
     prefs: DEFAULT_PREFS,
   });
@@ -81,13 +88,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     (async () => {
       try {
-        const [user, onboarded, baseline, checkins, sessions, journal, saved, prefs] = await Promise.all([
+        const [user, onboarded, baseline, checkins, sessions, journal, screeners, researchConsent, saved, prefs] = await Promise.all([
           getItem<User | null>(KEYS.user, null),
           getItem<boolean>(KEYS.onboarded, false),
           getItem<Baseline | null>(KEYS.baseline, null),
           getItem<CheckIn[]>(KEYS.checkins, []),
           getItem<SessionLog[]>(KEYS.sessions, []),
           getItem<JournalEntry[]>(KEYS.journal, []),
+          getItem<ScreenerResult[]>(KEYS.screeners, []),
+          getItem<boolean>(KEYS.researchConsent, false),
           getItem<number[]>(KEYS.savedMessages, []),
           getItem<Prefs>(KEYS.prefs, DEFAULT_PREFS),
         ]);
@@ -99,6 +108,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           checkins,
           sessions,
           journal,
+          screeners,
+          researchConsent,
           saved,
           prefs: { ...DEFAULT_PREFS, ...prefs, notif: { ...DEFAULT_NOTIF_PREFS, ...prefs?.notif } },
         });
@@ -163,6 +174,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           return { ...s, journal };
         });
       },
+      async addScreener(r) {
+        setState((s) => {
+          const screeners = [r, ...s.screeners].slice(0, 200);
+          setItem(KEYS.screeners, screeners);
+          return { ...s, screeners };
+        });
+      },
+      async setResearchConsent(v) {
+        setState((s) => {
+          setItem(KEYS.researchConsent, v);
+          return { ...s, researchConsent: v };
+        });
+      },
       async toggleSaved(id) {
         setState((s) => {
           const saved = s.saved.includes(id) ? s.saved.filter((x) => x !== id) : [id, ...s.saved];
@@ -213,6 +237,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           checkins: [],
           sessions: [],
           journal: [],
+          screeners: [],
+          researchConsent: false,
           saved: [],
           prefs: DEFAULT_PREFS,
         });

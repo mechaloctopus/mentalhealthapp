@@ -49,5 +49,7 @@ export const KEYS = {
   savedMessages: 'savedMessages',
   sessions: 'sessions',
   journal: 'journal',
+  screeners: 'screeners',
+  researchConsent: 'researchConsent',
   notificationsScheduled: 'notificationsScheduled',
 } as const;

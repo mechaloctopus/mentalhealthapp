@@ -244,7 +244,50 @@ const wisdomLib: Path = {
   ],
 };
 
-export const PATHS: Path[] = [temples, habits, purpose, flow, coherence, wisdomLib];
+const bodhisattva: Path = {
+  id: 'bodhisattva',
+  title: 'The Bodhisattva Path',
+  subtitle: 'For the benefit of all beings',
+  tradition: 'Mahayana Buddhism · optional vow',
+  blurb: 'Optional, never forced. Take a gentle vow to work for the benefit of all beings, then grow a Compassion level through small daily acts: Beginner → Helper → Guardian → Companion → Bodhisattva.',
+  color: colors.coral,
+  icon: 'infinite',
+  stages: [
+    {
+      id: 'b-vow', title: 'The Vow & the Acts', theme: 'May I be of benefit.', reward: 'Compassion',
+      quests: [
+        { id: 'b-vow-take', title: 'Take the vow (gently)', instruction: 'Quietly set the intention: “Today, I will try to be of benefit to others.” That is the whole vow.', kind: 'reflect', trees: ['compassion'], resonance: 20, reflect: 'My intention today…', tradition: 'Bodhisattva vow' },
+        { id: 'b-suffering', title: 'Ease one being’s burden', instruction: 'Notice one person (or creature) who is struggling, and do one small thing to ease it.', kind: 'service', trees: ['compassion', 'service'], resonance: 20, repeatable: true, grants: { karma: 2, stewardship: 1 } },
+        { id: 'b-tonglen', title: 'Tonglen breath', instruction: 'Breathe in another’s pain; breathe out relief and warmth toward them, for two minutes.', kind: 'breath', trees: ['compassion', 'mindfulness'], resonance: 18, minutes: 2, repeatable: true, tradition: 'Tonglen' },
+        { id: 'b-anon', title: 'A hidden kindness', instruction: 'Do one good thing today that no one will ever know you did.', kind: 'service', trees: ['compassion'], resonance: 22, repeatable: true, grants: { karma: 3 } },
+      ],
+    },
+  ],
+};
+
+const stoic: Path = {
+  id: 'stoic',
+  title: 'The Stoic Path',
+  subtitle: 'Master what is yours',
+  tradition: 'Stoicism · Aurelius, Epictetus',
+  blurb: 'Ancient practices for a steady mind: separate what you control from what you don’t, rehearse loss to deepen gratitude, and review each day with honesty and mercy.',
+  color: colors.blue,
+  icon: 'shield-half',
+  stages: [
+    {
+      id: 's-prac', title: 'Daily Stoic Practice', theme: 'You have power over your mind — not outside events.', reward: 'Equanimity',
+      quests: [
+        { id: 's-dichotomy', title: 'The dichotomy of control', instruction: 'Name one thing troubling you. Sort it: what here is in my control, and what is not? Release the rest.', kind: 'reflect', trees: ['wisdom'], resonance: 18, reflect: 'In my control… / Not in my control…', repeatable: true },
+        { id: 's-negative', title: 'Rehearse loss', instruction: 'Picture briefly losing something you love. Then return to it with fresh gratitude.', kind: 'reflect', trees: ['wisdom', 'mindfulness'], resonance: 16, repeatable: true, tradition: 'Negative visualization' },
+        { id: 's-aboveview', title: 'The view from above', instruction: 'Imagine your life seen from far above — the city, the earth, the stars. Let today’s worry find its size.', kind: 'meditate', trees: ['wisdom'], resonance: 16, minutes: 3, repeatable: true },
+        { id: 's-evening', title: 'Evening review', instruction: 'Review your day honestly and kindly: what did I do well, what could be better, what can I let go?', kind: 'reflect', trees: ['wisdom', 'leadership'], resonance: 18, reflect: 'Well / Better / Let go…', repeatable: true },
+        { id: 's-amorfati', title: 'Amor fati', instruction: 'Find one thing about today, even a hard thing, that you can choose to accept fully.', kind: 'reflect', trees: ['wisdom'], resonance: 18, repeatable: true },
+      ],
+    },
+  ],
+};
+
+export const PATHS: Path[] = [temples, habits, purpose, flow, coherence, bodhisattva, stoic, wisdomLib];
 export const PATH_BY_ID: Record<string, Path> = Object.fromEntries(PATHS.map((p) => [p.id, p]));
 
 // Flat index of every quest (path quests + daily pool).

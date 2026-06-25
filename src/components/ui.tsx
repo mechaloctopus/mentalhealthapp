@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: 140, paddingTop: spacing.sm },
   center: { textAlign: 'center' },
 
-  display: { fontFamily: font.serif, fontSize: 38, lineHeight: 44, color: colors.text, letterSpacing: -0.5 },
+  display: { fontFamily: font.display, fontSize: 34, lineHeight: 44, color: colors.text, letterSpacing: 0.4 },
   title: { fontFamily: font.sansBold, fontSize: 24, lineHeight: 30, color: colors.text, letterSpacing: -0.3 },
   serif: { fontFamily: font.serif, fontSize: 22, lineHeight: 30, color: colors.text },
   body: { fontFamily: font.sans, fontSize: 15.5, lineHeight: 24, color: colors.textMuted },

@@ -16,6 +16,11 @@ import {
   Newsreader_500Medium,
   Newsreader_600SemiBold,
 } from '@expo-google-fonts/newsreader';
+import {
+  Cinzel_500Medium,
+  Cinzel_600SemiBold,
+  Cinzel_700Bold,
+} from '@expo-google-fonts/cinzel';
 import { AppProvider } from '../src/context/AppContext';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { colors } from '../src/theme/theme';
@@ -57,6 +62,9 @@ export default function RootLayout() {
     Inter_700Bold,
     Newsreader_500Medium,
     Newsreader_600SemiBold,
+    Cinzel_500Medium,
+    Cinzel_600SemiBold,
+    Cinzel_700Bold,
   });
 
   // Hide the splash as soon as fonts resolve (success OR error) — never block on them.
@@ -98,6 +106,7 @@ export default function RootLayout() {
               <Stack.Screen name="journal" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="journal-new" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
               <Stack.Screen name="sleep" options={{ animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="research" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="breath" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
               <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />

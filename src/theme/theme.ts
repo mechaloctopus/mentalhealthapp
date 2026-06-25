@@ -26,6 +26,10 @@ export const colors = {
   lavender: '#b6a7ff',
   blue: '#7db9ff',
 
+  // Mended Light — warm, luminous gold for the brand/display accents.
+  gold: '#e8c98a',
+  goldDeep: '#caa765',
+
   black: '#050606',
   white: '#ffffff',
   danger: '#ef786c',
@@ -42,7 +46,8 @@ export const accents = [
 ] as const;
 
 export const gradients = {
-  brand: ['#66e0ca', '#f0bd67'] as const,
+  brand: ['#f0d6a0', '#66e0ca'] as const, // Mended Light: luminous gold → teal
+  gold: ['#f0d6a0', '#caa765'] as const,
   brandSoft: ['rgba(102,224,202,0.22)', 'rgba(240,189,103,0.10)'] as const,
   canvas: ['#0b0e0d', '#090b0b', '#070808'] as const,
   coral: ['#ef786c', '#f0bd67'] as const,
@@ -69,6 +74,9 @@ export const spacing = {
 
 export const font = {
   // Names match @expo-google-fonts exports, loaded in app/_layout.tsx.
+  // Cinzel = the Mended Light display face (classical, luminous).
+  display: 'Cinzel_600SemiBold',
+  displayBold: 'Cinzel_700Bold',
   serif: 'Newsreader_500Medium',
   serifSemibold: 'Newsreader_600SemiBold',
   sans: 'Inter_400Regular',
