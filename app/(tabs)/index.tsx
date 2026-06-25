@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Screen, Display, Title, Body, Muted, Label, GlassCard, Serif, Row, Divider } from '../../src/components/ui';
 import { MessageCard } from '../../src/components/MessageCard';
@@ -59,6 +60,23 @@ export default function Today() {
       <Animated.View entering={FadeInDown.duration(500)}>
         <Label style={{ marginBottom: 10 }}>TODAY’S WORD</Label>
         <MessageCard message={msg} featured />
+      </Animated.View>
+
+      {/* Side Module entry */}
+      <Animated.View entering={FadeInDown.delay(60).duration(500)} style={{ marginTop: spacing.lg }}>
+        <Pressable onPress={() => { tap(); router.push('/side'); }}>
+          <View style={styles.sideBanner}>
+            <LinearGradient colors={['rgba(182,167,255,0.22)', 'rgba(102,224,202,0.10)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            <View style={[styles.sideIcon, { borderColor: colors.lavender + '66' }]}>
+              <Ionicons name="planet" size={24} color={colors.lavender} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Body color={colors.text} style={{ fontFamily: font.sansBold, fontSize: 16 }}>The Inner Path</Body>
+              <Muted style={{ fontSize: 12.5 }}>Side module · quests, wisdom paths & growth</Muted>
+            </View>
+            <Ionicons name="arrow-forward" size={18} color={colors.lavender} />
+          </View>
+        </Pressable>
       </Animated.View>
 
       {/* Voice check-in card */}
@@ -199,5 +217,7 @@ const styles = StyleSheet.create({
   toolRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: spacing.md },
   toolIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   lumenRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  sideBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.lavender + '44', overflow: 'hidden', backgroundColor: colors.panel },
+  sideIcon: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(182,167,255,0.16)', borderWidth: 1 },
   flowLine: { width: 1, height: 14, backgroundColor: colors.panelBorder, marginLeft: 11, marginVertical: 2 },
 });
