@@ -164,7 +164,7 @@ src/
 scripts/
   gen-assets.js              Branded app icon/splash generation
 
-docs/                        Product, roadmap, architecture, side module, and production docs
+docs/                        Product, roadmap, architecture, side module, audit, and production docs
 ```
 
 ---
@@ -190,6 +190,7 @@ MoodSignal is currently a strong prototype moving toward production readiness.
 - Purpose/stewardship prompt scaffold
 - Side Module with resonance, daily quests, mission stages, paths, mentor, community, and skill trees
 - Production documentation map
+- Repo audit / cleanup log
 
 ### Production blockers
 
@@ -223,7 +224,8 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md), [`docs/SIDE_MODULE.md`](docs/SIDE_MODU
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — phased buildout plan
 - [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md) — release-readiness checklist
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — current architecture and target improvements
-- [`docs/CONTENT_SYSTEM.md`](docs/CONTENT_SYSTEM.md) — messages, wisdom, purpose, and practice content model
+- [`docs/CONTENT_SYSTEM.md`](docs/CONTENT_SYSTEM.md) — messages, wisdom, purpose, side quests, and practice content model
+- [`docs/REPO_AUDIT.md`](docs/REPO_AUDIT.md) — documentation reconciliation and cleanup log
 
 ---
 
