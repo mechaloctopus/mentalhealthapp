@@ -1,14 +1,16 @@
 # MoodSignal Content System
 
-MoodSignal’s content should support state-aware recommendations, practical wisdom, emotional regulation, purpose, and long-term growth.
+MoodSignal’s content supports state-aware recommendations, practical wisdom, emotional regulation, purpose, side quests, and long-term growth.
 
 The content system should avoid becoming a pile of unrelated quotes. Every content item should be structured, tagged, and connected to an action.
 
 ---
 
-## Current Content
+## Current Content Sources
 
-The current app includes a deterministic 365-day message engine with categories such as:
+### `src/data/messages.ts`
+
+The app includes a deterministic 365-day message engine with categories such as:
 
 - affirmations
 - devotionals
@@ -20,7 +22,62 @@ The current app includes a deterministic 365-day message engine with categories 
 - resilience
 - thoughts
 
-This is a good foundation for daily notifications and message viewports.
+This powers daily notifications and message viewports.
+
+### `src/data/wisdom.ts`
+
+This is the lightweight recommendation-facing wisdom card bank.
+
+Wisdom cards are short, tagged, and action-oriented. They are currently used after check-ins through `src/lib/recommendationEngine.ts`.
+
+### `src/lib/purposeEngine.ts`
+
+This is the lightweight recommendation-facing purpose/stewardship prompt bank.
+
+It should eventually be connected to the richer Acts of Stewardship quests in `src/side/content.ts`.
+
+### `src/side/content.ts`
+
+This is the largest live content system in the app.
+
+It defines:
+
+- daily quest pool
+- quest kinds
+- quest rewards
+- mission stages
+- wisdom paths
+- path stages
+- quest lookup helpers
+
+Current live wisdom paths include:
+
+- The Five Temples
+- The Seven Habits
+- Acts of Stewardship
+- Flow / Mushin-oriented practice
+- Heart coherence
+- Bodhisattva-inspired compassion/service
+- Stoicism
+- Wisdom Library
+
+This file should be treated as the source of truth for side quests and wisdom paths. Do not create a duplicate side quest system elsewhere.
+
+### `src/side/trees.ts`
+
+This defines the skill-tree taxonomy:
+
+- Mindfulness
+- Compassion
+- Purpose
+- Wisdom
+- Fitness
+- Nutrition
+- Relationships
+- Leadership
+- Service
+- Creativity
+- Flow
 
 ---
 
@@ -41,7 +98,7 @@ Purpose:
 
 Compact, practical cards connected to user state.
 
-Example structure:
+Current structure:
 
 ```ts
 interface WisdomEntry {
@@ -50,9 +107,10 @@ interface WisdomEntry {
   body: string;
   action: string;
   tradition: WisdomTradition;
-  tags: WisdomTag[];
+  tones: WisdomTone[];
   emotions: string[];
   virtues: string[];
+  tags: string[];
   practiceRoute?: string;
 }
 ```
@@ -68,6 +126,48 @@ Examples:
 - “Clean one surface.”
 - “Prepare your body for the next hour: water, breath, posture.”
 - “Ask: who near me could use help?”
+
+### Side Quests
+
+Actionable growth tasks defined in `src/side/content.ts`.
+
+Current structure:
+
+```ts
+interface Quest {
+  id: string;
+  title: string;
+  instruction: string;
+  kind: QuestKind;
+  trees: TreeId[];
+  resonance: number;
+  reflect?: string;
+  minutes?: number;
+  teaching?: string;
+  tradition?: string;
+  repeatable?: boolean;
+  grants?: QuestGrants;
+}
+```
+
+### Wisdom Paths
+
+Data-driven journeys composed of stages and quests.
+
+Current structure:
+
+```ts
+interface Path {
+  id: string;
+  title: string;
+  subtitle: string;
+  tradition: string;
+  blurb: string;
+  color: string;
+  icon: IconName;
+  stages: PathStage[];
+}
+```
 
 ### Practice Scripts
 
@@ -113,7 +213,7 @@ Examples:
 
 The app can support multiple wisdom streams while keeping them optional.
 
-Recommended categories:
+Current and planned categories include:
 
 - psychology
 - neuroscience-informed regulation
@@ -125,6 +225,7 @@ Recommended categories:
 - Viktor Frankl / meaning
 - 7 Habits / responsibility and intentionality
 - habit formation
+- heart coherence
 - flow / mushin
 - gratitude
 - service / stewardship
@@ -163,20 +264,27 @@ Content should be tagged by:
 - evening wind-down
 - morning activation
 
-### Virtue
+### Virtue / Skill Tree
 
+- mindfulness
+- compassion
+- purpose
+- wisdom
+- fitness
+- nutrition
+- relationships
+- leadership
+- service
+- creativity
+- flow
 - courage
 - patience
-- compassion
-- discipline
 - gratitude
-- humility
-- wisdom
 - stewardship
 - resilience
 - presence
 
-### Practice Type
+### Practice Type / Quest Kind
 
 - breath
 - stillness
@@ -190,6 +298,10 @@ Content should be tagged by:
 - movement
 - sleep
 - flow
+- reflect
+- action
+- learn
+- meditate
 
 ### User Preference
 
@@ -216,48 +328,49 @@ Content should be tagged by:
 8. Prefer agency: “try,” “notice,” “choose,” “practice.”
 9. Avoid deterministic claims: “this will heal you,” “this proves,” “you are depressed.”
 10. Make every item useful even if the user only reads it for five seconds.
-
----
-
-## Example Wisdom Entry
-
-```ts
-const example = {
-  id: 'purpose-stewardship-001',
-  title: 'Purpose begins with care',
-  body: 'You do not need to solve your whole life right now. Look around. Something near you can be cared for.',
-  action: 'Choose one small thing in your environment and improve it for two minutes.',
-  tradition: 'purpose',
-  tags: ['purpose', 'stewardship', 'low-energy', 'overwhelmed'],
-  emotions: ['drained', 'sad', 'overwhelmed'],
-  virtues: ['stewardship', 'discipline'],
-  practiceRoute: '/purpose'
-};
-```
+11. Side-module quests should reward meaningful practice, not compulsive grinding.
+12. Wisdom paths should be presented as optional practice paths, not doctrine.
 
 ---
 
 ## Recommendation Integration
 
-The recommendation engine should be able to request:
+The recommendation engine currently returns:
 
 - one primary practice
+- one alternate practice
 - one wisdom card
-- one optional journal prompt
-- one optional purpose action
+- one purpose action
+- one rationale
 
-The user should not see all of these as a cluttered list. The UI should present one primary next step and allow expansion.
+Next integration step:
+
+- match the recommendation to one existing side quest in `src/side/content.ts`
+- prefer unfinished daily quests when relevant
+- prefer active-path quests when relevant
+- avoid completed non-repeatable quests
+- explain why the quest was suggested
+
+The user should not see everything as a cluttered list. The UI should present one primary next step and let the user expand into wisdom, purpose, or a side quest.
 
 ---
 
 ## Content Expansion Plan
 
-### First 50 Additions
+### First Expansion Pass
+
+- connect low-purpose states to existing Acts of Stewardship quests
+- connect anxiety/overwhelm to coherent breathing and stillness quests
+- connect loneliness/sadness to compassion and service quests
+- connect frustration to Stoic control/reflection quests
+- connect high self-consciousness to flow/mushin quests
+
+### Next 50 Additions
 
 - 10 anxious/overwhelmed wisdom cards
 - 10 sadness/loneliness wisdom cards
-- 10 purpose/stewardship prompts
-- 10 gratitude/compassion prompts
+- 10 purpose/stewardship prompts or quests
+- 10 gratitude/compassion prompts or quests
 - 10 sleep/evening prompts
 
 ### First 200 Additions
@@ -274,6 +387,7 @@ The user should not see all of these as a cluttered list. The UI should present 
 - wisdom bank integrated with check-ins
 - purpose bank integrated with low-purpose states
 - practice scripts ready for audio generation
+- side quests connected to recommendation states
 
 ---
 
