@@ -58,7 +58,7 @@ export default function Journal() {
         </Animated.ScrollView>
 
         <View style={styles.footer}>
-          <GradientButton label="New entry" icon={<Ionicons name="add" size={18} color={colors.black} />} onPress={() => { tap(); router.push('/journal-new'); }} full />
+          <GradientButton label="New entry" icon={<Ionicons name="add" size={18} color={colors.text} />} onPress={() => { tap(); router.push('/journal-new'); }} full />
         </View>
       </SafeAreaView>
     </View>

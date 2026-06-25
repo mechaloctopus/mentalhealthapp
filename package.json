@@ -10,9 +10,12 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo-google-fonts/alegreya": "^0.4.1",
+    "@expo-google-fonts/alegreya-sc": "^0.4.1",
     "@expo-google-fonts/cinzel": "^0.4.2",
     "@expo-google-fonts/inter": "^0.2.3",
     "@expo-google-fonts/newsreader": "^0.2.3",
+    "@expo-google-fonts/open-sans": "^0.4.2",
     "@expo/vector-icons": "^14.0.4",
     "@react-native-async-storage/async-storage": "1.23.1",
     "expo": "~52.0.0",

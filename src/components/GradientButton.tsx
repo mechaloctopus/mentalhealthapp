@@ -29,18 +29,11 @@ export function GradientButton({ label, onPress, variant = 'brand', icon, loadin
   const content = (
     <View style={styles.inner}>
       {loading ? (
-        <ActivityIndicator color={variant === 'brand' ? colors.black : colors.text} />
+        <ActivityIndicator color={colors.white} />
       ) : (
         <>
           {icon}
-          <Text
-            style={[
-              styles.label,
-              variant === 'brand' ? { color: colors.black } : { color: colors.text },
-            ]}
-          >
-            {label}
-          </Text>
+          <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
         </>
       )}
     </View>

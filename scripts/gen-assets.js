@@ -56,11 +56,11 @@ function makeArt(size, opts = {}) {
   const { showMark = true, markScale = 0.34 } = opts;
   const buf = Buffer.alloc(size * size * 4);
   const cx = size / 2, cy = size / 2;
-  // palette
-  const bg = [9, 11, 11];
-  const teal = [102, 224, 202];
-  const coral = [239, 120, 108];
-  const lav = [182, 167, 255];
+  // Mended Light flame palette (violet / blue / indigo) on a deep canvas.
+  const bg = [9, 11, 13];
+  const teal = [177, 95, 176]; // violet (ring + primary glow)
+  const coral = [58, 160, 201]; // brand blue (secondary glow + flame base)
+  const lav = [84, 104, 196]; // indigo (accent glow)
 
   function glow(px, py, base, color, gx, gy, radius, strength) {
     const dx = px - gx, dy = py - gy;
@@ -106,11 +106,11 @@ function makeArt(size, opts = {}) {
         const dotR = size * 0.13;
         if (r < dotR) {
           const f = (1 - r / dotR) * 0.95;
-          const amber = [240, 189, 103];
+          // bright flame core — violet → blue blend
           const dotCol = [
-            (coral[0] + amber[0]) / 2,
-            (coral[1] + amber[1]) / 2,
-            (coral[2] + amber[2]) / 2,
+            (teal[0] + coral[0]) / 2 + 30,
+            (teal[1] + coral[1]) / 2 + 20,
+            (teal[2] + coral[2]) / 2 + 30,
           ];
           c = [
             c[0] + (dotCol[0] - c[0]) * f,

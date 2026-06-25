@@ -26,7 +26,16 @@ export const colors = {
   lavender: '#b6a7ff',
   blue: '#7db9ff',
 
-  // Mended Light — warm, luminous gold for the brand/display accents.
+  // Mended Light brand palette (#80237B violet, #1F3277 indigo, #064559 teal,
+  // #3085AC blue) — brightened slightly for contrast on the dark canvas.
+  violet: '#b15fb0',
+  violetDeep: '#80237B',
+  indigo: '#5468c4',
+  indigoDeep: '#1F3277',
+  brandBlue: '#3aa0c9',
+  brandTeal: '#0a6e8a',
+
+  // Retained warm accent (used by some emotion/streak UI).
   gold: '#e8c98a',
   goldDeep: '#caa765',
 
@@ -46,7 +55,10 @@ export const accents = [
 ] as const;
 
 export const gradients = {
-  brand: ['#f0d6a0', '#66e0ca'] as const, // Mended Light: luminous gold → teal
+  // The Mended Light flame: violet → indigo → blue.
+  brand: ['#80237B', '#1F3277', '#3085AC'] as const,
+  flame: ['#80237B', '#1F3277', '#3085AC'] as const,
+  flameSoft: ['rgba(128,35,123,0.30)', 'rgba(48,133,172,0.10)'] as const,
   gold: ['#f0d6a0', '#caa765'] as const,
   brandSoft: ['rgba(102,224,202,0.22)', 'rgba(240,189,103,0.10)'] as const,
   canvas: ['#0b0e0d', '#090b0b', '#070808'] as const,
@@ -73,16 +85,16 @@ export const spacing = {
 } as const;
 
 export const font = {
-  // Names match @expo-google-fonts exports, loaded in app/_layout.tsx.
-  // Cinzel = the Mended Light display face (classical, luminous).
-  display: 'Cinzel_600SemiBold',
-  displayBold: 'Cinzel_700Bold',
-  serif: 'Newsreader_500Medium',
-  serifSemibold: 'Newsreader_600SemiBold',
-  sans: 'Inter_400Regular',
-  sansMedium: 'Inter_500Medium',
-  sansSemibold: 'Inter_600SemiBold',
-  sansBold: 'Inter_700Bold',
+  // Mended Light brand typography (per the 2022 Style Guide):
+  // headers = Alegreya SC, body = Open Sans, serif body = Alegreya.
+  display: 'AlegreyaSC_700Bold',
+  displayBold: 'AlegreyaSC_900Black',
+  serif: 'Alegreya_500Medium',
+  serifSemibold: 'Alegreya_600SemiBold',
+  sans: 'OpenSans_400Regular',
+  sansMedium: 'OpenSans_500Medium',
+  sansSemibold: 'OpenSans_600SemiBold',
+  sansBold: 'OpenSans_700Bold',
 } as const;
 
 export const shadow = {

@@ -58,7 +58,7 @@ export default function MessageViewport() {
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(120).duration(700)}>
-            <Display center style={styles.quote}>{message.body}</Display>
+            <Serif center style={styles.quote}>{message.body}</Serif>
             {message.author ? <Muted center style={{ marginTop: spacing.md, fontSize: 15 }}>— {message.author}</Muted> : null}
           </Animated.View>
 

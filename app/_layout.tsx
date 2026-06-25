@@ -5,22 +5,15 @@ import { StatusBar } from 'expo-status-bar';
 import { Stack, useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
+import { AlegreyaSC_700Bold, AlegreyaSC_900Black } from '@expo-google-fonts/alegreya-sc';
+import { Alegreya_500Medium, Alegreya_600SemiBold } from '@expo-google-fonts/alegreya';
 import {
-  useFonts,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
-import {
-  Newsreader_500Medium,
-  Newsreader_600SemiBold,
-} from '@expo-google-fonts/newsreader';
-import {
-  Cinzel_500Medium,
-  Cinzel_600SemiBold,
-  Cinzel_700Bold,
-} from '@expo-google-fonts/cinzel';
+  OpenSans_400Regular,
+  OpenSans_500Medium,
+  OpenSans_600SemiBold,
+  OpenSans_700Bold,
+} from '@expo-google-fonts/open-sans';
 import { AppProvider } from '../src/context/AppContext';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { colors } from '../src/theme/theme';
@@ -56,15 +49,14 @@ function NotificationRouter() {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Newsreader_500Medium,
-    Newsreader_600SemiBold,
-    Cinzel_500Medium,
-    Cinzel_600SemiBold,
-    Cinzel_700Bold,
+    AlegreyaSC_700Bold,
+    AlegreyaSC_900Black,
+    Alegreya_500Medium,
+    Alegreya_600SemiBold,
+    OpenSans_400Regular,
+    OpenSans_500Medium,
+    OpenSans_600SemiBold,
+    OpenSans_700Bold,
   });
 
   // Hide the splash as soon as fonts resolve (success OR error) — never block on them.
