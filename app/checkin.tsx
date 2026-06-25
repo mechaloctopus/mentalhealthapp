@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { AnimatedBackground } from '../src/components/AnimatedBackground';
-import { Display, Title, Body, Muted, Label, GlassCard, Serif, Row } from '../src/components/ui';
+import { Title, Body, Muted, Label, GlassCard, Serif, Row } from '../src/components/ui';
 import { GradientButton } from '../src/components/GradientButton';
 import { Waveform } from '../src/components/Waveform';
 import { SignalBar } from '../src/components/SignalBar';
@@ -17,6 +17,7 @@ import { useApp } from '../src/context/AppContext';
 import { useRecorder } from '../src/lib/useRecorder';
 import { analyzeVoice, buildCheckIn, type Affect, type CheckIn } from '../src/lib/voice';
 import { getEmotion, matchEmotion } from '../src/lib/emotions';
+import { recommendationFromCheckIn } from '../src/lib/recommendationEngine';
 import { colors, font, radius, spacing } from '../src/theme/theme';
 import { success, select, tap } from '../src/lib/haptics';
 
@@ -31,9 +32,13 @@ const PROMPTS = [
 const MIN_MS = 6000;
 const MAX_MS = 45000;
 
+function routeForSession(kind: string): string {
+  return kind === 'breath' ? '/breath' : kind === 'stillness' ? '/stillness' : kind === 'meta' ? '/meta' : '/sound';
+}
+
 export default function CheckIn() {
   const router = useRouter();
-  const { baseline, addCheckIn } = useApp();
+  const { baseline, addCheckIn, sessions } = useApp();
   const rec = useRecorder();
   const [step, setStep] = useState<Step>('ready');
   const [affect, setAffect] = useState<Affect | null>(null);
@@ -42,6 +47,12 @@ export default function CheckIn() {
   const [checkin, setCheckin] = useState<CheckIn | null>(null);
   const prompt = useRef(PROMPTS[Math.floor(Math.random() * PROMPTS.length)]).current;
   const autoStop = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const recentPracticeRoutes = useMemo(() => sessions.slice(0, 6).map((s) => routeForSession(s.kind)), [sessions]);
+  const nextStep = useMemo(
+    () => (checkin ? recommendationFromCheckIn(checkin, { baseline, recentPracticeRoutes }) : null),
+    [baseline, checkin, recentPracticeRoutes]
+  );
 
   useEffect(() => {
     if (step === 'recording' && rec.status === 'recording') {
@@ -189,13 +200,32 @@ export default function CheckIn() {
             </GlassCard>
 
             <GlassCard accent={getEmotion(checkin.emotion).color} style={{ marginTop: spacing.lg, gap: 8 }}>
-              <Label color={getEmotion(checkin.emotion).color}>ONE GENTLE NEXT STEP</Label>
-              <Serif style={{ fontSize: 20 }}>{checkin.recommendation.practice}</Serif>
-              <Body>{checkin.recommendation.reason}</Body>
+              <Label color={getEmotion(checkin.emotion).color}>ONE WISE NEXT STEP</Label>
+              <Serif style={{ fontSize: 20 }}>{nextStep?.practice ?? checkin.recommendation.practice}</Serif>
+              <Body>{nextStep?.rationale ?? checkin.recommendation.reason}</Body>
+              {nextStep ? <Muted>{nextStep.durationMinutes} minute practice · {nextStep.category}</Muted> : null}
             </GlassCard>
 
+            {nextStep ? (
+              <>
+                <GlassCard accent={colors.lavender} style={{ marginTop: spacing.md, gap: 8 }}>
+                  <Label color={colors.lavender}>WISDOM CARD</Label>
+                  <Serif style={{ fontSize: 19 }}>{nextStep.wisdom.title}</Serif>
+                  <Body>{nextStep.wisdom.body}</Body>
+                  <Muted>{nextStep.wisdom.action}</Muted>
+                </GlassCard>
+
+                <GlassCard accent={colors.moss} style={{ marginTop: spacing.md, gap: 8 }}>
+                  <Label color={colors.moss}>PURPOSE THROUGH STEWARDSHIP</Label>
+                  <Serif style={{ fontSize: 19 }}>{nextStep.purpose.title}</Serif>
+                  <Body>{nextStep.purpose.body}</Body>
+                  <Muted>{nextStep.purpose.action}</Muted>
+                </GlassCard>
+              </>
+            ) : null}
+
             <View style={{ height: spacing.xl }} />
-            <GradientButton label={`Begin ${checkin.recommendation.practice}`} onPress={() => { tap(); router.replace(checkin.recommendation.route as any); }} full />
+            <GradientButton label={`Begin ${nextStep?.practice ?? checkin.recommendation.practice}`} onPress={() => { tap(); router.replace((nextStep?.route ?? checkin.recommendation.route) as any); }} full />
             <View style={{ height: spacing.md }} />
             <GradientButton label="Back to today" variant="ghost" onPress={() => router.replace('/(tabs)')} full />
             <View style={{ height: 40 }} />
