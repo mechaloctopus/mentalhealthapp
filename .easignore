@@ -1,0 +1,7 @@
+# Keep large, build-irrelevant files out of EAS uploads
+branding/
+dist/
+docs/
+android/
+ios/
+*.apk
