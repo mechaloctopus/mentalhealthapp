@@ -10,6 +10,7 @@ Goal: make the project easy for humans and AI coding agents to continue safely.
 
 - [x] Refresh README to reflect the whole app and production direction.
 - [x] Add product vision doc.
+- [x] Add side module / Inner Path doc.
 - [x] Add production roadmap.
 - [x] Add production checklist.
 - [x] Add architecture notes.
@@ -35,13 +36,13 @@ Goal: make the app stable, safe, and shippable.
 
 - [ ] Decide production data model: local-only, encrypted local, backend sync, or hybrid.
 - [ ] Encrypt sensitive local data if keeping journals/check-ins on device.
-- [ ] Add data export.
+- [x] Add data export surface.
 - [ ] Add delete-my-data flow.
 - [ ] Add privacy policy and terms.
 
 ### Safety
 
-- [ ] Improve PHQ-9 sensitive-item handling.
+- [x] Centralize basic screener safety copy.
 - [ ] Add a dedicated crisis support screen.
 - [ ] Add careful copy review for all mental-health-adjacent claims.
 - [ ] Ensure every diagnostic-adjacent feature is framed as reflection, not diagnosis.
@@ -68,13 +69,16 @@ Goal: make the app stable, safe, and shippable.
 
 Goal: move from static practice matching to a coherent state-to-action engine.
 
-- [ ] Create `src/lib/recommendationEngine.ts`.
-- [ ] Create a typed recommendation model.
-- [ ] Combine voice affect, self-report, baseline shift, factors, time of day, and practice history.
-- [ ] Return one primary recommendation plus one alternate.
+- [x] Create `src/lib/recommendationEngine.ts`.
+- [x] Create a typed recommendation model.
+- [x] Combine emotion, stress, energy, calmness, stability, baseline shift, and recent practice history.
+- [x] Return one primary recommendation plus one alternate.
+- [x] Add insight language explaining why the recommendation was selected.
+- [x] Attach wisdom and purpose prompts to the recommendation.
 - [ ] Track whether the user accepted, skipped, or completed the recommendation.
-- [ ] Use completion history to avoid repeating the same practice too often.
-- [ ] Add insight language that explains why the recommendation was selected.
+- [ ] Use check-in history and factors more deeply.
+- [ ] Route recommendations to specific side quests when appropriate.
+- [ ] Add tests for recommendation selection.
 
 Inputs:
 
@@ -89,55 +93,87 @@ Inputs:
 - Recent check-ins
 - Recent sessions
 - Preferences
+- Side-module progress
 
 Outputs:
 
 - Practice route
 - Duration
 - Rationale
-- Optional wisdom prompt
-- Optional purpose action
+- Wisdom prompt
+- Purpose action
+- Optional side quest
 - Safety escalation if needed
 
 ---
 
-## Phase 3 — Wisdom and Purpose
+## Phase 3 — Wisdom, Purpose, and Side Module Integration
 
-Goal: add the app’s strongest differentiator: practical wisdom and stewardship.
+Goal: make the app’s differentiator visible: practical wisdom, stewardship, and sacred gamification.
 
 ### Wisdom Engine
 
-- [ ] Create `src/data/wisdom.ts`.
-- [ ] Tag wisdom entries by emotional state, virtue, practice type, and tradition.
-- [ ] Create `src/lib/wisdomEngine.ts`.
-- [ ] Add wisdom cards after check-ins.
-- [ ] Add a wisdom library screen.
+- [x] Create `src/data/wisdom.ts`.
+- [x] Tag wisdom entries by emotional state, virtue, practice type, and tradition.
+- [x] Add wisdom cards after check-ins.
+- [ ] Create a dedicated `src/lib/wisdomEngine.ts` if selection needs outgrow `data/wisdom.ts` helpers.
+- [ ] Add a wisdom library screen or connect to the existing side Wisdom Library path.
 - [ ] Let users enable/disable categories: psychology, stoic, contemplative, Christian, Buddhist, Taoist, purpose, habits.
 
 ### Purpose Engine
 
-- [ ] Create `src/lib/purposeEngine.ts`.
-- [ ] Create purpose/stewardship prompts for different contexts.
-- [ ] Add a purpose screen.
-- [ ] Add “What needs care right now?” flow.
-- [ ] Track completed acts of stewardship.
-- [ ] Connect low-purpose states to small contribution actions.
+- [x] Create `src/lib/purposeEngine.ts`.
+- [x] Create purpose/stewardship prompts for different contexts.
+- [x] Add purpose/stewardship cards after check-ins.
+- [ ] Connect purpose prompts to existing side-module Acts of Stewardship quests.
+- [ ] Add direct “What needs care right now?” flow or route.
+- [ ] Track completed acts of stewardship in side-module state.
+
+### Side Module / Inner Path
+
+Already implemented:
+
+- [x] Side stack navigation under `app/side/`.
+- [x] `SideProvider` and `sideState` persistence.
+- [x] Resonance, karma, stewardship, and flow counters.
+- [x] Daily quest generation.
+- [x] Quest completion and reflection history.
+- [x] Wisdom paths and path progress.
+- [x] Skill trees and tree leveling.
+- [x] Mentor nudges.
+- [x] Community/gathering surface.
+
+Needed integration:
+
+- [ ] Add a compact side-module panel to the main Today dashboard.
+- [ ] Connect core practice completions to side-module resonance where appropriate.
+- [ ] Connect recommendation engine to specific side quests.
+- [ ] Add side-module onboarding explaining resonance, daily quests, paths, and skill trees.
+- [ ] Add tests for daily quest generation, quest completion, path progress, and tree leveling.
+- [ ] Add anti-compulsion copy: resonance reflects practice, not worth.
 
 ### Flow / Mushin Module
 
-- [ ] Add a no-mind / flow training concept page.
-- [ ] Add practices for sport, music, coding, art, walking, and breath.
-- [ ] Connect high-anxiety/high-self-consciousness states to flow practice.
+- [x] Flow exists as a side skill tree.
+- [x] Flow/Mushin appears in side content and wisdom scaffolding.
+- [ ] Make high-anxiety/high-self-consciousness recommendations surface a specific flow quest.
+- [ ] Add more practices for sport, music, coding, art, walking, and breath.
 
 ---
 
-## Phase 4 — Reflection and Insight
+## Phase 4 — Main Dashboard and Insight
 
-Goal: make the app learn from user behavior and show useful patterns.
+Goal: make the app feel unified.
 
+- [ ] Add main Today dashboard panel for:
+  - current resonance
+  - mission stage
+  - daily quest progress
+  - recommended side quest
+  - top skill tree progress
 - [ ] Add evening reflection flow.
 - [ ] Add weekly review.
-- [ ] Add trend cards for mood, stress, energy, calmness, practices, and factors.
+- [ ] Add trend cards for mood, stress, energy, calmness, practices, factors, and side-module progress.
 - [ ] Add “what helps me” insight cards.
 - [ ] Add “what drains me” insight cards.
 - [ ] Add exportable reflection summary.
@@ -150,6 +186,8 @@ Goal: make the app learn from user behavior and show useful patterns.
 Goal: make the app feel rich without becoming noisy.
 
 - [ ] Expand daily messages into tagged content sets.
+- [ ] Expand `src/data/wisdom.ts`.
+- [ ] Expand side-module wisdom paths and quests.
 - [ ] Add more journal prompts.
 - [ ] Add sleep wind-down content.
 - [ ] Add gratitude, forgiveness, courage, and compassion practices.
