@@ -128,7 +128,7 @@ export default function Community() {
                 onChangeText={setDraft}
                 multiline
               />
-              <Pressable onPress={post} disabled={!draft.trim()} style={[styles.send, { backgroundColor: draft.trim() ? colors.coral : 'rgba(255,255,255,0.08)' }]}>
+              <Pressable onPress={post} disabled={!draft.trim()} style={[styles.send, { backgroundColor: draft.trim() ? colors.coral : colors.surface3 }]}>
                 <Ionicons name="arrow-up" size={18} color={draft.trim() ? colors.black : colors.textDim} />
               </Pressable>
             </GlassCard>
@@ -169,7 +169,7 @@ function timeAgo(ts: number): string {
 
 const styles = StyleSheet.create({
   live: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.moss },
-  track: { height: 8, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' },
+  track: { height: 8, borderRadius: 6, backgroundColor: colors.surface3, overflow: 'hidden' },
   fill: { height: 8, borderRadius: 6 },
   input: { flex: 1, maxHeight: 100, minHeight: 40, fontFamily: font.sans, fontSize: 14.5, color: colors.text, paddingVertical: 8 },
   send: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },

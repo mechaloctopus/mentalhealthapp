@@ -22,8 +22,15 @@ function TabButton({ focused, icon, label, onPress }: { focused: boolean; icon: 
   const dot = useAnimatedStyle(() => ({ opacity: s.value, transform: [{ scale: s.value }] }));
 
   return (
-    <Pressable style={styles.item} onPress={onPress} hitSlop={6}>
-      <Ionicons name={focused ? icon.on : icon.off} size={23} color={focused ? colors.teal : colors.textDim} />
+    <Pressable
+      style={styles.item}
+      onPress={onPress}
+      hitSlop={6}
+      accessibilityRole="tab"
+      accessibilityLabel={`${label} tab`}
+      accessibilityState={{ selected: focused }}
+    >
+      <Ionicons name={focused ? icon.on : icon.off} size={23} color={focused ? colors.violet : colors.textDim} />
       <Text style={[styles.label, focused && { color: colors.text }]}>{label}</Text>
       <Animated.View style={[styles.dot, dot]} />
     </Pressable>
@@ -66,5 +73,5 @@ const styles = StyleSheet.create({
   inner: { flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 6 },
   item: { flex: 1, alignItems: 'center', gap: 4 },
   label: { fontFamily: font.sansMedium, fontSize: 10.5, color: colors.textDim, letterSpacing: 0.2 },
-  dot: { width: 5, height: 5, borderRadius: 5, backgroundColor: colors.teal, marginTop: 1 },
+  dot: { width: 5, height: 5, borderRadius: 5, backgroundColor: colors.violet, marginTop: 1 },
 });

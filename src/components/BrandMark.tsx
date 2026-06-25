@@ -4,6 +4,7 @@ import Svg, { Path, Defs, LinearGradient, Stop, RadialGradient, Circle } from 'r
 import Animated, {
   Easing,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withRepeat,
   withTiming,
@@ -15,9 +16,11 @@ const AView = Animated.createAnimatedComponent(View);
 /** The Mended Light flame — violet → indigo → blue, with a living glow. */
 export function BrandMark({ size = 48 }: { size?: number }) {
   const pulse = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) { pulse.value = 0.5; return; }
     pulse.value = withRepeat(withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [pulse]);
+  }, [pulse, reduced]);
 
   const glow = useAnimatedStyle(() => ({ opacity: 0.45 + pulse.value * 0.4, transform: [{ scale: 0.92 + pulse.value * 0.14 }] }));
   const flame = useAnimatedStyle(() => ({ transform: [{ scale: 0.98 + pulse.value * 0.04 }] }));

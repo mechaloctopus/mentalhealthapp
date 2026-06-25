@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: 140, paddingTop: spacing.sm },
   center: { textAlign: 'center' },
 
-  display: { fontFamily: font.display, fontSize: 34, lineHeight: 44, color: colors.text, letterSpacing: 0.4 },
+  display: { fontFamily: font.display, fontSize: 32, lineHeight: 42, color: colors.text, letterSpacing: 0.8 },
   title: { fontFamily: font.sansBold, fontSize: 24, lineHeight: 30, color: colors.text, letterSpacing: -0.3 },
   serif: { fontFamily: font.serif, fontSize: 22, lineHeight: 30, color: colors.text },
   body: { fontFamily: font.sans, fontSize: 15.5, lineHeight: 24, color: colors.textMuted },
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: colors.panelBorder,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: colors.surface1,
   },
   chipText: { fontFamily: font.sansMedium, fontSize: 12, letterSpacing: 0.2 },
 
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: colors.surface2,
     borderWidth: 1,
     borderColor: colors.panelBorder,
   },

@@ -5,6 +5,7 @@ import Svg, { Defs, RadialGradient, Stop, Rect, Line, G, Circle } from 'react-na
 import Animated, {
   Easing,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withRepeat,
   withTiming,
@@ -34,13 +35,20 @@ function Glow({ color, size, style, anim }: { color: string; size: number; style
 
 export function AnimatedBackground({ tint = colors.teal }: { tint?: string }) {
   const { width, height } = useWindowDimensions();
+  const reduced = useReducedMotion();
   const a = useSharedValue(0);
   const b = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) {
+      // Respect the OS "reduce motion" setting — hold a calm static state.
+      a.value = 0.6;
+      b.value = 0.5;
+      return;
+    }
     a.value = withRepeat(withTiming(1, { duration: 9000, easing: Easing.inOut(Easing.sin) }), -1, true);
     b.value = withRepeat(withTiming(1, { duration: 12000, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [a, b]);
+  }, [a, b, reduced]);
 
   const glowA = useAnimatedStyle(() => ({ opacity: 0.6 + a.value * 0.3, transform: [{ scale: 0.92 + a.value * 0.18 }] }));
   const glowB = useAnimatedStyle(() => ({ opacity: 0.45 + b.value * 0.3, transform: [{ scale: 1 + b.value * 0.16 }] }));

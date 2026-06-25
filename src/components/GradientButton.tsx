@@ -46,7 +46,10 @@ export function GradientButton({ label, onPress, variant = 'brand', icon, loadin
         onPressIn={() => (scale.value = withTiming(0.97, { duration: 90 }))}
         onPressOut={() => (scale.value = withTiming(1, { duration: 120 }))}
         disabled={disabled || loading}
-        style={({ pressed }) => [{ opacity: disabled ? 0.5 : 1 }]}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: !!disabled, busy: !!loading }}
+        style={() => [{ opacity: disabled ? 0.5 : 1 }]}
       >
         {variant === 'brand' ? (
           <LinearGradient colors={gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.base}>
@@ -69,7 +72,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 26,
   },
   ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.panelBorderStrong },
-  solid: { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: colors.panelBorder },
+  solid: { backgroundColor: colors.hairline, borderWidth: 1, borderColor: colors.panelBorder },
   inner: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   label: { fontFamily: font.sansSemibold, fontSize: 15.5, letterSpacing: 0.2 },
 });

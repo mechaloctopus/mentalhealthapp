@@ -223,12 +223,12 @@ export default function CheckIn() {
 
 const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  iconBtn: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
+  iconBtn: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface2 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.xl },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: 24, alignItems: 'stretch' },
   footer: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   dot: { width: 12, height: 12, borderRadius: 6 },
   secRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 8 },
-  secChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.03)' },
+  secChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.pill, borderWidth: 1, backgroundColor: colors.surface1 },
   secDot: { width: 8, height: 8, borderRadius: 4 },
 });

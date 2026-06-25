@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 12, paddingVertical: 9, borderRadius: radius.pill,
-    borderWidth: 1, borderColor: colors.panelBorder, backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1, borderColor: colors.panelBorder, backgroundColor: colors.surface1,
   },
   label: { fontFamily: font.sansMedium, fontSize: 12.5 },
 });

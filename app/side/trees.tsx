@@ -63,6 +63,6 @@ export default function Trees() {
 
 const styles = StyleSheet.create({
   icon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  track: { height: 7, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' },
+  track: { height: 7, borderRadius: 6, backgroundColor: colors.hairline, overflow: 'hidden' },
   fill: { height: 7, borderRadius: 6 },
 });

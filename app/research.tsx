@@ -182,7 +182,7 @@ export default function Research() {
 
 const styles = StyleSheet.create({
   opts: { flexDirection: 'row', gap: 6 },
-  opt: { flex: 1, paddingVertical: 9, paddingHorizontal: 4, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.panelBorder, backgroundColor: 'rgba(255,255,255,0.03)', justifyContent: 'center' },
+  opt: { flex: 1, paddingVertical: 9, paddingHorizontal: 4, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.panelBorder, backgroundColor: colors.surface1, justifyContent: 'center' },
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, paddingTop: spacing.sm },
   scrRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: spacing.md },
   scrIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },

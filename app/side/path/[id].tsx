@@ -107,8 +107,8 @@ export default function PathDetail() {
 
 const styles = StyleSheet.create({
   crest: { width: 74, height: 74, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  activePill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.03)' },
-  reward: { alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.md, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.03)' },
+  activePill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1, backgroundColor: colors.surface1 },
+  reward: { alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.md, borderWidth: 1, backgroundColor: colors.surface1 },
   quest: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
   check: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, paddingTop: spacing.sm, backgroundColor: 'transparent' },

@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withRepeat,
   withTiming,
@@ -11,10 +12,12 @@ import { colors } from '../theme/theme';
 
 function Bar({ index, active, level }: { index: number; active: boolean; level: Animated.SharedValue<number> }) {
   const t = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) { t.value = 0.5; return; }
     const dur = 520 + (index % 5) * 130;
     t.value = withRepeat(withTiming(1, { duration: dur, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [index, t]);
+  }, [index, t, reduced]);
 
   const style = useAnimatedStyle(() => {
     const base = 0.22 + Math.abs(Math.sin((t.value + index * 0.35) * Math.PI)) * 0.78;

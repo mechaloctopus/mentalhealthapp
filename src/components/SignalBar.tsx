@@ -53,6 +53,6 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   label: { fontFamily: font.sansMedium, fontSize: 13.5, color: colors.textMuted },
   value: { fontFamily: font.sansBold, fontSize: 15 },
-  track: { height: 8, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' },
+  track: { height: 8, borderRadius: radius.pill, backgroundColor: colors.hairline, overflow: 'hidden' },
   fillWrap: { height: 8, borderRadius: radius.pill, overflow: 'hidden' },
 });

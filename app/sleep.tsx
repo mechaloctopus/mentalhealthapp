@@ -122,7 +122,7 @@ export default function Sleep() {
                     <Body color={colors.text} style={{ flex: 1, fontFamily: font.sansSemibold, fontSize: 15 }}>{layer.name}</Body>
                     <View style={styles.bars}>
                       {[1, 2, 3].map((b) => (
-                        <View key={b} style={[styles.bar, { height: 6 + b * 5, backgroundColor: lvl >= b ? layer.color : 'rgba(255,255,255,0.12)' }]} />
+                        <View key={b} style={[styles.bar, { height: 6 + b * 5, backgroundColor: lvl >= b ? layer.color : colors.surfaceActive }]} />
                       ))}
                     </View>
                   </View>

@@ -227,9 +227,9 @@ function Mini({ label, value, color }: { label: string; value: number; color: st
 
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: spacing.xs, marginBottom: 6 },
-  back: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
+  back: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface2 },
   stageBadge: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  track: { height: 7, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginTop: 10 },
+  track: { height: 7, borderRadius: 6, backgroundColor: colors.surface3, overflow: 'hidden', marginTop: 10 },
   fill: { height: 7, borderRadius: 6 },
   mentorIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   mentorCta: { paddingTop: 2 },
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   pathGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: spacing.md },
   pathCard: { gap: 5, padding: spacing.md, minHeight: 128 },
   pathIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  treeTrack: { height: 6, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' },
+  treeTrack: { height: 6, borderRadius: 6, backgroundColor: colors.hairline, overflow: 'hidden' },
   treeFill: { height: 6, borderRadius: 6 },
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: spacing.md },
   linkIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },

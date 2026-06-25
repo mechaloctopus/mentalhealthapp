@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { getEmotion } from '../lib/emotions';
 import { colors, font } from '../theme/theme';
 
@@ -19,9 +19,11 @@ export function EmotionAura({
 }) {
   const e = getEmotion(emotionId);
   const pulse = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) { pulse.value = 0.5; return; }
     pulse.value = withRepeat(withTiming(1, { duration: 3200, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [pulse]);
+  }, [pulse, reduced]);
 
   const halo = useAnimatedStyle(() => ({
     opacity: 0.5 + pulse.value * 0.4,

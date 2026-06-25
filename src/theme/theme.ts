@@ -12,6 +12,13 @@ export const colors = {
   panelBorder: 'rgba(247,244,236,0.08)',
   panelBorderStrong: 'rgba(247,244,236,0.14)',
 
+  // translucent surface scale (tokenizes repeated rgba whites)
+  surface1: 'rgba(255,255,255,0.03)',
+  surface2: 'rgba(255,255,255,0.05)',
+  surface3: 'rgba(255,255,255,0.08)',
+  surfaceActive: 'rgba(255,255,255,0.12)',
+  hairline: 'rgba(255,255,255,0.06)',
+
   // text
   text: '#f7f4ec',
   textMuted: '#c8c1b2',
@@ -106,7 +113,7 @@ export const shadow = {
     elevation: 12,
   },
   glow: {
-    shadowColor: colors.teal,
+    shadowColor: colors.violet,
     shadowOpacity: 0.5,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 0 },

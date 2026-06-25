@@ -114,7 +114,7 @@ export function BreathOrb({
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
   halo: { position: 'absolute' },
-  orb: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.03)' },
+  orb: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface1 },
   ring: { position: 'absolute', borderWidth: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
   phase: { fontFamily: font.sansSemibold, fontSize: 18, letterSpacing: 0.4 },

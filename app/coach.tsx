@@ -108,7 +108,7 @@ export default function Coach() {
                   multiline
                   onSubmitEditing={() => answer(draft)}
                 />
-                <Pressable onPress={() => answer(draft)} disabled={!draft.trim()} style={[styles.send, { backgroundColor: draft.trim() ? accent : 'rgba(255,255,255,0.08)' }]}>
+                <Pressable onPress={() => answer(draft)} disabled={!draft.trim()} style={[styles.send, { backgroundColor: draft.trim() ? accent : colors.surface3 }]}>
                   <Ionicons name="arrow-up" size={20} color={draft.trim() ? colors.black : colors.textDim} />
                 </Pressable>
               </View>

@@ -151,11 +151,11 @@ export default function QuestDetail() {
 
 const styles = StyleSheet.create({
   kind: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  input: { minHeight: 110, fontFamily: font.sans, fontSize: 15.5, lineHeight: 23, color: colors.text, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: radius.lg, borderWidth: 1, borderColor: colors.panelBorder, padding: spacing.md },
+  input: { minHeight: 110, fontFamily: font.sans, fontSize: 15.5, lineHeight: 23, color: colors.text, backgroundColor: colors.surface1, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.panelBorder, padding: spacing.md },
   footer: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, paddingTop: spacing.sm },
   doneWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
   doneBadge: { width: 92, height: 92, borderRadius: 30, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   grewRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: spacing.xl },
-  grewChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 11, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.03)' },
+  grewChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 11, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1, backgroundColor: colors.surface1 },
   footer2: {},
 });

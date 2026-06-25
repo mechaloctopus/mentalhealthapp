@@ -15,7 +15,7 @@ export function ModalHeader({ title, accent = colors.teal, right }: { title: str
   };
   return (
     <View style={styles.bar}>
-      <Pressable onPress={close} hitSlop={12} style={styles.iconBtn}>
+      <Pressable onPress={close} hitSlop={12} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="Close">
         <Ionicons name="close" size={22} color={colors.textMuted} />
       </Pressable>
       <Label color={accent}>{title.toUpperCase()}</Label>
@@ -26,6 +26,6 @@ export function ModalHeader({ title, accent = colors.teal, right }: { title: str
 
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  iconBtn: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
+  iconBtn: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface2 },
   right: { minWidth: 40, alignItems: 'flex-end' },
 });

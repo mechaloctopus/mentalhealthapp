@@ -79,7 +79,7 @@ export default function JournalNew() {
 
 const styles = StyleSheet.create({
   body: { flex: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.lg },
-  input: { minHeight: 140, maxHeight: 240, fontFamily: font.sans, fontSize: 16, lineHeight: 24, color: colors.text, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: radius.lg, borderWidth: 1, borderColor: colors.panelBorder, padding: spacing.md },
+  input: { minHeight: 140, maxHeight: 240, fontFamily: font.sans, fontSize: 16, lineHeight: 24, color: colors.text, backgroundColor: colors.surface1, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.panelBorder, padding: spacing.md },
   emotions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   emoChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 11, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.panelBorder },
   emoDot: { width: 9, height: 9, borderRadius: 5 },

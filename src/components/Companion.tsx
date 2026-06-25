@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import type { Progress } from '../lib/progress';
 import { colors, font } from '../theme/theme';
@@ -9,9 +9,11 @@ import { colors, font } from '../theme/theme';
 /** "Lumen" — a living orb companion that brightens and gains rings as you grow. */
 export function Companion({ progress, size = 96 }: { progress: Progress; size?: number }) {
   const pulse = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) { pulse.value = 0.5; return; }
     pulse.value = withRepeat(withTiming(1, { duration: 2800, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [pulse]);
+  }, [pulse, reduced]);
 
   const core = useAnimatedStyle(() => ({
     transform: [{ scale: 0.9 + pulse.value * 0.12 }],

@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   header: { marginTop: spacing.xs, marginBottom: spacing.lg },
   profileCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: { width: 58, height: 58, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  providerChip: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
+  providerChip: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.hairline },
   vline: { width: 1, height: 36, backgroundColor: colors.panelBorder },
   timeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   timeChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.md, borderWidth: 1, borderColor: colors.panelBorder, backgroundColor: 'rgba(255,255,255,0.04)', alignItems: 'center' },

@@ -101,6 +101,6 @@ const styles = StyleSheet.create({
   node: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   dot: {},
   nuance: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.03)' },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1, backgroundColor: colors.surface1 },
   chipText: { fontFamily: font.sansMedium, fontSize: 12.5 },
 });
