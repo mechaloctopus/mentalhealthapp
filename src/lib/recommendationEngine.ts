@@ -38,7 +38,12 @@ function recentlyUsed(route: string, recentPracticeRoutes?: string[]): boolean {
 }
 
 function fallbackForEmotion(emotionId: string): Recommendation {
-  return getEmotion(emotionId).practice;
+  const emotion = getEmotion(emotionId);
+  return {
+    practice: emotion.practice.label,
+    route: emotion.practice.route,
+    reason: `This matches your ${emotion.label.toLowerCase()} signal with one grounded next step.`,
+  };
 }
 
 function choosePractice(input: RecommendationInput): { primary: Recommendation; alternate: Recommendation; category: NextStepRecommendation['category']; durationMinutes: number } {
