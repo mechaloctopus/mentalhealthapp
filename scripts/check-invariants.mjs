@@ -74,6 +74,8 @@ assertFileMissing('src/components/Companion.tsx');
 assertFileMissing('src/lib/progress.ts');
 assertFileExists('docs/PRIVACY_ARCHITECTURE.md');
 assertFileExists('docs/MANUAL_QA.md');
+assertFileExists('docs/APK_BUILD.md');
+assertFileExists('.github/workflows/android-apk.yml');
 assertFileExists('src/lib/dataInventory.ts');
 
 assertNoPatternInSource(/computeProgress|Companion/i, 'obsolete Lumen progression reference found', [
@@ -97,6 +99,8 @@ assertFileContains('src/side/SideContext.tsx', /CORE_PRACTICE_REWARDS/, 'core pr
 assertFileContains('src/lib/dataInventory.ts', /DATA_INVENTORY/, 'typed data inventory should exist');
 assertFileContains('docs/PRIVACY_ARCHITECTURE.md', /local-only encrypted/i, 'privacy architecture should document the recommended v1 path');
 assertFileContains('docs/MANUAL_QA.md', /Release build checks/, 'manual QA checklist should include release build checks');
+assertFileContains('docs/APK_BUILD.md', /app-debug\.apk/, 'APK build docs should include the debug APK output path');
+assertFileContains('.github/workflows/android-apk.yml', /upload-artifact/, 'APK workflow should upload a build artifact');
 
 if (failures.length) {
   console.error('\nInvariant check failed:\n');
