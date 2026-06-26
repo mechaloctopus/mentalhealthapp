@@ -4,7 +4,7 @@ import { ensureStorageSchema } from '../lib/storageVersion';
 import type { User } from '../lib/auth';
 import type { Baseline, CheckIn } from '../lib/voice';
 import type { ScreenerResult } from '../lib/screeners';
-import { DEFAULT_NOTIF_PREFS, scheduleDailyMessages, type NotifPrefs } from '../lib/notifications';
+import { cancelAll, DEFAULT_NOTIF_PREFS, scheduleDailyMessages, type NotifPrefs } from '../lib/notifications';
 import { setHapticsEnabled } from '../lib/haptics';
 import { getFirebaseAuth, getAuthHelpers } from '../lib/firebase';
 
@@ -217,6 +217,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
       },
       async resetAll() {
+        await cancelAll();
         await clearAll();
         await ensureStorageSchema();
         setState({ ...EMPTY_STATE, ready: true });
