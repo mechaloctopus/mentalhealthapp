@@ -64,6 +64,7 @@ assertNoPattern(/cancelAllScheduledNotificationsAsync/, 'broad notification canc
 assertNoPattern(/fake|simulated|seeded/i, 'possible simulated production signal found', [
   'scripts/check-invariants.mjs',
   'docs/COHERENCE_AUDIT.md',
+  'docs/PRIVACY_ARCHITECTURE.md',
   'docs/ROADMAP.md',
   'docs/REPO_AUDIT.md',
   'README.md',
