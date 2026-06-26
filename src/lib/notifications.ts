@@ -1,27 +1,25 @@
-// 365-day rolling daily affirmations via local notifications.
-//
-// iOS caps pending local notifications at ~64, so we schedule a rolling window
-// (default 60 days) of distinct daily messages and top it up every time the app
-// opens. Tapping a notification deep-links into the message viewport.
+// Rolling local daily messages. iOS caps pending local notifications, so the app
+// schedules a 60-day window and refreshes it when preferences change.
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { dayOfYear, messageForDay, TYPE_META } from '../data/messages';
 
 const WINDOW_DAYS = 60;
-const CHANNEL_ID = 'daily-affirmations';
+const CHANNEL_ID = 'daily-messages';
 
 export interface NotifPrefs {
   enabled: boolean;
-  hour: number; // 0-23
-  minute: number; // 0-59
+  hour: number;
+  minute: number;
 }
 
-export const DEFAULT_NOTIF_PREFS: NotifPrefs = { enabled: true, hour: 9, minute: 0 };
+// Notifications are opt-in. Enabling them from Profile triggers the permission request.
+export const DEFAULT_NOTIF_PREFS: NotifPrefs = { enabled: false, hour: 9, minute: 0 };
 
 export async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-    name: 'Daily affirmations',
+    name: 'Daily messages',
     importance: Notifications.AndroidImportance.DEFAULT,
     lightColor: '#66e0ca',
     vibrationPattern: [0, 120, 80, 120],
@@ -33,22 +31,21 @@ export async function requestPermissions(): Promise<boolean> {
   const current = await Notifications.getPermissionsAsync();
   let status = current.status;
   if (status !== 'granted') {
-    const req = await Notifications.requestPermissionsAsync({
+    const request = await Notifications.requestPermissionsAsync({
       ios: { allowAlert: true, allowBadge: true, allowSound: true },
     });
-    status = req.status;
+    status = request.status;
   }
   return status === 'granted';
 }
 
 function nextOccurrence(daysAhead: number, hour: number, minute: number): Date {
-  const d = new Date();
-  d.setHours(hour, minute, 0, 0);
-  d.setDate(d.getDate() + daysAhead);
-  return d;
+  const date = new Date();
+  date.setHours(hour, minute, 0, 0);
+  date.setDate(date.getDate() + daysAhead);
+  return date;
 }
 
-// Cancels existing and schedules a fresh rolling window of daily messages.
 export async function scheduleDailyMessages(prefs: NotifPrefs): Promise<number> {
   await Notifications.cancelAllScheduledNotificationsAsync();
   if (!prefs.enabled) return 0;
@@ -60,20 +57,18 @@ export async function scheduleDailyMessages(prefs: NotifPrefs): Promise<number> 
   const now = new Date();
   const todayTime = new Date();
   todayTime.setHours(prefs.hour, prefs.minute, 0, 0);
-  // If today's time already passed, start from tomorrow.
   const startOffset = now.getTime() >= todayTime.getTime() ? 1 : 0;
 
   let scheduled = 0;
-  for (let i = startOffset; i < startOffset + WINDOW_DAYS; i++) {
-    const when = nextOccurrence(i, prefs.hour, prefs.minute);
-    const day = dayOfYear(when);
-    const msg = messageForDay(day);
-    const meta = TYPE_META[msg.type];
+  for (let index = startOffset; index < startOffset + WINDOW_DAYS; index++) {
+    const when = nextOccurrence(index, prefs.hour, prefs.minute);
+    const message = messageForDay(dayOfYear(when));
+    const meta = TYPE_META[message.type];
     await Notifications.scheduleNotificationAsync({
       content: {
         title: `${meta.label} · MoodSignal`,
-        body: msg.body,
-        data: { messageId: msg.id, url: `/message/${msg.id}` },
+        body: message.body,
+        data: { messageId: message.id, url: `/message/${message.id}` },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -95,18 +90,17 @@ export async function pendingCount(): Promise<number> {
   return list.length;
 }
 
-// Fire a sample notification a few seconds out so users can preview the experience.
 export async function sendPreview(): Promise<void> {
   const granted = await requestPermissions();
   if (!granted) return;
   await ensureAndroidChannel();
-  const msg = messageForDay(dayOfYear());
-  const meta = TYPE_META[msg.type];
+  const message = messageForDay(dayOfYear());
+  const meta = TYPE_META[message.type];
   await Notifications.scheduleNotificationAsync({
     content: {
       title: `${meta.label} · MoodSignal`,
-      body: msg.body,
-      data: { messageId: msg.id, url: `/message/${msg.id}` },
+      body: message.body,
+      data: { messageId: message.id, url: `/message/${message.id}` },
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
