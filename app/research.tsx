@@ -9,6 +9,7 @@ import { GradientButton } from '../src/components/GradientButton';
 import { Display, Body, Muted, Label, GlassCard, Serif, Row, Title } from '../src/components/ui';
 import { useApp } from '../src/context/AppContext';
 import { SCREENERS, severity, type Screener, type ScreenerResult } from '../src/lib/screeners';
+import { screenerSafetyMessage, wellnessDisclaimer } from '../src/lib/safety';
 import { getItem, KEYS } from '../src/lib/storage';
 import { colors, font, radius, spacing } from '../src/theme/theme';
 import { tap, success, select } from '../src/lib/haptics';
@@ -18,6 +19,7 @@ export default function Research() {
   const [active, setActive] = useState<Screener | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
   const [result, setResult] = useState<ScreenerResult | null>(null);
+  const safety = screenerSafetyMessage(result?.flagged);
 
   const start = (s: Screener) => {
     select();
@@ -102,16 +104,19 @@ export default function Research() {
 
           {result && (
             <Animated.View entering={FadeInDown.duration(500)} style={{ marginBottom: spacing.md }}>
-              <GlassCard accent={colors.lavender} style={{ gap: 6 }}>
-                <Label color={colors.lavender}>{SCREENERS[result.id].title} RESULT</Label>
+              <GlassCard accent={safety ? colors.coral : colors.lavender} style={{ gap: 6 }}>
+                <Label color={safety ? colors.coral : colors.lavender}>{SCREENERS[result.id].title} RESULT</Label>
                 <Row gap={10} style={{ alignItems: 'baseline' }}>
                   <Title style={{ fontFamily: font.serif, fontSize: 34 }}>{result.score}</Title>
                   <Body color={colors.text} style={{ fontFamily: font.sansSemibold }}>{result.severity}</Body>
                 </Row>
-                {result.flagged && (
-                  <Body color={colors.coral} style={{ fontSize: 13, lineHeight: 20, marginTop: 4 }}>
-                    You noted thoughts of self-harm. You deserve support right now — please reach out to a trusted person or a crisis line (in the US, call or text 988). You are not alone.
-                  </Body>
+                {safety && (
+                  <View style={{ gap: 6, marginTop: 4 }}>
+                    <Body color={colors.coral} style={{ fontFamily: font.sansSemibold, fontSize: 13.5 }}>{safety.title}</Body>
+                    <Body color={colors.text} style={{ fontSize: 13, lineHeight: 20 }}>{safety.body}</Body>
+                    <Muted>{safety.action}</Muted>
+                    <Muted color={colors.coral}>{safety.emergency}</Muted>
+                  </View>
                 )}
                 <Muted style={{ fontSize: 12, marginTop: 4 }}>Saved to your private trend below.</Muted>
               </GlassCard>
@@ -171,7 +176,7 @@ export default function Research() {
           <View style={{ marginTop: spacing.xl }}>
             <GradientButton label="Export my data (JSON)" variant="solid" icon={<Ionicons name="download-outline" size={18} color={colors.text} />} onPress={exportData} full />
             <Muted center style={{ marginTop: spacing.md, fontSize: 11.5, lineHeight: 17 }}>
-              PHQ-9 and GAD-7 are validated research instruments included for self-reflection and tracking. They do not diagnose. If you’re struggling, please talk to a professional.
+              PHQ-9 and GAD-7 are validated research instruments included for self-reflection and tracking. {wellnessDisclaimer()}
             </Muted>
           </View>
         </Animated.ScrollView>

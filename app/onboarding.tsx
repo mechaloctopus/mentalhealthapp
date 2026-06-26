@@ -7,9 +7,9 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { AnimatedBackground } from '../src/components/AnimatedBackground';
 import { BrandMark } from '../src/components/BrandMark';
 import { GradientButton } from '../src/components/GradientButton';
-import { Display, Body, Label, Serif } from '../src/components/ui';
+import { Display, Body, Label } from '../src/components/ui';
 import { useApp } from '../src/context/AppContext';
-import { colors, font, radius, spacing } from '../src/theme/theme';
+import { colors, radius, spacing } from '../src/theme/theme';
 import { select } from '../src/lib/haptics';
 
 interface Slide {
@@ -36,11 +36,18 @@ const SLIDES: Slide[] = [
     accent: colors.blue,
   },
   {
-    kicker: 'Reflect · Breathe · Tune',
-    title: 'Four gentle pillars',
-    body: 'Daily affirmations and devotionals, guided breath and stillness, loving-kindness, and calming sound — matched to how you arrive.',
+    kicker: 'Practice · Wisdom · Purpose',
+    title: 'One wise next step',
+    body: 'Your state connects to breath, stillness, loving-kindness, sound, wisdom cards, and small acts of stewardship.',
     icon: 'leaf',
     accent: colors.moss,
+  },
+  {
+    kicker: 'The Inner Path',
+    title: 'Grow through resonance',
+    body: 'Daily quests, wisdom paths, mentor nudges, and skill trees help turn small meaningful actions into long-term growth.',
+    icon: 'planet',
+    accent: colors.lavender,
   },
   {
     kicker: '365 days of light',
@@ -95,9 +102,9 @@ export default function Onboarding() {
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
           renderItem={({ item }) => (
-            <View style={[styles.slide, { width }]}>
+            <View style={[styles.slide, { width }]}> 
               <Animated.View entering={FadeIn.duration(500)} style={styles.iconWrap}>
-                <View style={[styles.iconHalo, { backgroundColor: item.accent + '22', borderColor: item.accent + '55' }]}>
+                <View style={[styles.iconHalo, { backgroundColor: item.accent + '22', borderColor: item.accent + '55' }]}> 
                   <Ionicons name={item.icon} size={46} color={item.accent} />
                 </View>
               </Animated.View>

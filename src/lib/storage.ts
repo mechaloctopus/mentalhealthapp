@@ -51,5 +51,4 @@ export const KEYS = {
   journal: 'journal',
   screeners: 'screeners',
   researchConsent: 'researchConsent',
-  notificationsScheduled: 'notificationsScheduled',
 } as const;
