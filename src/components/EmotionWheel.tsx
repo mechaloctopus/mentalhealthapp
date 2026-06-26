@@ -6,10 +6,6 @@ import { EMOTIONS, getEmotion } from '../lib/emotions';
 import { colors, font, radius, spacing } from '../theme/theme';
 import { select } from '../lib/haptics';
 
-/**
- * A Valence × Arousal emotion wheel (Russell's circumplex). Each of the 12
- * emotions sits at its true coordinate; the center reflects the focused emotion.
- */
 export function EmotionWheel({
   value,
   onChange,
@@ -23,7 +19,7 @@ export function EmotionWheel({
   const current = getEmotion(focused ?? value);
   const cx = size / 2;
   const cy = size / 2;
-  const R = size * 0.36;
+  const radiusValue = size * 0.36;
 
   const pick = (id: string) => {
     select();
@@ -32,49 +28,49 @@ export function EmotionWheel({
   };
 
   return (
-    <View style={{ alignItems: 'center', gap: spacing.md }}>
+    <View style={{ alignItems: 'center', gap: spacing.md }} accessibilityRole="radiogroup" accessibilityLabel="Choose the feeling that fits best">
       <View style={{ width: size, height: size }}>
-        <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+        <Svg width={size} height={size} style={StyleSheet.absoluteFill} importantForAccessibility="no-hide-descendants">
           <Defs>
             <RadialGradient id="wheelGlow" cx="50%" cy="50%" r="50%">
               <Stop offset="0%" stopColor={current.color} stopOpacity={0.22} />
               <Stop offset="100%" stopColor={current.color} stopOpacity={0} />
             </RadialGradient>
           </Defs>
-          <Circle cx={cx} cy={cy} r={R + 26} fill="url(#wheelGlow)" />
-          <Circle cx={cx} cy={cy} r={R + 10} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
-          <Line x1={cx} y1={cy - R - 6} x2={cx} y2={cy + R + 6} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
-          <Line x1={cx - R - 6} y1={cy} x2={cx + R + 6} y2={cy} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+          <Circle cx={cx} cy={cy} r={radiusValue + 26} fill="url(#wheelGlow)" />
+          <Circle cx={cx} cy={cy} r={radiusValue + 10} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+          <Line x1={cx} y1={cy - radiusValue - 6} x2={cx} y2={cy + radiusValue + 6} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+          <Line x1={cx - radiusValue - 6} y1={cy} x2={cx + radiusValue + 6} y2={cy} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
         </Svg>
 
-        {/* axis hints */}
-        <Text style={[styles.axis, { top: 0, left: cx - 40, width: 80 }]}>HIGH ENERGY</Text>
-        <Text style={[styles.axis, { bottom: 0, left: cx - 40, width: 80 }]}>LOW ENERGY</Text>
-        <Text style={[styles.axis, { top: cy - 7, left: 2, width: 64, textAlign: 'left' }]}>UNPLEASANT</Text>
-        <Text style={[styles.axis, { top: cy - 7, right: 2, width: 64, textAlign: 'right' }]}>PLEASANT</Text>
+        <Text accessible={false} style={[styles.axis, { top: 0, left: cx - 40, width: 80 }]}>HIGH ENERGY</Text>
+        <Text accessible={false} style={[styles.axis, { bottom: 0, left: cx - 40, width: 80 }]}>LOW ENERGY</Text>
+        <Text accessible={false} style={[styles.axis, { top: cy - 7, left: 2, width: 64, textAlign: 'left' }]}>UNPLEASANT</Text>
+        <Text accessible={false} style={[styles.axis, { top: cy - 7, right: 2, width: 64, textAlign: 'right' }]}>PLEASANT</Text>
 
-        {/* center read-out */}
-        <View pointerEvents="none" style={[styles.center, { left: cx - 56, top: cy - 34, width: 112 }]}>
+        <View pointerEvents="none" accessible={false} style={[styles.center, { left: cx - 56, top: cy - 34, width: 112 }]}>
           <Text style={[styles.centerLabel, { color: current.color }]} numberOfLines={1}>{current.label}</Text>
           <Text style={styles.centerBlurb} numberOfLines={2}>{current.blurb}</Text>
         </View>
 
-        {/* emotion nodes */}
-        {EMOTIONS.map((e) => {
-          const x = cx + e.valence * R;
-          const y = cy - e.arousal * R;
-          const on = e.id === current.id;
+        {EMOTIONS.map((emotion) => {
+          const x = cx + emotion.valence * radiusValue;
+          const y = cy - emotion.arousal * radiusValue;
+          const selected = emotion.id === current.id;
           return (
             <Pressable
-              key={e.id}
-              onPress={() => pick(e.id)}
+              key={emotion.id}
+              onPress={() => pick(emotion.id)}
               hitSlop={6}
-              style={[styles.node, { left: x - (on ? 22 : 16), top: y - (on ? 22 : 16), width: on ? 44 : 32, height: on ? 44 : 32, borderRadius: 44 }]}
+              accessibilityRole="radio"
+              accessibilityLabel={`${emotion.label}. ${emotion.blurb}`}
+              accessibilityState={{ selected }}
+              style={[styles.node, { left: x - (selected ? 22 : 16), top: y - (selected ? 22 : 16), width: selected ? 44 : 32, height: selected ? 44 : 32, borderRadius: 44 }]}
             >
               <View
                 style={[
                   styles.dot,
-                  { backgroundColor: e.color, width: on ? 44 : 32, height: on ? 44 : 32, borderRadius: 44, borderWidth: on ? 2 : 0, borderColor: colors.text },
+                  { backgroundColor: emotion.color, width: selected ? 44 : 32, height: selected ? 44 : 32, borderRadius: 44, borderWidth: selected ? 2 : 0, borderColor: colors.text },
                 ]}
               />
             </Pressable>
@@ -82,10 +78,10 @@ export function EmotionWheel({
         })}
       </View>
 
-      <Animated.View key={current.id} entering={FadeIn.duration(300)} style={styles.nuance}>
-        {current.nuance.map((n) => (
-          <View key={n} style={[styles.chip, { borderColor: current.color + '55' }]}>
-            <Text style={[styles.chipText, { color: current.color }]}>{n}</Text>
+      <Animated.View key={current.id} entering={FadeIn.duration(300)} style={styles.nuance} accessible accessibilityLabel={`Related words: ${current.nuance.join(', ')}`}>
+        {current.nuance.map((word) => (
+          <View key={word} style={[styles.chip, { borderColor: current.color + '55' }]}>
+            <Text style={[styles.chipText, { color: current.color }]}>{word}</Text>
           </View>
         ))}
       </Animated.View>

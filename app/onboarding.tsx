@@ -70,8 +70,7 @@ export default function Onboarding() {
   const next = async () => {
     select();
     if (last) {
-      await completeOnboarding();
-      router.replace('/sign-in');
+      router.replace('/goals');
     } else {
       ref.current?.scrollToIndex({ index: index + 1, animated: true });
     }

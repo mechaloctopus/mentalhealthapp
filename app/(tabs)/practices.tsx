@@ -18,16 +18,16 @@ interface Practice {
 }
 
 const PRACTICES: Practice[] = [
-  { title: 'Breath', subtitle: 'Guided paced breathing for the nervous system', icon: 'leaf', route: '/breath', color: colors.teal, meta: '4–60 min' },
+  { title: 'Breath', subtitle: 'Guided paced breathing for settling and focus', icon: 'leaf', route: '/breath', color: colors.teal, meta: '4–60 min' },
   { title: 'Perfect Stillness', subtitle: 'A slow body scan — observation before story', icon: 'moon', route: '/stillness', color: colors.blue, meta: '8 min' },
-  { title: 'Loving-kindness', subtitle: 'Meta meditation: forgiveness and goodwill', icon: 'heart', route: '/meta', color: colors.coral, meta: '6 min' },
-  { title: 'Sound', subtitle: 'Frequency-assisted relaxation & ambient tones', icon: 'musical-notes', route: '/sound', color: colors.lavender, meta: 'Presets' },
-  { title: 'Sleep mixer', subtitle: 'Layer rain, waves & tones into a soundscape', icon: 'bed', route: '/sleep', color: colors.amber, meta: 'Mixer' },
+  { title: 'Loving-kindness', subtitle: 'Goodwill, forgiveness, and connection', icon: 'heart', route: '/meta', color: colors.coral, meta: '6 min' },
+  { title: 'Sound', subtitle: 'Ambient tones for rest and focused attention', icon: 'musical-notes', route: '/sound', color: colors.lavender, meta: 'Presets' },
+  { title: 'Sleep mixer', subtitle: 'Layer rain, waves, and tones into a soundscape', icon: 'bed', route: '/sleep', color: colors.amber, meta: 'Mixer' },
 ];
 
 const HABITS = [
-  { title: 'Monthly fasting reset', body: 'One optional gentle day a month — hydrate, keep quiet, refeed softly. Not for everyone; safety first.', icon: 'restaurant-outline' as const, color: colors.moss },
-  { title: 'Sleep & screen time', body: 'A dark, cool, quiet bedroom. Charge the phone outside the room. Small changes, deeper rest.', icon: 'bed-outline' as const, color: colors.amber },
+  { title: 'Steady nourishment', body: 'Choose regular meals, water, and a simple food plan that supports stable energy through the day.', icon: 'nutrition-outline' as const, color: colors.moss },
+  { title: 'Sleep and screen boundaries', body: 'Dim the room, reduce late-night stimulation, and make the last part of the day easier on your attention.', icon: 'bed-outline' as const, color: colors.amber },
 ];
 
 export default function Practices() {
@@ -36,24 +36,28 @@ export default function Practices() {
     <Screen tint={colors.moss}>
       <View style={styles.header}>
         <Display style={{ fontSize: 32 }}>Practices</Display>
-        <Muted style={{ marginTop: 4 }}>Ancient attention, modern nervous-system support.</Muted>
+        <Muted style={{ marginTop: 4 }}>Simple ways to regulate, reflect, and restore.</Muted>
       </View>
 
       <View style={{ gap: spacing.md }}>
-        {PRACTICES.map((p, i) => (
-          <Animated.View key={p.title} entering={FadeInDown.delay(i * 70).duration(500)}>
-            <Pressable onPress={() => { tap(); router.push(p.route as any); }}>
-              <View style={[styles.card, { borderColor: p.color + '40' }]}>
-                <LinearGradient colors={[p.color + '1c', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-                <View style={[styles.icon, { backgroundColor: p.color + '22', borderColor: p.color + '55' }]}>
-                  <Ionicons name={p.icon} size={24} color={p.color} />
+        {PRACTICES.map((practice, index) => (
+          <Animated.View key={practice.title} entering={FadeInDown.delay(index * 70).duration(500)}>
+            <Pressable
+              onPress={() => { tap(); router.push(practice.route as any); }}
+              accessibilityRole="button"
+              accessibilityLabel={`${practice.title}. ${practice.subtitle}. ${practice.meta}`}
+            >
+              <View style={[styles.card, { borderColor: practice.color + '40' }]}>
+                <LinearGradient colors={[practice.color + '1c', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+                <View style={[styles.icon, { backgroundColor: practice.color + '22', borderColor: practice.color + '55' }]}>
+                  <Ionicons name={practice.icon} size={24} color={practice.color} />
                 </View>
                 <View style={{ flex: 1, gap: 3 }}>
-                  <Serif style={{ fontSize: 20 }}>{p.title}</Serif>
-                  <Body style={{ fontSize: 13.5 }}>{p.subtitle}</Body>
+                  <Serif style={{ fontSize: 20 }}>{practice.title}</Serif>
+                  <Body style={{ fontSize: 13.5 }}>{practice.subtitle}</Body>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 8 }}>
-                  <Muted style={{ fontSize: 11.5, color: p.color }}>{p.meta}</Muted>
+                  <Muted style={{ fontSize: 11.5, color: practice.color }}>{practice.meta}</Muted>
                   <Ionicons name="arrow-forward" size={18} color={colors.textDim} />
                 </View>
               </View>
@@ -64,14 +68,14 @@ export default function Practices() {
 
       <Label style={{ marginTop: spacing.xl, marginBottom: 12 }}>SUPPORTIVE HABITS</Label>
       <View style={{ gap: spacing.md }}>
-        {HABITS.map((h) => (
-          <GlassCard key={h.title} style={styles.habit}>
-            <View style={[styles.habitIcon, { backgroundColor: h.color + '1a' }]}>
-              <Ionicons name={h.icon} size={20} color={h.color} />
+        {HABITS.map((habit) => (
+          <GlassCard key={habit.title} style={styles.habit}>
+            <View style={[styles.habitIcon, { backgroundColor: habit.color + '1a' }]}>
+              <Ionicons name={habit.icon} size={20} color={habit.color} />
             </View>
             <View style={{ flex: 1, gap: 4 }}>
-              <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>{h.title}</Body>
-              <Muted style={{ fontSize: 13, lineHeight: 19 }}>{h.body}</Muted>
+              <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>{habit.title}</Body>
+              <Muted style={{ fontSize: 13, lineHeight: 19 }}>{habit.body}</Muted>
             </View>
           </GlassCard>
         ))}

@@ -5,7 +5,6 @@ import { FACTORS } from '../lib/factors';
 import { colors, font, radius } from '../theme/theme';
 import { select } from '../lib/haptics';
 
-/** Multi-select context factors for a check-in. */
 export function FactorPicker({
   value,
   onChange,
@@ -17,20 +16,24 @@ export function FactorPicker({
 }) {
   const toggle = (id: string) => {
     select();
-    onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id]);
+    onChange(value.includes(id) ? value.filter((item) => item !== id) : [...value, id]);
   };
+
   return (
-    <View style={styles.wrap}>
-      {FACTORS.map((f) => {
-        const on = value.includes(f.id);
+    <View style={styles.wrap} accessibilityRole="list" accessibilityLabel="Choose any factors shaping this feeling">
+      {FACTORS.map((factor) => {
+        const selected = value.includes(factor.id);
         return (
           <Pressable
-            key={f.id}
-            onPress={() => toggle(f.id)}
-            style={[styles.chip, on && { backgroundColor: accent + '22', borderColor: accent + '88' }]}
+            key={factor.id}
+            onPress={() => toggle(factor.id)}
+            style={[styles.chip, selected && { backgroundColor: accent + '22', borderColor: accent + '88' }]}
+            accessibilityRole="checkbox"
+            accessibilityLabel={factor.label}
+            accessibilityState={{ checked: selected }}
           >
-            <Ionicons name={f.icon} size={14} color={on ? accent : colors.textDim} />
-            <Text style={[styles.label, { color: on ? colors.text : colors.textMuted }]}>{f.label}</Text>
+            <Ionicons name={factor.icon} size={14} color={selected ? accent : colors.textDim} />
+            <Text style={[styles.label, { color: selected ? colors.text : colors.textMuted }]}>{factor.label}</Text>
           </Pressable>
         );
       })}

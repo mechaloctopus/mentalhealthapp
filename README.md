@@ -1,249 +1,216 @@
 # MoodSignal
 
-**MoodSignal is a research-informed emotional calibration and human-flourishing app built with React Native, Expo, and TypeScript.**
+**MoodSignal is a local-first emotional check-in, practice, wisdom, and personal-growth app built with React Native, Expo, and TypeScript.**
 
-The app helps a user move through a simple loop:
+Its canonical loop is:
 
-> **Signal → Awareness → Wisdom → Practice → Purpose → Growth → Resonance**
+> **Daily word → Check in → One wise next step → Practice or quest → Resonance → Skill-tree growth → Insight**
 
-A daily voice or self-report check-in helps the user understand their current state, then MoodSignal recommends one grounded next step instead of overwhelming them with a long menu of options.
-
-MoodSignal is designed as a wellness and self-reflection companion. It is **not** a medical device, does **not** diagnose or treat any condition, and should not replace care from a qualified professional. Voice analysis is currently local and heuristic, using acoustic-style signals such as loudness, variability, pauses, and cadence proxies.
+MoodSignal is a wellness and self-reflection companion. It is not a medical device, does not diagnose or treat any condition, and should not replace qualified professional care.
 
 ---
 
-## Current Product Shape
+## What the app currently does
 
-MoodSignal already includes a meaningful prototype foundation:
-
-- **Onboarding and boot gate** — routes users through onboarding, sign-in, baseline capture, and the main tab experience.
-- **Voice baseline** — lets the user establish a private emotional reference point.
-- **Voice check-in** — records a short spoken reflection and maps on-device metering features to energy, calmness, stability, stress, and a confidence-weighted emotion suggestion.
-- **Self-report check-in** — lets the user correct or bypass voice interpretation through an emotion wheel.
-- **Recommendation engine** — maps state to one next practice, a wisdom card, and a purpose/stewardship action.
-- **Practices** — breathwork, stillness/body scan, loving-kindness/meta meditation, and synthesized sound sessions.
-- **365 daily messages** — deterministic affirmations, quotes, devotionals, grounding prompts, breath cues, gratitude prompts, and resilience reflections.
-- **Daily notifications** — rolling local notification window with deep links into message viewports.
-- **Journal and coach-style reflection surfaces** — early scaffolding for personal insight and guided reflection.
-- **PHQ-9 and GAD-7 screeners** — optional self-report instruments for reflection and longitudinal tracking, with centralized sensitive-item safety copy.
-- **Side Module / Inner Path** — already built as a gamified enlightenment layer with resonance, daily quests, wisdom paths, mission stages, mentor nudges, community, and skill trees.
-- **Local-first persistence** — app data persists through typed AsyncStorage adapters that can later be replaced with Firebase, Supabase, encrypted local storage, or a hybrid design.
-- **Premium visual system** — animated dark canvas, glass cards, custom typography, haptics, SVG visualizations, and Expo Router navigation.
-
----
-
-## Production Vision
-
-MoodSignal should not become a random collection of wellness tools. The production product should behave like a compact personal operating system for emotional awareness, wise action, and long-term growth.
-
-The app should help a user answer four questions:
-
-1. **What state am I in?**
-2. **Why might I be here?**
-3. **What is the wisest next action?**
-4. **Who am I becoming through repeated action?**
-
-Every feature should support that loop.
-
-### Eight Product Pillars
-
-1. **Signal** — voice, self-report, screeners, journal, sleep, practices, and future wearable data.
-2. **Awareness** — trends, emotional patterns, baseline shifts, reflection, and insight generation.
-3. **Wisdom** — practical teachings from psychology, contemplative traditions, virtue ethics, purpose work, and habit formation.
-4. **Practice** — breathwork, stillness, loving-kindness, sound, journaling, gratitude, forgiveness, visualization, service, and flow training.
-5. **Purpose** — stewardship prompts and small acts of contribution that turn “I have no purpose” into “What needs care right now?”
-6. **Growth** — virtues, identities, milestones, consistency, and long-term change without shallow gamification.
-7. **Reflection** — evening review, daily learning, gratitude, repair, and tomorrow’s intention.
-8. **Resonance** — the side-module growth system that turns small meaningful actions into mission progress, wisdom paths, and skill-tree development.
+- **Voice check-ins** — records a short reflection and estimates energy, calmness, stability, stress, and an approximate emotional signal from microphone metering.
+- **Manual check-ins** — lets the user name a feeling directly through the emotion wheel.
+- **User confirmation** — the user’s own selected emotion is treated as the final answer.
+- **Sample-quality protection** — unusable voice samples produce retry/manual options; the app does not synthesize replacement data.
+- **Recommendation engine** — returns one primary practice, rationale, wisdom card, purpose-through-care prompt, and matched Inner Path quest.
+- **Practices** — breath, stillness/body scan, loving-kindness, sound, and sleep soundscapes.
+- **Inner Path** — resonance, mission stages, daily quests, wisdom paths, mentor nudges, karma, stewardship, flow, and 11 skill trees.
+- **Practice rewards** — core practices visibly grant resonance and skill-tree growth once per day.
+- **Insights** — emotion distribution, contributing-factor associations, calmness trends, baseline comparison, resonance, mission progress, and skill-tree levels.
+- **365 messages** — daily affirmations, reflections, quotations, devotionals, grounding prompts, and resilience messages.
+- **Optional notifications** — local daily-message notifications are disabled by default and enabled from Profile.
+- **Journal and guided reflection** — private writing and structured thought-reframing surfaces.
+- **PHQ-9 and GAD-7** — optional self-report screeners for reflection and trend history, with sensitive-item safety copy.
+- **Private compassion wall** — an explicitly local reflection surface; no simulated users, posts, engagement, or collective totals.
+- **Local data export and reset** — user data can be exported as JSON and cleared from the device; reset also cancels scheduled daily messages.
 
 ---
 
-## Side Module: The Inner Path
+## One coherent growth system
 
-The Side Module is already implemented under `app/side/` and `src/side/`. It is the app’s gamified enlightenment layer.
+MoodSignal uses a single canonical growth model:
 
-It includes:
+- **Resonance** is the main growth currency.
+- **Mission stages** describe the broad Inner Path arc.
+- **Skill-tree levels** show growth in specific areas.
+- **Daily quests** provide immediate meaningful actions.
+- **Wisdom paths** provide optional structured journeys.
+- **Activity rhythm** describes consistency but is not a currency.
 
-- **Resonance** — the main growth currency for completed meaningful action.
-- **Mission stages** — Stabilize the mind → Heal emotional suffering → Build positive habits → Discover purpose → Develop wisdom → Live in service.
-- **Daily quests** — deterministic daily practices drawn from a universal quest pool and active wisdom paths.
-- **Wisdom paths** — optional data-driven journeys such as The Five Temples, Seven Habits, Acts of Stewardship, Flow/Mushin, Heart Coherence, Bodhisattva-inspired service, Stoicism, and Wisdom Library.
-- **Skill trees** — Mindfulness, Compassion, Purpose, Wisdom, Fitness, Nutrition, Relationships, Leadership, Service, Creativity, and Flow.
-- **Mentor nudges** — state-aware guidance based on check-ins, streaks, resonance, daily progress, karma, and stewardship.
-- **Community surface** — compassion wall, shared sitting, and gathering-style affordances.
+The previous Lumen companion/points/badges economy has been removed so the product has one progression language.
 
-The intended dashboard loop is:
+### Mission stages
+
+1. Stabilize the mind
+2. Heal emotional suffering
+3. Build positive habits
+4. Discover purpose
+5. Develop wisdom
+6. Live in service
+
+### Skill trees
+
+- Mindfulness
+- Compassion
+- Purpose
+- Wisdom
+- Fitness
+- Nutrition
+- Relationships
+- Leadership
+- Service
+- Creativity
+- Flow
+
+### Core practice rewards
+
+| Practice | Daily resonance | Skill trees |
+|---|---:|---|
+| Breath | 15 | Mindfulness |
+| Stillness | 15 | Mindfulness, Wisdom |
+| Loving-kindness | 18 | Compassion, Relationships |
+| Sound | 12 | Mindfulness, Flow |
+
+Rewards are granted once per practice type per day. The practice session itself is still stored every time it is completed.
+
+---
+
+## Main navigation
+
+- **Today** — daily message, check-in, live Inner Path status, next quest, and key tools.
+- **Insights** — emotional patterns, baseline, resonance, mission stage, and skill trees.
+- **Practices** — direct access to guided practices.
+- **365** — daily-message archive.
+- **You** — profile, Inner Path entry, notifications, haptics, screeners, export, baseline, sign-out, and reset.
+
+Secondary routes include voice/manual check-in, baseline, journal, guided reflection, sleep mixer, screeners, practices, wisdom paths, quests, mentor, trees, and the private compassion surface.
+
+---
+
+## Repository structure
 
 ```text
-Check in → Receive next step → Complete practice or side quest → Gain resonance → Grow skill tree → Advance mission stage
+app/
+  _layout.tsx              Root providers, including AppProvider and SideProvider
+  index.tsx                Boot gate
+  onboarding.tsx           First-run introduction
+  sign-in.tsx              Local-first identity; production auth requires Google + Firebase config
+  baseline.tsx             Quality-checked voice baseline
+  checkin.tsx              Voice check-in and unified recommendation result
+  feel.tsx                 Manual check-in and unified recommendation result
+  breath.tsx               Breath practice + Inner Path reward
+  stillness.tsx            Body scan + Inner Path reward
+  meta.tsx                 Loving-kindness + Inner Path reward
+  sound.tsx                Sound practice + Inner Path reward
+  sleep.tsx                Sleep sound mixer
+  coach.tsx                Guided reflection
+  journal*.tsx             Journal surfaces
+  research.tsx             Screeners, consent, history, export, safety copy
+  message/[id].tsx         Daily-message viewport
+  (tabs)/                  Today, Insights, Practices, 365, You
+  side/                    Inner Path routes: dashboard, paths, quests, trees, mentor, compassion
+
+src/
+  components/              Design-system and visualization components
+  context/AppContext.tsx   Core app state
+  data/messages.ts         365 message engine
+  data/wisdom.ts           Tagged recommendation wisdom cards
+  lib/                     Voice, recommendations, quest matching, storage, safety, auth, notifications
+  side/SideContext.tsx     Resonance, quests, practice rewards, paths, skill-tree state
+  side/content.ts          Quest pool, wisdom paths, mission stages
+  side/trees.ts            Skill-tree definitions and level calculation
+  side/mentor.ts           Mentor-nudge generation
+  theme/theme.ts           Design tokens
+
+docs/                      Vision, architecture, roadmap, audits, content, and release checklist
+.github/workflows/ci.yml    Pull-request and main-branch TypeScript validation
 ```
 
-Near-term work should integrate this Side Module more visibly into the main Today dashboard.
-
-See [`docs/SIDE_MODULE.md`](docs/SIDE_MODULE.md).
-
 ---
 
-## Tech Stack
-
-- React Native 0.76
-- Expo SDK 52
-- TypeScript
-- Expo Router
-- Reanimated 3
-- react-native-svg
-- expo-av for voice recording and metering
-- expo-notifications
-- expo-blur and expo-linear-gradient
-- AsyncStorage
-- Firebase dependency present, but production auth/backend still needs final integration
-
----
-
-## Run Locally
+## Run locally
 
 ```bash
 npm install
+npm run lint
 npx expo start
 ```
 
-Then scan the QR code with Expo Go on iOS or Android.
-
-Microphone and notification features require a physical device or simulator support. For production builds:
+Production builds:
 
 ```bash
 eas build -p ios
 eas build -p android
 ```
 
----
-
-## Repository Structure
-
-```text
-app/                         Expo Router screens and route groups
-  _layout.tsx                Root providers, fonts, notification routing
-  index.tsx                  Boot gate: onboarding → sign-in → baseline → tabs
-  onboarding.tsx             First-run introduction
-  sign-in.tsx                Current auth surface; real auth still needed
-  baseline.tsx               Voice baseline capture
-  checkin.tsx                Voice check-in flow + wisdom/purpose recommendation surface
-  feel.tsx                   Self-report flow
-  coach.tsx                  Guided reflection surface
-  journal*.tsx               Journal surfaces
-  breath.tsx                 Breath practice
-  stillness.tsx              Body scan / stillness practice
-  meta.tsx                   Loving-kindness practice
-  sound.tsx                  Sound practice
-  research.tsx               PHQ-9, GAD-7, consent, data export, safety copy
-  sleep.tsx                  Sleep-related surface
-  message/[id].tsx           Daily message viewport
-  (tabs)/                    Main Today, Voice, Practices, 365, You experience
-  side/                      Inner Path side-module stack
-    _layout.tsx              SideProvider + side navigation
-    index.tsx                Resonance dashboard, daily quests, paths, trees, mentor, community entry
-    trees.tsx                Skill tree view
-    mentor.tsx               Mentor guidance
-    community.tsx            Gathering/community surface
-    path/[id].tsx            Wisdom path detail
-    quest/[id].tsx           Quest completion modal
-
-src/
-  components/                Reusable design system and visual components
-  context/AppContext.tsx     Global app state and persistence actions
-  data/messages.ts           365-day message/content engine
-  data/wisdom.ts             Tagged wisdom cards for recommendations
-  lib/                       Auth, storage, voice, notifications, screeners, audio, haptics, safety, recommendations
-  side/                      Side Module content, state, mentor, and skill trees
-    SideContext.tsx          Resonance, completions, daily quests, path progress
-    content.ts               Quest pool, wisdom paths, mission stages
-    trees.ts                 11 skill trees and leveling
-    mentor.ts                Mentor nudge generation
-  theme/theme.ts             Color, type, spacing, radius, shadow tokens
-
-scripts/
-  gen-assets.js              Branded app icon/splash generation
-
-docs/                        Product, roadmap, architecture, side module, audit, and production docs
-```
+Microphone, notification, audio-session, and deep-link behavior must be tested on physical devices before release.
 
 ---
 
-## Production Progress
+## Current production status
 
-MoodSignal is currently a strong prototype moving toward production readiness.
+MoodSignal is a substantial prototype moving toward external-beta readiness.
 
-### Done / in progress
+### Completed in the coherence pass
 
-- Core route architecture
-- App context and local persistence
-- Voice check-in and baseline flow
-- Self-report emotion correction
-- Practice screens
-- 365 message system
-- Local notifications
-- Journal and coach surfaces
-- PHQ-9 / GAD-7 screeners
-- Centralized safety copy helper
-- Recommendation engine scaffold
-- Wisdom content scaffold
-- Purpose/stewardship prompt scaffold
-- Side Module with resonance, daily quests, mission stages, paths, mentor, community, and skill trees
-- Production documentation map
-- Repo audit / cleanup log
+- One app-wide Inner Path state
+- One canonical resonance/skill-tree growth model
+- Removed obsolete Lumen companion/progress code
+- Simplified Today dashboard
+- Resonance and skill-tree Insights dashboard
+- Manual and voice recommendation parity
+- Matched quests for both check-in methods
+- Voice sample-quality rejection instead of fabricated fallback data
+- Core practice-to-resonance rewards with duplicate protection
+- Honest local-first sign-in copy
+- Google account sign-in gated behind real Firebase configuration
+- Explicit notification opt-in
+- Notification reset/cancel behavior scoped to daily messages
+- Full reset cancels scheduled daily messages
+- Honest private compassion surface
+- Core emotion/factor/practice accessibility improvements
+- Storage schema-version scaffold
+- CI TypeScript workflow
 
-### Production blockers
+### Release blockers
 
-- Replace dummy sign-in with real Firebase Auth, Google Sign-In, and anonymous auth upgrade flow.
-- Decide whether sensitive user data remains local-only, encrypted local, or synced to a secure backend.
-- Add formal privacy policy, terms, crisis/safety copy review, and App Store compliance language.
-- Add crash reporting, analytics, and structured error logging.
-- Add test coverage for storage, voice heuristics, recommendations, side quests, screeners, and notification scheduling.
-- Add accessibility pass for VoiceOver/TalkBack, larger text, reduced motion, and contrast.
-- Run real-device QA for microphone, notifications, background behavior, side-module flows, and release builds.
+- Decide and implement the sensitive-data privacy architecture: encrypted local storage, encrypted database, or explicit secure sync.
+- Add privacy policy, terms, retention rules, and tested export/deletion behavior.
+- Add a dedicated, locale-aware crisis-support route and complete safety review.
+- Decide between intentional local-only launch and real production authentication/sync.
+- Pass CI and perform iOS/Android release-build testing on physical devices.
+- Complete VoiceOver/TalkBack, dynamic-text, contrast, reduced-motion, and touch-target QA.
+- Audit quotation attribution and reuse rights across all content.
+- Add tests for voice quality, recommendations, screeners, notifications, quests, rewards, and storage migrations.
 
-### Near-term product buildout
-
-- Main dashboard Side Module panel
-- Connect core practice completion to side-module resonance where appropriate
-- Connect recommendation engine to specific side quests
-- Evening reflection loop
-- Progress and insight dashboard
-- Content tagging expansion
-- Safer crisis-resource screen
-- App Store screenshots, description, and launch checklist
-
-See [`docs/ROADMAP.md`](docs/ROADMAP.md), [`docs/SIDE_MODULE.md`](docs/SIDE_MODULE.md), and [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md).
+See [`docs/COHERENCE_AUDIT.md`](docs/COHERENCE_AUDIT.md) for the current whole-app assessment.
 
 ---
 
 ## Documentation
 
-- [`docs/PRODUCT_VISION.md`](docs/PRODUCT_VISION.md) — core philosophy and product direction
-- [`docs/SIDE_MODULE.md`](docs/SIDE_MODULE.md) — resonance, quests, mission stages, wisdom paths, and skill trees
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — phased buildout plan
-- [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md) — release-readiness checklist
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — current architecture and target improvements
-- [`docs/CONTENT_SYSTEM.md`](docs/CONTENT_SYSTEM.md) — messages, wisdom, purpose, side quests, and practice content model
-- [`docs/REPO_AUDIT.md`](docs/REPO_AUDIT.md) — documentation reconciliation and cleanup log
+- [`docs/PRODUCT_VISION.md`](docs/PRODUCT_VISION.md)
+- [`docs/COHERENCE_AUDIT.md`](docs/COHERENCE_AUDIT.md)
+- [`docs/SIDE_MODULE.md`](docs/SIDE_MODULE.md)
+- [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md)
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- [`docs/CONTENT_SYSTEM.md`](docs/CONTENT_SYSTEM.md)
+- [`docs/REPO_AUDIT.md`](docs/REPO_AUDIT.md)
 
 ---
 
-## Development Principles
+## Development principles
 
-1. Recommend **one next step**, not ten options.
-2. Prefer reflection and agency over diagnosis.
-3. Make spiritual/wisdom material optional, practical, and non-coercive.
-4. Keep the app local-first until sync and privacy are production-grade.
-5. Treat all mental-health-adjacent language carefully.
-6. Design for real people in activated states: fewer choices, calmer surfaces, clear exits.
-7. Every module should strengthen the Signal → Awareness → Wisdom → Practice → Purpose → Growth → Resonance loop.
-8. Use sacred gamification: growth without compulsion, social comparison, gambling mechanics, or shame.
-
----
-
-## Safety Positioning
-
-MoodSignal is for wellness, self-reflection, habit support, and guided practice. It does not provide medical advice. If a user may be in immediate danger or crisis, the app should direct them to local emergency services or appropriate crisis support.
-
-Before release, all crisis-related flows, PHQ-9 sensitive-item handling, disclaimers, and app-store copy should be reviewed carefully.
+1. Show one primary next action.
+2. Treat user self-report as more authoritative than voice estimation.
+3. Never fabricate emotional or social signals.
+4. Use resonance and skill trees as the only growth economy.
+5. Make wisdom and spiritual content optional, practical, and non-coercive.
+6. Keep sensitive data local until its privacy architecture is production-grade.
+7. Avoid clinical, diagnostic, treatment, and guaranteed-healing claims.
+8. Reward meaningful action without shame, gambling mechanics, or compulsive engagement.

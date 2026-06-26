@@ -1,10 +1,19 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getItem, setItem } from '../lib/storage';
 import { dayKey } from '../lib/insights';
-import { DAILY_POOL, PATHS, getQuest, getPath, type Quest } from './content';
+import { DAILY_POOL, getQuest, getPath, type Quest } from './content';
 import type { TreeId } from './trees';
 
 const KEY = 'sideState';
+
+export type CorePracticeId = 'breath' | 'stillness' | 'meta' | 'sound';
+
+export const CORE_PRACTICE_REWARDS: Record<CorePracticeId, { completionId: string; resonance: number; trees: TreeId[]; label: string }> = {
+  breath: { completionId: 'd-breath', resonance: 15, trees: ['mindfulness'], label: 'Mindfulness' },
+  stillness: { completionId: 'd-sit', resonance: 15, trees: ['mindfulness', 'wisdom'], label: 'Mindfulness + Wisdom' },
+  meta: { completionId: 'core-meta', resonance: 18, trees: ['compassion', 'relationships'], label: 'Compassion + Relationships' },
+  sound: { completionId: 'core-sound', resonance: 12, trees: ['mindfulness', 'flow'], label: 'Mindfulness + Flow' },
+};
 
 interface Reflection { id: string; questId: string; text: string; at: number }
 
@@ -14,7 +23,7 @@ interface SideData {
   karma: number;
   stewardship: number;
   flow: number;
-  completions: Record<string, number[]>; // questId -> completion timestamps
+  completions: Record<string, number[]>;
   activePaths: string[];
   daily: { date: string; questIds: string[]; done: string[] };
   reflections: Reflection[];
@@ -38,131 +47,184 @@ interface SideCtx extends SideData {
   isCompleted: (id: string) => boolean;
   canComplete: (id: string) => boolean;
   completeQuest: (id: string, reflection?: string) => void;
+  canAwardPractice: (kind: CorePracticeId) => boolean;
+  completePractice: (kind: CorePracticeId) => void;
   startPath: (id: string) => void;
+  resetSide: () => Promise<void>;
   pathProgress: (id: string) => { done: number; total: number };
   nextQuestsForPath: (id: string) => Quest[];
 }
 
 const Ctx = createContext<SideCtx | null>(null);
 
-// Deterministic pick of N daily-pool quests for a given date.
-function dailyPoolFor(date: Date, n: number): string[] {
-  const doy = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
+function todayKey(): string {
+  return dayKey(Date.now());
+}
+
+function hasCompletionToday(data: SideData, id: string): boolean {
+  return (data.completions[id] ?? []).some((timestamp) => dayKey(timestamp) === todayKey());
+}
+
+function dailyPoolFor(date: Date, count: number): string[] {
+  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
   const ids: string[] = [];
-  for (let i = 0; i < n; i++) ids.push(DAILY_POOL[(doy + i * 3) % DAILY_POOL.length].id);
+  for (let index = 0; index < count; index++) ids.push(DAILY_POOL[(dayOfYear + index * 3) % DAILY_POOL.length].id);
   return Array.from(new Set(ids));
+}
+
+function rollDaily(data: SideData): SideData {
+  const today = todayKey();
+  if (data.daily.date === today && data.daily.questIds.length) return data;
+
+  const pool = dailyPoolFor(new Date(), 3);
+  const extra: string[] = [];
+  for (const pathId of data.activePaths) {
+    const path = getPath(pathId);
+    if (!path) continue;
+    for (const stage of path.stages) {
+      for (const quest of stage.quests) {
+        if (!(data.completions[quest.id]?.length ?? 0)) {
+          extra.push(quest.id);
+          break;
+        }
+      }
+      if (extra.length >= 2) break;
+    }
+    if (extra.length >= 2) break;
+  }
+
+  return {
+    ...data,
+    daily: { date: today, questIds: Array.from(new Set([...pool, ...extra.slice(0, 2)])), done: [] },
+  };
+}
+
+function applyQuestCompletion(current: SideData, quest: Quest, reflection?: string): SideData {
+  const id = quest.id;
+  const alreadyToday = hasCompletionToday(current, id);
+  const everDone = (current.completions[id]?.length ?? 0) > 0;
+  if (quest.repeatable ? alreadyToday : everDone) return current;
+
+  const treeXp = { ...current.treeXp };
+  for (const tree of quest.trees) treeXp[tree] = (treeXp[tree] ?? 0) + quest.resonance;
+  const completions = { ...current.completions, [id]: [...(current.completions[id] ?? []), Date.now()] };
+  const daily = current.daily.questIds.includes(id) && !current.daily.done.includes(id)
+    ? { ...current.daily, done: [...current.daily.done, id] }
+    : current.daily;
+  const reflections = reflection?.trim()
+    ? [{ id: Math.random().toString(36).slice(2), questId: id, text: reflection.trim(), at: Date.now() }, ...current.reflections].slice(0, 500)
+    : current.reflections;
+
+  return {
+    ...current,
+    resonance: current.resonance + quest.resonance,
+    karma: current.karma + (quest.grants?.karma ?? 0),
+    stewardship: current.stewardship + (quest.grants?.stewardship ?? 0),
+    flow: current.flow + (quest.grants?.flow ?? 0),
+    treeXp,
+    completions,
+    daily,
+    reflections,
+  };
+}
+
+function applyPracticeCompletion(current: SideData, kind: CorePracticeId): SideData {
+  const reward = CORE_PRACTICE_REWARDS[kind];
+  if (hasCompletionToday(current, reward.completionId)) return current;
+
+  const treeXp = { ...current.treeXp };
+  for (const tree of reward.trees) treeXp[tree] = (treeXp[tree] ?? 0) + reward.resonance;
+  const completions = {
+    ...current.completions,
+    [reward.completionId]: [...(current.completions[reward.completionId] ?? []), Date.now()],
+  };
+  const daily = current.daily.questIds.includes(reward.completionId) && !current.daily.done.includes(reward.completionId)
+    ? { ...current.daily, done: [...current.daily.done, reward.completionId] }
+    : current.daily;
+
+  return {
+    ...current,
+    resonance: current.resonance + reward.resonance,
+    flow: current.flow + (kind === 'sound' ? 1 : 0),
+    treeXp,
+    completions,
+    daily,
+  };
 }
 
 export function SideProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<SideData>(EMPTY);
+  const dataRef = useRef<SideData>(EMPTY);
   const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   useEffect(() => {
     (async () => {
       const saved = await getItem<SideData>(KEY, EMPTY);
       const merged = { ...EMPTY, ...saved, daily: { ...EMPTY.daily, ...saved?.daily } };
-      setData(rollDaily(merged));
+      const next = rollDaily(merged);
+      setData(next);
+      dataRef.current = next;
       setReady(true);
+      await setItem(KEY, next);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const persist = (next: SideData) => {
-    setData(next);
-    setItem(KEY, next);
-  };
-
-  // Rebuild today's quest set if the day changed.
-  function rollDaily(d: SideData): SideData {
-    const today = dayKey(Date.now());
-    if (d.daily.date === today && d.daily.questIds.length) return d;
-    const pool = dailyPoolFor(new Date(), 3);
-    // add up to 2 next quests from active paths
-    const extra: string[] = [];
-    for (const pid of d.activePaths) {
-      const path = getPath(pid);
-      if (!path) continue;
-      for (const s of path.stages) {
-        for (const q of s.quests) {
-          const ts = d.completions[q.id];
-          if (!ts || ts.length === 0) { extra.push(q.id); break; }
-        }
-        if (extra.length >= 2) break;
-      }
-      if (extra.length >= 2) break;
-    }
-    const questIds = Array.from(new Set([...pool, ...extra.slice(0, 2)]));
-    return { ...d, daily: { date: today, questIds, done: [] } };
-  }
-
-  const isDoneToday = (id: string) => {
-    const ts = data.completions[id] ?? [];
-    return ts.some((t) => dayKey(t) === dayKey(Date.now()));
-  };
+  const isDoneToday = (id: string) => hasCompletionToday(data, id);
   const isCompleted = (id: string) => (data.completions[id]?.length ?? 0) > 0;
-
   const canComplete = (id: string) => {
-    const q = getQuest(id);
-    if (!q) return false;
-    return q.repeatable ? !isDoneToday(id) : !isCompleted(id);
+    const quest = getQuest(id);
+    if (!quest) return false;
+    return quest.repeatable ? !isDoneToday(id) : !isCompleted(id);
   };
+  const canAwardPractice = (kind: CorePracticeId) => !isDoneToday(CORE_PRACTICE_REWARDS[kind].completionId);
 
-  const actions = useMemo(
-    () => ({
-      completeQuest(id: string, reflection?: string) {
-        const q = getQuest(id);
-        if (!q) return;
-        setData((d) => {
-          const repeatable = !!q.repeatable;
-          const alreadyToday = (d.completions[id] ?? []).some((t) => dayKey(t) === dayKey(Date.now()));
-          const everDone = (d.completions[id]?.length ?? 0) > 0;
-          if (repeatable ? alreadyToday : everDone) return d; // no double-claim
-
-          const treeXp = { ...d.treeXp };
-          for (const t of q.trees) treeXp[t] = (treeXp[t] ?? 0) + q.resonance;
-          const completions = { ...d.completions, [id]: [...(d.completions[id] ?? []), Date.now()] };
-          const daily = d.daily.questIds.includes(id) && !d.daily.done.includes(id)
-            ? { ...d.daily, done: [...d.daily.done, id] }
-            : d.daily;
-          const reflections = reflection?.trim()
-            ? [{ id: Math.random().toString(36).slice(2), questId: id, text: reflection.trim(), at: Date.now() }, ...d.reflections].slice(0, 500)
-            : d.reflections;
-
-          const next: SideData = {
-            ...d,
-            resonance: d.resonance + q.resonance,
-            karma: d.karma + (q.grants?.karma ?? 0),
-            stewardship: d.stewardship + (q.grants?.stewardship ?? 0),
-            flow: d.flow + (q.grants?.flow ?? 0),
-            treeXp,
-            completions,
-            daily,
-            reflections,
-          };
-          setItem(KEY, next);
-          return next;
-        });
-      },
-      startPath(id: string) {
-        setData((d) => {
-          if (d.activePaths.includes(id)) return d;
-          const next = rollDaily({ ...d, activePaths: [...d.activePaths, id] });
-          setItem(KEY, next);
-          return next;
-        });
-      },
-    }),
-    []
-  );
+  const actions = useMemo(() => ({
+    completeQuest(id: string, reflection?: string) {
+      const quest = getQuest(id);
+      if (!quest) return;
+      const next = applyQuestCompletion(dataRef.current, quest, reflection);
+      if (next === dataRef.current) return;
+      dataRef.current = next;
+      setData(next);
+      void setItem(KEY, next);
+    },
+    completePractice(kind: CorePracticeId) {
+      const next = applyPracticeCompletion(dataRef.current, kind);
+      if (next === dataRef.current) return;
+      dataRef.current = next;
+      setData(next);
+      void setItem(KEY, next);
+    },
+    startPath(id: string) {
+      const current = dataRef.current;
+      if (current.activePaths.includes(id)) return;
+      const next = rollDaily({ ...current, activePaths: [...current.activePaths, id] });
+      dataRef.current = next;
+      setData(next);
+      void setItem(KEY, next);
+    },
+    async resetSide() {
+      const next = rollDaily(EMPTY);
+      dataRef.current = next;
+      setData(next);
+      await setItem(KEY, next);
+    },
+  }), []);
 
   const pathProgress = (id: string) => {
     const path = getPath(id);
     if (!path) return { done: 0, total: 0 };
     let total = 0;
     let done = 0;
-    for (const s of path.stages) for (const q of s.quests) {
-      total++;
-      if ((data.completions[q.id]?.length ?? 0) > 0) done++;
+    for (const stage of path.stages) {
+      for (const quest of stage.quests) {
+        total++;
+        if ((data.completions[quest.id]?.length ?? 0) > 0) done++;
+      }
     }
     return { done, total };
   };
@@ -170,11 +232,7 @@ export function SideProvider({ children }: { children: React.ReactNode }) {
   const nextQuestsForPath = (id: string): Quest[] => {
     const path = getPath(id);
     if (!path) return [];
-    const out: Quest[] = [];
-    for (const s of path.stages) for (const q of s.quests) {
-      if ((data.completions[q.id]?.length ?? 0) === 0) out.push(q);
-    }
-    return out;
+    return path.stages.flatMap((stage) => stage.quests).filter((quest) => !(data.completions[quest.id]?.length ?? 0));
   };
 
   const value: SideCtx = {
@@ -183,6 +241,7 @@ export function SideProvider({ children }: { children: React.ReactNode }) {
     isDoneToday,
     isCompleted,
     canComplete,
+    canAwardPractice,
     pathProgress,
     nextQuestsForPath,
     ...actions,
@@ -192,7 +251,7 @@ export function SideProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useSide() {
-  const ctx = useContext(Ctx);
-  if (!ctx) throw new Error('useSide must be used within SideProvider');
-  return ctx;
+  const context = useContext(Ctx);
+  if (!context) throw new Error('useSide must be used within SideProvider');
+  return context;
 }

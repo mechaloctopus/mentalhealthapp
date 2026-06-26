@@ -10,6 +10,8 @@ import { GradientButton } from '../../../src/components/GradientButton';
 import { Display, Body, Muted, Label, GlassCard, Serif, Row } from '../../../src/components/ui';
 import { useSide } from '../../../src/side/SideContext';
 import { getPath } from '../../../src/side/content';
+import { getPathContext } from '../../../src/side/pathContext';
+import { FlowerOfLife } from '../../../src/components/sacred/Geometry';
 import { colors, font, radius, spacing } from '../../../src/theme/theme';
 import { tap, select } from '../../../src/lib/haptics';
 
@@ -29,6 +31,7 @@ export default function PathDetail() {
 
   const active = side.activePaths.includes(path.id);
   const prog = side.pathProgress(path.id);
+  const ctx = getPathContext(path.id);
 
   return (
     <View style={{ flex: 1 }}>
@@ -36,8 +39,13 @@ export default function PathDetail() {
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ModalHeader title={path.title} accent={path.color} />
         <Animated.ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 120 }}>
-          <View style={[styles.crest, { backgroundColor: path.color + '18', borderColor: path.color + '55' }]}>
-            <Ionicons name={path.icon} size={34} color={path.color} />
+          <View style={styles.crestWrap}>
+            <View style={styles.crestGeometry} pointerEvents="none">
+              <FlowerOfLife size={150} color={path.color} opacity={0.12} rings={2} />
+            </View>
+            <View style={[styles.crest, { backgroundColor: path.color + '18', borderColor: path.color + '55' }]}>
+              <Ionicons name={path.icon} size={34} color={path.color} />
+            </View>
           </View>
           <Display style={{ fontSize: 28, marginTop: spacing.md }}>{path.title}</Display>
           <Muted style={{ marginTop: 2 }}>{path.tradition}</Muted>
@@ -50,6 +58,27 @@ export default function PathDetail() {
                 <Muted style={{ fontSize: 12, color: path.color }}>Active · {prog.done}/{prog.total} quests</Muted>
               </View>
             </Row>
+          )}
+
+          {/* The teaching & its source */}
+          {ctx && (
+            <View style={{ marginTop: spacing.lg, gap: spacing.sm }}>
+              <GlassCard accent={path.color} style={{ gap: 8 }}>
+                <Label color={path.color}>THE TEACHING</Label>
+                <Body style={{ fontSize: 14.5, lineHeight: 22 }}>{ctx.concept}</Body>
+              </GlassCard>
+              <GlassCard style={{ gap: 8 }}>
+                <Label>HOW WE PRACTICE IT</Label>
+                <Body style={{ fontSize: 14, lineHeight: 21 }}>{ctx.practice}</Body>
+              </GlassCard>
+              <GlassCard style={{ gap: 6 }}>
+                <Row gap={8}>
+                  <Ionicons name="library-outline" size={14} color={colors.textDim} />
+                  <Label>SOURCE MATERIAL</Label>
+                </Row>
+                <Muted style={{ fontSize: 12.5, lineHeight: 19 }}>{ctx.source}</Muted>
+              </GlassCard>
+            </View>
           )}
 
           {path.stages.map((stage, si) => (
@@ -70,6 +99,12 @@ export default function PathDetail() {
                   <Ionicons name="skull-outline" size={13} color={colors.coral} />
                   <Muted style={{ fontSize: 12, color: colors.coral }}>Boss · {stage.boss}</Muted>
                 </Row>
+              ) : null}
+
+              {ctx?.teachings?.[stage.id] ? (
+                <GlassCard accent={path.color} style={{ marginTop: spacing.md }}>
+                  <Serif style={{ fontSize: 15, lineHeight: 23 }}>{ctx.teachings[stage.id]}</Serif>
+                </GlassCard>
               ) : null}
 
               <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
@@ -106,6 +141,8 @@ export default function PathDetail() {
 }
 
 const styles = StyleSheet.create({
+  crestWrap: { width: 150, height: 90, alignItems: 'center', justifyContent: 'center' },
+  crestGeometry: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   crest: { width: 74, height: 74, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   activePill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1, backgroundColor: colors.surface1 },
   reward: { alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.md, borderWidth: 1, backgroundColor: colors.surface1 },

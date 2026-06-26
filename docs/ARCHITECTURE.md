@@ -17,13 +17,13 @@ Important routes:
 - `_layout.tsx` — root providers, fonts, splash behavior, notification handler, and stack navigation.
 - `index.tsx` — boot gate that routes users through onboarding, sign-in, baseline, and the tab app.
 - `onboarding.tsx` — intro flow.
-- `sign-in.tsx` — current auth surface.
-- `baseline.tsx` — first voice baseline.
-- `checkin.tsx` — voice recording, analysis, confirmation, wisdom/purpose recommendation, and result.
-- `feel.tsx` — self-report flow.
+- `sign-in.tsx` — local-first profile entry; Google account sign-in only appears when Google and Firebase config are both present.
+- `baseline.tsx` — quality-checked voice baseline.
+- `checkin.tsx` — voice recording, sample-quality validation, confirmation, wisdom/purpose recommendation, matched quest, and result.
+- `feel.tsx` — manual self-report flow using the same recommendation and matched-quest model.
 - `coach.tsx` — reflection/coach surface.
 - `journal*.tsx` — journal surfaces.
-- `breath.tsx`, `stillness.tsx`, `meta.tsx`, `sound.tsx` — practice routes.
+- `breath.tsx`, `stillness.tsx`, `meta.tsx`, `sound.tsx` — practice routes connected to once-daily resonance and skill-tree rewards.
 - `research.tsx` — PHQ-9, GAD-7, consent, export, and safety copy.
 - `message/[id].tsx` — deep-linked daily message viewport.
 - `(tabs)/` — main tab navigation.
@@ -31,14 +31,16 @@ Important routes:
 
 ### Side Module Routes
 
-`app/side/_layout.tsx` wraps side routes in `SideProvider` and defines the side stack:
+`app/side/` defines the side stack:
 
-- `side/index.tsx` — resonance dashboard, mission stage, daily quests, wisdom paths, mentor, skill trees, community entry.
+- `side/index.tsx` — resonance dashboard, mission stage, daily quests, wisdom paths, mentor, skill trees, compassion entry.
 - `side/trees.tsx` — full skill tree overview.
 - `side/mentor.tsx` — mentor guidance.
-- `side/community.tsx` — gathering/community surface.
+- `side/community.tsx` — private local compassion wall.
 - `side/path/[id].tsx` — wisdom path detail.
 - `side/quest/[id].tsx` — quest completion modal.
+
+`SideProvider` now wraps the whole app in `app/_layout.tsx`, not just the side stack. This allows Today, Insights, Profile, check-ins, and practices to read and update Inner Path state.
 
 ### Core State Layer
 
@@ -55,7 +57,9 @@ Important routes:
 - saved messages
 - notification and haptic preferences
 
-This is acceptable for prototype scale. For production, this file should remain an orchestration layer, but domain logic should continue moving into pure library modules.
+It initializes a storage schema marker, uses a current-state ref for deterministic persistence, and cancels scheduled daily messages during full reset.
+
+This is acceptable for prototype scale. For production, this file should remain an orchestration layer, while domain logic continues moving into pure library modules.
 
 ### Side State Layer
 
@@ -71,19 +75,20 @@ This is acceptable for prototype scale. For production, this file should remain 
 - daily quest ids and completions
 - quest reflections
 
-The side module is already meaningfully implemented and should not be recreated. Production work should focus on integrating it into the main dashboard and recommendation engine.
+It now also owns the bridge from core practices to Inner Path rewards. Breath, Stillness, Loving-kindness, and Sound award resonance and skill-tree XP once per day. Quest and practice completion logic is split into pure helper functions so it can be tested.
 
 ### Storage Layer
 
 `src/lib/storage.ts` is a typed wrapper over AsyncStorage.
 
-This is good because screens do not directly depend on AsyncStorage. Production can replace or augment this with:
+`src/lib/storageVersion.ts` declares the current local schema version and initializes a version marker. Version 1 preserves existing local data as-is.
+
+This is still not a complete production privacy architecture. Production must choose one of:
 
 - encrypted local storage
-- SQLite
-- Firebase
-- Supabase
-- optional encrypted backup
+- encrypted local database
+- explicit secure sync
+- hybrid local encrypted store plus optional encrypted backup
 
 ### Voice Layer
 
@@ -91,6 +96,7 @@ This is good because screens do not directly depend on AsyncStorage. Production 
 
 `src/lib/voice.ts` turns metering data into reflective affect values:
 
+- sample quality
 - valence
 - arousal
 - energy
@@ -101,13 +107,13 @@ This is good because screens do not directly depend on AsyncStorage. Production 
 - emotion matching
 - basic recommendations
 
-The voice layer is heuristic and should remain carefully described as a reflection aid.
+The voice layer is heuristic and should remain carefully described as a reflection aid. It now rejects unusable samples instead of synthesizing fallback data.
 
 ### Recommendation Layer
 
-`src/lib/recommendationEngine.ts` is the current central state-to-action engine.
+`src/lib/recommendationEngine.ts` is the central state-to-action engine.
 
-It currently returns:
+It returns:
 
 - one primary practice
 - one alternate practice
@@ -117,7 +123,7 @@ It currently returns:
 - wisdom card
 - purpose/stewardship prompt
 
-Next production step: connect it to the existing side quest system so a check-in can recommend a specific side quest.
+`src/lib/sideQuestMatcher.ts` connects a check-in to an existing Inner Path quest by using emotion, stress, energy, calmness, stability, factors, active paths, daily quests, and completed quests.
 
 ### Wisdom and Purpose Layer
 
@@ -125,7 +131,7 @@ Next production step: connect it to the existing side quest system so a check-in
 
 `src/lib/purposeEngine.ts` defines purpose/stewardship prompts.
 
-These are lightweight scaffolds. The deeper production content already exists in `src/side/content.ts`, especially wisdom paths and quests. Future work should avoid duplication by connecting the engines to side content.
+These remain lightweight scaffolds. Deeper production content already exists in `src/side/content.ts`, especially wisdom paths and quests. Future work should avoid duplication by connecting engines to side content.
 
 ### Side Content Layer
 
@@ -165,7 +171,7 @@ Tree levels are computed from XP and currently support up to 100 levels.
 
 ### Notification Layer
 
-`src/lib/notifications.ts` schedules local daily messages using a rolling window. This design avoids common iOS pending-notification limits while keeping daily content deterministic.
+`src/lib/notifications.ts` schedules local daily messages using a rolling window. Notifications are opt-in. Daily-message cancellation is scoped to daily-message notifications instead of wiping every scheduled notification in the app.
 
 ### Content Layer
 
@@ -211,7 +217,7 @@ This does not need to happen immediately. The app can stay functional while new 
 
 ### `src/side/SideContext.tsx`
 
-Side-module state and quest completion logic. Do not duplicate this with a separate side-quest store.
+Side-module state, quest completion logic, and core-practice reward logic. Do not duplicate this with a separate side-quest store.
 
 ### `src/side/content.ts`
 
@@ -225,35 +231,17 @@ Skill tree definitions and tree leveling.
 
 Mentor nudge generation.
 
----
-
-## Recommended New / Extended Modules
-
 ### `src/lib/recommendationEngine.ts`
 
-Central state-to-action engine.
-
-Next responsibilities:
-
-- Accept current check-in, baseline, recent history, factors, preferences, and side-module state.
-- Return one primary recommendation.
-- Return optional alternate.
-- Explain the recommendation in one sentence.
-- Avoid repeated suggestions.
-- Recommend a specific side quest when appropriate.
-- Escalate to safety content when needed.
+Central state-to-action engine. Keep recommendation logic here rather than scattering it across screens.
 
 ### `src/lib/sideQuestMatcher.ts`
 
-Future adapter between the recommendation engine and existing `src/side/content.ts` quests.
+Adapter between check-ins and existing Inner Path quests.
 
-Responsibilities:
+---
 
-- Match emotion/stress/energy/factors to existing quests.
-- Prefer active path quests when relevant.
-- Avoid completed non-repeatable quests.
-- Prefer unfinished daily quests.
-- Return a quest id and reason.
+## Recommended New / Extended Modules
 
 ### `src/lib/insightEngine.ts`
 
@@ -284,29 +272,25 @@ Responsibilities:
 
 ## Current Engineering Risks
 
+### Sensitive Local Data
+
+AsyncStorage is not enough for sensitive journal or mental-health-adjacent data if production claims privacy. Decide and document the privacy model before external beta.
+
 ### Global Context Growth
 
 `AppContext` may become too large if every new feature adds state and actions there. Keep pure logic outside the context.
 
 ### Side Module Duplication
 
-The side module already exists. Avoid creating duplicate quest, resonance, or skill-tree systems outside `src/side/`. New recommendation logic should point into the existing side content.
+The side module already exists. Avoid creating duplicate quest, resonance, or skill-tree systems outside `src/side/`.
 
-### Dummy Auth
+### Production Auth Decision
 
-The current auth layer is demo-oriented. Production needs real auth or a deliberate local-only mode.
-
-### Sensitive Local Data
-
-AsyncStorage is not enough for sensitive journal or mental-health-adjacent data if production claims privacy. Decide and document the privacy model.
+The app now has honest local-first behavior. Production still needs either a deliberate local-only launch decision or real account/sync infrastructure.
 
 ### Content Scale
 
 As content grows, static files may become large and harder to review. Use typed entries and content tags early.
-
-### Recommendation Logic
-
-Recommendation logic should not remain scattered across screens. Centralize it and connect to side-module content.
 
 ### Safety Copy
 
@@ -320,38 +304,41 @@ Prioritize pure functions first.
 
 High-value unit tests:
 
+- voice sample quality
 - voice feature normalization
 - baseline shift
 - emotion matching
 - screener scoring
-- notification date selection
+- notification date selection and scoped cancellation
 - recommendation selection
 - wisdom matching
 - purpose prompt generation
 - safety escalation
+- side quest matching
 - daily quest generation
 - quest completion
+- practice reward duplicate prevention
 - path progress
 - tree leveling
-- future side quest matching
+- storage schema initialization
 
 High-value manual tests:
 
 - fresh install route flow
-- microphone denied flow
-- short recording flow
-- notification deep link
-- reset all data
-- sign out
-- practice completion
-- PHQ-9 sensitive item
-- side-module dashboard
-- quest completion modal
-- path activation
-- skill tree screen
-
----
-
-## Production Principle
-
-Screens should stay simple. Domain logic should live in typed library modules. Content should be tagged and reviewable. Safety behavior should be centralized. The app should recommend one useful next action and connect that action to long-term resonance, wisdom paths, and skill-tree growth without exposing implementation complexity to the user.
+- local profile sign-in
+- baseline record, poor sample, retry, skip
+- voice check-in permission denied, poor sample, success
+- manual check-in
+- recommendation to practice
+- recommendation to quest
+- practice completion reward once per day
+- notification enable, reschedule, preview, reset cancellation
+- journal create/delete/export/reset
+- screener flow and sensitive-item behavior
+- full reset
+- offline launch
+- corrupt stored JSON recovery
+- VoiceOver/TalkBack navigation
+- dynamic text
+- reduced motion
+- physical-device iOS and Android release builds

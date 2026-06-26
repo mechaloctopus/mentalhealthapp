@@ -85,6 +85,10 @@ export const DAILY_POOL: Quest[] = [
   { id: 'd-shadow', title: 'Name what you feel', instruction: 'Pause and label the feeling underneath: “This is anxiety / sadness / restlessness.” Naming loosens its grip.', kind: 'reflect', trees: ['mindfulness', 'wisdom'], resonance: 12, reflect: 'Right now I feel…', tradition: 'Emotional granularity', repeatable: true },
   { id: 'd-observer', title: 'Who is watching?', instruction: 'For one minute, watch your thoughts pass like clouds. Ask gently: who is aware of them?', kind: 'meditate', trees: ['wisdom', 'mindfulness'], resonance: 14, minutes: 1, tradition: 'Non-duality', repeatable: true },
   { id: 'd-learn', title: 'A line of wisdom', instruction: 'Read today’s short teaching slowly. Let one phrase stay with you through the day.', kind: 'learn', trees: ['wisdom'], resonance: 10, tradition: 'Wisdom traditions', repeatable: true },
+  { id: 'd-inquiry', title: 'Self-inquiry', instruction: 'Ask quietly, “Who am I?” — not for an answer in words, but to feel the awareness the question points back to. Rest there for a minute.', kind: 'meditate', trees: ['wisdom'], resonance: 16, minutes: 1, reflect: 'What stayed when the thoughts quieted?', tradition: 'Ramana Maharshi · Atma Vichara', repeatable: true },
+  { id: 'd-metta', title: 'Loving-kindness phrases', instruction: 'Silently offer: “May I be safe. May I be at ease.” Then send the same to someone you love, and to someone you find difficult.', kind: 'meditate', trees: ['compassion'], resonance: 16, minutes: 2, tradition: 'Metta (loving-kindness)', repeatable: true, grants: { karma: 1 } },
+  { id: 'd-impermanence', title: 'Remember impermanence', instruction: 'Recall gently that this day, like all days, will pass. Let it make one ordinary thing more precious right now.', kind: 'reflect', trees: ['wisdom'], resonance: 14, reflect: 'What became precious?', tradition: 'Maraṇasati · memento mori', repeatable: true },
+  { id: 'd-forgive', title: 'Set down one weight', instruction: 'Choose one small resentment — toward another or yourself — and, for today, set it down. You can pick it up tomorrow if you must.', kind: 'reflect', trees: ['compassion', 'wisdom'], resonance: 16, reflect: 'What did I release?', tradition: 'Forgiveness practice', repeatable: true, grants: { karma: 2 } },
 ];
 
 /* ----------------------------------- Paths ----------------------------------- */
@@ -254,12 +258,32 @@ const bodhisattva: Path = {
   icon: 'infinite',
   stages: [
     {
-      id: 'b-vow', title: 'The Vow & the Acts', theme: 'May I be of benefit.', reward: 'Compassion',
+      id: 'b-vow', title: 'The Vow', theme: 'May I be of benefit.', reward: 'Bodhicitta',
       quests: [
         { id: 'b-vow-take', title: 'Take the vow (gently)', instruction: 'Quietly set the intention: “Today, I will try to be of benefit to others.” That is the whole vow.', kind: 'reflect', trees: ['compassion'], resonance: 20, reflect: 'My intention today…', tradition: 'Bodhisattva vow' },
+        { id: 'b-dedicate', title: 'Dedicate the merit', instruction: 'After any good thing you do today, silently dedicate its benefit to someone else, not yourself.', kind: 'reflect', trees: ['compassion'], resonance: 16, repeatable: true },
+      ],
+    },
+    {
+      id: 'b-tonglen', title: 'Tonglen · Sending and Taking', theme: 'Breathe in pain, breathe out relief.', boss: 'The instinct to turn away from suffering', reward: 'Open heart',
+      quests: [
+        { id: 'b-tonglen-q', title: 'Tonglen breath', instruction: 'Breathe in another’s pain; breathe out relief and warmth toward them, for two minutes.', kind: 'breath', trees: ['compassion', 'mindfulness'], resonance: 18, minutes: 2, repeatable: true, tradition: 'Tonglen' },
+        { id: 'b-witness', title: 'Stay with discomfort', instruction: 'When you see someone suffering today, resist the urge to look away. Stay present for one extra breath before acting or moving on.', kind: 'meditate', trees: ['compassion', 'mindfulness'], resonance: 18, minutes: 1 },
+      ],
+    },
+    {
+      id: 'b-acts', title: 'The Acts', theme: 'Generosity, patience, and effort, practiced.', reward: 'Skillful means',
+      quests: [
         { id: 'b-suffering', title: 'Ease one being’s burden', instruction: 'Notice one person (or creature) who is struggling, and do one small thing to ease it.', kind: 'service', trees: ['compassion', 'service'], resonance: 20, repeatable: true, grants: { karma: 2, stewardship: 1 } },
-        { id: 'b-tonglen', title: 'Tonglen breath', instruction: 'Breathe in another’s pain; breathe out relief and warmth toward them, for two minutes.', kind: 'breath', trees: ['compassion', 'mindfulness'], resonance: 18, minutes: 2, repeatable: true, tradition: 'Tonglen' },
         { id: 'b-anon', title: 'A hidden kindness', instruction: 'Do one good thing today that no one will ever know you did.', kind: 'service', trees: ['compassion'], resonance: 22, repeatable: true, grants: { karma: 3 } },
+        { id: 'b-difficult', title: 'Compassion for a difficult person', instruction: 'Bring to mind someone who frustrates you. Silently wish them freedom from whatever drives their behavior.', kind: 'meditate', trees: ['compassion'], resonance: 18, minutes: 2 },
+      ],
+    },
+    {
+      id: 'b-all', title: 'For All Beings', theme: 'Widen the circle until it has no edge.', reward: 'Bodhisattva',
+      quests: [
+        { id: 'b-widen', title: 'Widen the circle', instruction: 'Extend the same well-wishing you’d give a friend to a stranger, then to every being you can imagine, for two minutes.', kind: 'meditate', trees: ['compassion', 'wisdom'], resonance: 22, minutes: 2 },
+        { id: 'b-vow-renew', title: 'Renew the vow', instruction: 'Look back at today and ask honestly: did I act for benefit? Renew the intention for tomorrow regardless of the answer.', kind: 'reflect', trees: ['compassion'], resonance: 18, reflect: 'Tomorrow, I will try to…' },
       ],
     },
   ],
@@ -269,19 +293,39 @@ const stoic: Path = {
   id: 'stoic',
   title: 'The Stoic Path',
   subtitle: 'Master what is yours',
-  tradition: 'Stoicism · Aurelius, Epictetus',
+  tradition: 'Stoicism · Aurelius, Epictetus, Seneca',
   blurb: 'Ancient practices for a steady mind: separate what you control from what you don’t, rehearse loss to deepen gratitude, and review each day with honesty and mercy.',
   color: colors.blue,
   icon: 'shield-half',
   stages: [
     {
-      id: 's-prac', title: 'Daily Stoic Practice', theme: 'You have power over your mind — not outside events.', reward: 'Equanimity',
+      id: 's-control', title: 'The Dichotomy of Control', theme: 'Sort what is yours from what isn’t.', boss: 'Outrage at the uncontrollable', reward: 'Clarity',
       quests: [
         { id: 's-dichotomy', title: 'The dichotomy of control', instruction: 'Name one thing troubling you. Sort it: what here is in my control, and what is not? Release the rest.', kind: 'reflect', trees: ['wisdom'], resonance: 18, reflect: 'In my control… / Not in my control…', repeatable: true },
+        { id: 's-judgment', title: 'It is not events, but judgments', instruction: 'Find one upsetting belief about a recent event, not the event itself. Could a calmer judgment fit the same facts?', kind: 'reflect', trees: ['wisdom'], resonance: 18, reflect: 'The judgment I can loosen…' },
+      ],
+    },
+    {
+      id: 's-perspective', title: 'Perspective Practices', theme: 'See your worry at its true size.', reward: 'Proportion',
+      quests: [
         { id: 's-negative', title: 'Rehearse loss', instruction: 'Picture briefly losing something you love. Then return to it with fresh gratitude.', kind: 'reflect', trees: ['wisdom', 'mindfulness'], resonance: 16, repeatable: true, tradition: 'Negative visualization' },
         { id: 's-aboveview', title: 'The view from above', instruction: 'Imagine your life seen from far above — the city, the earth, the stars. Let today’s worry find its size.', kind: 'meditate', trees: ['wisdom'], resonance: 16, minutes: 3, repeatable: true },
+        { id: 's-obstacle', title: 'The obstacle is the way', instruction: 'Name one obstacle in front of you right now. Write one way it could be the very material your character needs.', kind: 'reflect', trees: ['wisdom', 'leadership'], resonance: 18, reflect: 'The obstacle, used well…' },
+      ],
+    },
+    {
+      id: 's-virtue', title: 'Virtue in Action', theme: 'Wisdom, justice, courage, temperance — lived, not just admired.', boss: 'Excuse-making', reward: 'Character',
+      quests: [
+        { id: 's-roleplay', title: 'Act your best role today', instruction: 'Pick one Stoic virtue — courage, justice, temperance, or wisdom — and find one concrete chance to practice it before the day ends.', kind: 'action', trees: ['leadership', 'wisdom'], resonance: 22 },
+        { id: 's-discomfort', title: 'Voluntary discomfort', instruction: 'Choose one small, safe discomfort on purpose — a cold shower, an unwanted task done first. Notice how little it costs once chosen.', kind: 'action', trees: ['fitness', 'wisdom'], resonance: 20 },
+      ],
+    },
+    {
+      id: 's-review', title: 'The Evening Review', theme: 'A daily reckoning, honest and kind.', reward: 'Equanimity',
+      quests: [
         { id: 's-evening', title: 'Evening review', instruction: 'Review your day honestly and kindly: what did I do well, what could be better, what can I let go?', kind: 'reflect', trees: ['wisdom', 'leadership'], resonance: 18, reflect: 'Well / Better / Let go…', repeatable: true },
         { id: 's-amorfati', title: 'Amor fati', instruction: 'Find one thing about today, even a hard thing, that you can choose to accept fully.', kind: 'reflect', trees: ['wisdom'], resonance: 18, repeatable: true },
+        { id: 's-mortality', title: 'Memento mori, lightly held', instruction: 'Recall that your time is finite — not to fear it, but to spend today a little more deliberately because of it.', kind: 'reflect', trees: ['wisdom'], resonance: 18, reflect: 'Spent more deliberately because…' },
       ],
     },
   ],

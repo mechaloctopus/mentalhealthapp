@@ -8,6 +8,7 @@ import { AnimatedBackground } from '../src/components/AnimatedBackground';
 import { ModalHeader } from '../src/components/ModalHeader';
 import { GradientButton } from '../src/components/GradientButton';
 import { Body, Muted, Serif, GlassCard } from '../src/components/ui';
+import { EmptyState } from '../src/components/EmptyState';
 import { useApp } from '../src/context/AppContext';
 import { getEmotion } from '../src/lib/emotions';
 import { colors, font, spacing } from '../src/theme/theme';
@@ -27,10 +28,13 @@ export default function Journal() {
           <Muted style={{ marginBottom: spacing.xl }}>A quiet place to think on paper. Nothing here leaves your device.</Muted>
 
           {journal.length === 0 ? (
-            <GlassCard style={{ alignItems: 'center', gap: 10, paddingVertical: spacing.xl }}>
-              <Ionicons name="book-outline" size={30} color={colors.textDim} />
-              <Body center color={colors.textDim} style={{ maxWidth: 240 }}>No entries yet. Start with a single honest sentence.</Body>
-            </GlassCard>
+            <EmptyState
+              icon="book-outline"
+              title="A blank page"
+              body="No entries yet. Start with a single honest sentence — no one else will read it."
+              accent={colors.amber}
+              cta={{ label: 'Write the first one', onPress: () => { tap(); router.push('/journal-new'); } }}
+            />
           ) : (
             <View style={{ gap: spacing.md }}>
               {journal.map((e, i) => (
