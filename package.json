@@ -7,7 +7,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "check:invariants": "node scripts/check-invariants.mjs",
+    "check": "npm run lint && npm run check:invariants"
   },
   "dependencies": {
     "@expo-google-fonts/alegreya": "^0.4.1",
