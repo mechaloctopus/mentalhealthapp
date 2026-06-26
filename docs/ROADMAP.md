@@ -15,6 +15,7 @@ Goal: make the project easy for humans and AI coding agents to continue safely.
 - [x] Add production checklist.
 - [x] Add architecture notes.
 - [x] Add content system notes.
+- [x] Add repo audit doc.
 - [ ] Add screenshots or screen recordings to README.
 - [ ] Add a short contributor/developer guide.
 - [ ] Add issue templates for features, bugs, and content changes.
@@ -75,10 +76,11 @@ Goal: move from static practice matching to a coherent state-to-action engine.
 - [x] Return one primary recommendation plus one alternate.
 - [x] Add insight language explaining why the recommendation was selected.
 - [x] Attach wisdom and purpose prompts to the recommendation.
+- [x] Create `src/lib/sideQuestMatcher.ts` to map state to existing side quests.
+- [ ] Wire side-quest matches into the check-in result UI once side state is readable outside `app/side`.
 - [ ] Track whether the user accepted, skipped, or completed the recommendation.
 - [ ] Use check-in history and factors more deeply.
-- [ ] Route recommendations to specific side quests when appropriate.
-- [ ] Add tests for recommendation selection.
+- [ ] Add tests for recommendation selection and side-quest matching.
 
 Inputs:
 
@@ -125,7 +127,8 @@ Goal: make the app’s differentiator visible: practical wisdom, stewardship, an
 - [x] Create `src/lib/purposeEngine.ts`.
 - [x] Create purpose/stewardship prompts for different contexts.
 - [x] Add purpose/stewardship cards after check-ins.
-- [ ] Connect purpose prompts to existing side-module Acts of Stewardship quests.
+- [x] Add a side-quest matcher that can connect purpose-like states to existing side-module quests.
+- [ ] Wire purpose prompts to existing side-module Acts of Stewardship quests in UI.
 - [ ] Add direct “What needs care right now?” flow or route.
 - [ ] Track completed acts of stewardship in side-module state.
 
@@ -147,7 +150,7 @@ Needed integration:
 
 - [ ] Add a compact side-module panel to the main Today dashboard.
 - [ ] Connect core practice completions to side-module resonance where appropriate.
-- [ ] Connect recommendation engine to specific side quests.
+- [ ] Wire `src/lib/sideQuestMatcher.ts` into recommendation surfaces.
 - [ ] Add side-module onboarding explaining resonance, daily quests, paths, and skill trees.
 - [ ] Add tests for daily quest generation, quest completion, path progress, and tree leveling.
 - [ ] Add anti-compulsion copy: resonance reflects practice, not worth.
@@ -156,7 +159,8 @@ Needed integration:
 
 - [x] Flow exists as a side skill tree.
 - [x] Flow/Mushin appears in side content and wisdom scaffolding.
-- [ ] Make high-anxiety/high-self-consciousness recommendations surface a specific flow quest.
+- [x] Side-quest matcher can prefer flow quests for anxious, excited, or frustrated states.
+- [ ] Make high-anxiety/high-self-consciousness recommendations surface a specific flow quest in UI.
 - [ ] Add more practices for sport, music, coding, art, walking, and breath.
 
 ---
