@@ -6,9 +6,9 @@ export type RecorderStatus = 'idle' | 'requesting' | 'recording' | 'stopped' | '
 
 export interface Recorder {
   status: RecorderStatus;
-  level: SharedValue<number>;
+  level: SharedValue<number>; // 0..1 live loudness for the waveform
   durationMs: number;
-  meters: number[];
+  meters: number[]; // captured metering dB values
   start: () => Promise<void>;
   stop: () => Promise<{ meters: number[]; durationMs: number }>;
   reset: () => void;
@@ -30,39 +30,47 @@ export function useRecorder(): Recorder {
 
   const cleanup = useCallback(async () => {
     try {
-      if (recRef.current) await recRef.current.stopAndUnloadAsync().catch(() => {});
+      if (recRef.current) {
+        await recRef.current.stopAndUnloadAsync().catch(() => {});
+      }
     } finally {
       recRef.current = null;
     }
   }, []);
 
-  useEffect(() => () => { cleanup(); }, [cleanup]);
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   const start = useCallback(async () => {
     metersRef.current = [];
     setDurationMs(0);
     setStatus('requesting');
     try {
-      const permission = await Audio.requestPermissionsAsync();
-      if (!permission.granted) {
+      const perm = await Audio.requestPermissionsAsync();
+      if (!perm.granted) {
         setStatus('denied');
         return;
       }
-
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(RECORDING_OPTIONS);
-      recording.setProgressUpdateInterval(120);
-      recording.setOnRecordingStatusUpdate((current) => {
-        if (!current.isRecording) return;
-        setDurationMs(current.durationMillis ?? 0);
-        if (typeof current.metering !== 'number' || !Number.isFinite(current.metering)) return;
-        metersRef.current.push(current.metering);
-        const normalized = Math.max(0, Math.min(1, (current.metering + 60) / 60));
-        level.value = withTiming(normalized, { duration: 110 });
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
       });
-      await recording.startAsync();
-      recRef.current = recording;
+      const rec = new Audio.Recording();
+      await rec.prepareToRecordAsync(RECORDING_OPTIONS);
+      rec.setProgressUpdateInterval(120);
+      rec.setOnRecordingStatusUpdate((s) => {
+        if (!s.isRecording) return;
+        setDurationMs(s.durationMillis ?? 0);
+        const db = typeof s.metering === 'number' ? s.metering : -60;
+        metersRef.current.push(db);
+        const norm = Math.max(0, Math.min(1, (db + 60) / 60));
+        level.value = withTiming(norm, { duration: 110 });
+      });
+      await rec.startAsync();
+      recRef.current = rec;
       setStatus('recording');
     } catch {
       setStatus('error');
@@ -74,11 +82,11 @@ export function useRecorder(): Recorder {
     try {
       if (recRef.current) {
         await recRef.current.stopAndUnloadAsync();
-        const current = await recRef.current.getStatusAsync();
-        if (current && 'durationMillis' in current && current.durationMillis) result.durationMs = current.durationMillis;
+        const s = await recRef.current.getStatusAsync();
+        if (s && 'durationMillis' in s && s.durationMillis) result.durationMs = s.durationMillis;
       }
     } catch {
-      // The partial recording can still be evaluated from collected meter readings.
+      /* ignore */
     } finally {
       recRef.current = null;
       level.value = withTiming(0, { duration: 200 });
