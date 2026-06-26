@@ -79,14 +79,19 @@ assertFileExists('.github/workflows/android-apk.yml');
 assertFileExists('src/lib/dataInventory.ts');
 assertFileExists('src/lib/releaseReadiness.ts');
 
-assertNoPatternInSource(/computeProgress|Companion/i, 'obsolete Lumen progression reference found', [
+// Target the obsolete Lumen *code* (deleted component / progression helper), not the
+// English word "companion" in prose or the Bodhisattva "Companion" rank.
+assertNoPatternInSource(/computeProgress\b|components\/Companion|<Companion[\s/>]/, 'obsolete Lumen progression reference found', [
   'scripts/check-invariants.mjs',
 ]);
 assertNoPattern(/cancelAllScheduledNotificationsAsync/, 'broad notification cancellation found', [
   'scripts/check-invariants.mjs',
 ]);
+// Skip generated dependency metadata and the doc that legitimately describes demo mode.
 assertNoPattern(/fake|simulated|seeded/i, 'possible simulated production signal found', [
   'scripts/check-invariants.mjs',
+  'package-lock.json',
+  'docs/FIREBASE_SETUP.md',
   'docs/COHERENCE_AUDIT.md',
   'docs/PRIVACY_ARCHITECTURE.md',
   'docs/ROADMAP.md',
