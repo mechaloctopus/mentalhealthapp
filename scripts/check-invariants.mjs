@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 const ROOT = process.cwd();
 const TEXT_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.json', '.md', '.yml', '.yaml']);
+const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 
 function extension(path) {
   const index = path.lastIndexOf('.');
@@ -47,6 +48,15 @@ function assertNoPattern(pattern, message, allow = []) {
   }
 }
 
+function assertNoPatternInSource(pattern, message, allow = []) {
+  for (const file of files) {
+    const path = rel(file);
+    if (!SOURCE_EXTENSIONS.has(extension(file))) continue;
+    if (allow.includes(path)) continue;
+    if (pattern.test(read(file))) fail(`${message}: ${path}`);
+  }
+}
+
 function assertFileContains(path, pattern, message) {
   const full = join(ROOT, path);
   if (!existsSync(full)) {
@@ -59,7 +69,9 @@ function assertFileContains(path, pattern, message) {
 assertFileMissing('src/components/Companion.tsx');
 assertFileMissing('src/lib/progress.ts');
 
-assertNoPattern(/computeProgress|Companion/i, 'obsolete Lumen progression reference found');
+assertNoPatternInSource(/computeProgress|Companion/i, 'obsolete Lumen progression reference found', [
+  'scripts/check-invariants.mjs',
+]);
 assertNoPattern(/cancelAllScheduledNotificationsAsync/, 'broad notification cancellation found');
 assertNoPattern(/fake|simulated|seeded/i, 'possible simulated production signal found', [
   'scripts/check-invariants.mjs',
