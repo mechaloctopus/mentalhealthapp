@@ -15,12 +15,12 @@ import {
   OpenSans_700Bold,
 } from '@expo-google-fonts/open-sans';
 import { AppProvider } from '../src/context/AppContext';
+import { SideProvider } from '../src/side/SideContext';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { colors } from '../src/theme/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-// Foreground notifications still surface a banner.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -38,7 +38,6 @@ function NotificationRouter() {
   useEffect(() => {
     const url = response?.notification.request.content.data?.url as string | undefined;
     if (url) {
-      // Slight delay so the navigator is mounted before deep-linking.
       const t = setTimeout(() => router.push(url as any), 350);
       return () => clearTimeout(t);
     }
@@ -59,53 +58,50 @@ export default function RootLayout() {
     OpenSans_700Bold,
   });
 
-  // Hide the splash as soon as fonts resolve (success OR error) — never block on them.
   useEffect(() => {
     if (loaded || error) SplashScreen.hideAsync().catch(() => {});
   }, [loaded, error]);
 
-  // Absolute safety: hide the splash shortly after mount no matter what, so the
-  // app can never sit frozen on the native splash screen.
   useEffect(() => {
     const t = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 1500);
     return () => clearTimeout(t);
   }, []);
 
-  // Render immediately even before fonts finish — text falls back to the system
-  // font and swaps to Inter/Newsreader once loaded.
   return (
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           <AppProvider>
-            <StatusBar style="light" />
-            <NotificationRouter />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: colors.bg },
-                animation: 'fade',
-              }}
-            >
-              <Stack.Screen name="index" />
-              <Stack.Screen name="onboarding" />
-              <Stack.Screen name="sign-in" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="baseline" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="checkin" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="feel" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="coach" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="journal" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="journal-new" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="sleep" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="research" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="breath" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="sound" options={{ animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="side" />
-              <Stack.Screen name="message/[id]" options={{ presentation: 'modal', animation: 'fade' }} />
-            </Stack>
+            <SideProvider>
+              <StatusBar style="light" />
+              <NotificationRouter />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: colors.bg },
+                  animation: 'fade',
+                }}
+              >
+                <Stack.Screen name="index" />
+                <Stack.Screen name="onboarding" />
+                <Stack.Screen name="sign-in" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="baseline" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="checkin" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="feel" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="coach" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="journal" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="journal-new" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="sleep" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="research" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="breath" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="sound" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="side" />
+                <Stack.Screen name="message/[id]" options={{ presentation: 'modal', animation: 'fade' }} />
+              </Stack>
+            </SideProvider>
           </AppProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
