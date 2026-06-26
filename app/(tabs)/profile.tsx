@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Screen, Display, Title, Body, Muted, Label, GlassCard, Serif, Divider, Row } from '../../src/components/ui';
 import { useApp } from '../../src/context/AppContext';
+import { useSide } from '../../src/side/SideContext';
 import { initials } from '../../src/lib/auth';
 import { pendingCount, sendPreview } from '../../src/lib/notifications';
 import { colors, font, radius, spacing } from '../../src/theme/theme';
@@ -20,6 +21,7 @@ const TIMES = [
 export default function Profile() {
   const router = useRouter();
   const { user, prefs, checkins, sessions, saved, updateNotifPrefs, setHaptics, signOut, resetAll } = useApp();
+  const { resonance, resetSide } = useSide();
   const [pending, setPending] = useState(0);
 
   useEffect(() => {
@@ -27,20 +29,32 @@ export default function Profile() {
   }, [prefs.notif]);
 
   const onSignOut = () => {
-    Alert.alert('Sign out?', 'Your data stays on this device.', [
+    Alert.alert('Sign out?', 'Your wellness data stays on this device.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: async () => { await signOut(); router.replace('/sign-in'); } },
     ]);
   };
 
   const onReset = () => {
-    Alert.alert('Reset all data?', 'This clears your baseline, check-ins, sessions, and saved words on this device.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Reset', style: 'destructive', onPress: async () => { await resetAll(); router.replace('/onboarding'); } },
-    ]);
+    Alert.alert(
+      'Reset all data?',
+      'This clears your baseline, check-ins, practices, journal, screeners, saved messages, quests, resonance, and preferences on this device.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            await resetAll();
+            await resetSide();
+            router.replace('/onboarding');
+          },
+        },
+      ]
+    );
   };
 
-  const totalMinutes = sessions.reduce((a, s) => a + s.minutes, 0);
+  const totalMinutes = sessions.reduce((sum, session) => sum + session.minutes, 0);
 
   return (
     <Screen tint={colors.lavender}>
@@ -48,7 +62,6 @@ export default function Profile() {
         <Display style={{ fontSize: 32 }}>You</Display>
       </View>
 
-      {/* Profile card */}
       <Animated.View entering={FadeInDown.duration(500)}>
         <GlassCard style={styles.profileCard}>
           <View style={[styles.avatar, { backgroundColor: (user?.avatarColor ?? colors.teal) + '33', borderColor: (user?.avatarColor ?? colors.teal) + '88' }]}>
@@ -56,7 +69,7 @@ export default function Profile() {
           </View>
           <View style={{ flex: 1 }}>
             <Serif style={{ fontSize: 21 }}>{user?.name ?? 'Friend'}</Serif>
-            <Muted>{user?.email ?? (user?.provider === 'anonymous' ? 'Anonymous session' : '—')}</Muted>
+            <Muted>{user?.email ?? (user?.provider === 'anonymous' ? 'Local anonymous profile' : '—')}</Muted>
           </View>
           {user?.provider === 'google' ? (
             <View style={styles.providerChip}><Ionicons name="logo-google" size={14} color={colors.textMuted} /></View>
@@ -64,7 +77,6 @@ export default function Profile() {
         </GlassCard>
       </Animated.View>
 
-      {/* Stats */}
       <Animated.View entering={FadeInDown.delay(60).duration(500)} style={{ marginTop: spacing.md }}>
         <GlassCard>
           <Row style={{ justifyContent: 'space-around' }}>
@@ -77,9 +89,17 @@ export default function Profile() {
         </GlassCard>
       </Animated.View>
 
-      {/* Notifications */}
+      <Animated.View entering={FadeInDown.delay(90).duration(500)} style={{ marginTop: spacing.md }}>
+        <ActionRow
+          icon="planet"
+          label={`The Inner Path · ${resonance} resonance`}
+          color={colors.lavender}
+          onPress={() => { tap(); router.push('/side'); }}
+        />
+      </Animated.View>
+
       <Animated.View entering={FadeInDown.delay(120).duration(500)} style={{ marginTop: spacing.xl }}>
-        <Label style={{ marginBottom: 12 }}>DAILY AFFIRMATIONS</Label>
+        <Label style={{ marginBottom: 12 }}>DAILY MESSAGES</Label>
         <GlassCard>
           <Row style={{ justifyContent: 'space-between' }}>
             <View style={{ flex: 1, paddingRight: 12 }}>
@@ -88,9 +108,10 @@ export default function Profile() {
             </View>
             <Switch
               value={prefs.notif.enabled}
-              onValueChange={(v) => { select(); updateNotifPrefs({ enabled: v }); }}
+              onValueChange={(value) => { select(); updateNotifPrefs({ enabled: value }); }}
               trackColor={{ true: colors.teal, false: 'rgba(255,255,255,0.15)' }}
               thumbColor={colors.text}
+              accessibilityLabel="Daily message notifications"
             />
           </Row>
 
@@ -99,16 +120,19 @@ export default function Profile() {
               <Divider />
               <Muted style={{ marginBottom: 10 }}>Delivery time</Muted>
               <View style={styles.timeRow}>
-                {TIMES.map((t) => {
-                  const on = prefs.notif.hour === t.hour && prefs.notif.minute === t.minute;
+                {TIMES.map((time) => {
+                  const selected = prefs.notif.hour === time.hour && prefs.notif.minute === time.minute;
                   return (
                     <Pressable
-                      key={t.label}
-                      onPress={() => { select(); updateNotifPrefs({ hour: t.hour, minute: t.minute }); }}
-                      style={[styles.timeChip, on && { backgroundColor: colors.teal, borderColor: colors.teal }]}
+                      key={time.label}
+                      onPress={() => { select(); updateNotifPrefs({ hour: time.hour, minute: time.minute }); }}
+                      style={[styles.timeChip, selected && { backgroundColor: colors.teal, borderColor: colors.teal }]}
+                      accessibilityRole="radio"
+                      accessibilityLabel={`${time.label}, ${time.sub}`}
+                      accessibilityState={{ selected }}
                     >
-                      <Body style={{ fontFamily: font.sansSemibold, fontSize: 12.5, color: on ? colors.black : colors.textMuted }}>{t.sub}</Body>
-                      <Muted style={{ fontSize: 10, color: on ? colors.black : colors.textDim }}>{t.label}</Muted>
+                      <Body style={{ fontFamily: font.sansSemibold, fontSize: 12.5, color: selected ? colors.black : colors.textMuted }}>{time.sub}</Body>
+                      <Muted style={{ fontSize: 10, color: selected ? colors.black : colors.textDim }}>{time.label}</Muted>
                     </Pressable>
                   );
                 })}
@@ -116,7 +140,7 @@ export default function Profile() {
               <Divider />
               <Row style={{ justifyContent: 'space-between' }}>
                 <Muted>{pending} reminders scheduled</Muted>
-                <Pressable onPress={() => { tap(); sendPreview(); }} hitSlop={8}>
+                <Pressable onPress={() => { tap(); sendPreview(); }} hitSlop={8} accessibilityRole="button" accessibilityLabel="Send a notification preview">
                   <Body color={colors.teal} style={{ fontFamily: font.sansSemibold, fontSize: 13.5 }}>Send a preview →</Body>
                 </Pressable>
               </Row>
@@ -125,7 +149,6 @@ export default function Profile() {
         </GlassCard>
       </Animated.View>
 
-      {/* Preferences */}
       <Animated.View entering={FadeInDown.delay(180).duration(500)} style={{ marginTop: spacing.xl }}>
         <Label style={{ marginBottom: 12 }}>PREFERENCES</Label>
         <GlassCard>
@@ -133,15 +156,15 @@ export default function Profile() {
             <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>Haptic feedback</Body>
             <Switch
               value={prefs.hapticsOn}
-              onValueChange={(v) => { setHaptics(v); }}
+              onValueChange={setHaptics}
               trackColor={{ true: colors.teal, false: 'rgba(255,255,255,0.15)' }}
               thumbColor={colors.text}
+              accessibilityLabel="Haptic feedback"
             />
           </Row>
         </GlassCard>
       </Animated.View>
 
-      {/* About / actions */}
       <Animated.View entering={FadeInDown.delay(240).duration(500)} style={{ marginTop: spacing.xl, gap: spacing.sm }}>
         <ActionRow icon="clipboard-outline" label="Research & data · screeners, export" color={colors.lavender} onPress={() => { tap(); router.push('/research'); }} />
         <ActionRow icon="refresh-outline" label="Re-take voice baseline" color={colors.teal} onPress={() => { tap(); router.push('/baseline'); }} />
@@ -150,7 +173,7 @@ export default function Profile() {
       </Animated.View>
 
       <Muted center style={styles.about}>
-        MoodSignal · A Mended Light app. Research-informed emotional calibration — a wellness and self-reflection aid, not a medical device, and not a substitute for professional care. Voice analysis happens on-device.
+        MoodSignal · A Mended Light app. A wellness and self-reflection aid, not a medical device or substitute for professional care. Voice analysis happens on-device. Wellness data currently stays on this device unless a future sync feature is explicitly enabled.
       </Muted>
     </Screen>
   );
@@ -167,7 +190,7 @@ function Stat({ value, label, color }: { value: number; label: string; color: st
 
 function ActionRow({ icon, label, color, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; color: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
       <GlassCard style={styles.actionRow}>
         <View style={[styles.actionIcon, { backgroundColor: color + '1a' }]}>
           <Ionicons name={icon} size={18} color={color} />
