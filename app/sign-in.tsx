@@ -9,10 +9,12 @@ import { GoogleGlyph } from '../src/components/GoogleGlyph';
 import { useApp } from '../src/context/AppContext';
 import { continueAnonymously, type User } from '../src/lib/auth';
 import { useGoogleSignIn } from '../src/lib/googleAuth';
-import { isGoogleConfigured } from '../src/lib/authConfig';
+import { isFirebaseConfigured, isGoogleConfigured } from '../src/lib/authConfig';
 import { scheduleDailyMessages } from '../src/lib/notifications';
 import { colors, font, spacing } from '../src/theme/theme';
 import { success } from '../src/lib/haptics';
+
+const CAN_USE_GOOGLE_AUTH = isFirebaseConfigured && isGoogleConfigured;
 
 function GoogleButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
   return (
@@ -27,7 +29,7 @@ function GoogleButton({ label, onPress, disabled }: { label: string; onPress: ()
 
 function RealGoogleButton({ busy, setBusy, onUser }: { busy: boolean; setBusy: (value: 'google' | 'anon' | null) => void; onUser: (user: User) => void }) {
   const google = useGoogleSignIn(onUser, () => setBusy(null));
-  return <GoogleButton label={busy ? 'Signing in…' : 'Continue with Google'} disabled={busy} onPress={async () => { setBusy('google'); await google.prompt(); }} />;
+  return <GoogleButton label={busy ? 'Signing in…' : 'Continue with Google'} disabled={busy || !google.ready} onPress={async () => { setBusy('google'); await google.prompt(); }} />;
 }
 
 export default function SignIn() {
@@ -63,8 +65,8 @@ export default function SignIn() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(150).duration(600)} style={styles.actions}>
-        {isGoogleConfigured ? <RealGoogleButton busy={busy === 'google'} setBusy={setBusy} onUser={onGoogleUser} /> : null}
-        <GradientButton label={busy === 'anon' ? 'Starting…' : 'Continue with a local profile'} variant={isGoogleConfigured ? 'ghost' : 'brand'} onPress={onLocal} loading={busy === 'anon'} full />
+        {CAN_USE_GOOGLE_AUTH ? <RealGoogleButton busy={busy === 'google'} setBusy={setBusy} onUser={onGoogleUser} /> : null}
+        <GradientButton label={busy === 'anon' ? 'Starting…' : 'Continue with a local profile'} variant={CAN_USE_GOOGLE_AUTH ? 'ghost' : 'brand'} onPress={onLocal} loading={busy === 'anon'} full />
       </Animated.View>
 
       <Muted center style={styles.legal}>
