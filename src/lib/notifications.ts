@@ -6,6 +6,7 @@ import { dayOfYear, messageForDay, TYPE_META } from '../data/messages';
 
 const WINDOW_DAYS = 60;
 const CHANNEL_ID = 'daily-messages';
+const DAILY_SOURCE = 'moodsignal.daily-message';
 
 export interface NotifPrefs {
   enabled: boolean;
@@ -46,8 +47,22 @@ function nextOccurrence(daysAhead: number, hour: number, minute: number): Date {
   return date;
 }
 
+function isDailyMessageNotification(notification: Notifications.NotificationRequest): boolean {
+  const data = notification.content.data ?? {};
+  return data.source === DAILY_SOURCE || (typeof data.url === 'string' && data.url.startsWith('/message/'));
+}
+
+export async function cancelDailyMessages(): Promise<void> {
+  const pending = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    pending
+      .filter(isDailyMessageNotification)
+      .map((notification) => Notifications.cancelScheduledNotificationAsync(notification.identifier))
+  );
+}
+
 export async function scheduleDailyMessages(prefs: NotifPrefs): Promise<number> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  await cancelDailyMessages();
   if (!prefs.enabled) return 0;
 
   const granted = await requestPermissions();
@@ -68,7 +83,7 @@ export async function scheduleDailyMessages(prefs: NotifPrefs): Promise<number> 
       content: {
         title: `${meta.label} · MoodSignal`,
         body: message.body,
-        data: { messageId: message.id, url: `/message/${message.id}` },
+        data: { source: DAILY_SOURCE, messageId: message.id, url: `/message/${message.id}` },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -82,12 +97,12 @@ export async function scheduleDailyMessages(prefs: NotifPrefs): Promise<number> 
 }
 
 export async function cancelAll(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  await cancelDailyMessages();
 }
 
 export async function pendingCount(): Promise<number> {
   const list = await Notifications.getAllScheduledNotificationsAsync();
-  return list.length;
+  return list.filter(isDailyMessageNotification).length;
 }
 
 export async function sendPreview(): Promise<void> {
@@ -100,7 +115,7 @@ export async function sendPreview(): Promise<void> {
     content: {
       title: `${meta.label} · MoodSignal`,
       body: message.body,
-      data: { messageId: message.id, url: `/message/${message.id}` },
+      data: { source: DAILY_SOURCE, messageId: message.id, url: `/message/${message.id}` },
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
