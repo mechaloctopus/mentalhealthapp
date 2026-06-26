@@ -8,6 +8,8 @@ const WINDOW_DAYS = 60;
 const CHANNEL_ID = 'daily-messages';
 const DAILY_SOURCE = 'moodsignal.daily-message';
 
+type ScheduledNotification = Awaited<ReturnType<typeof Notifications.getAllScheduledNotificationsAsync>>[number];
+
 export interface NotifPrefs {
   enabled: boolean;
   hour: number;
@@ -47,7 +49,7 @@ function nextOccurrence(daysAhead: number, hour: number, minute: number): Date {
   return date;
 }
 
-function isDailyMessageNotification(notification: Notifications.NotificationRequest): boolean {
+function isDailyMessageNotification(notification: ScheduledNotification): boolean {
   const data = notification.content.data ?? {};
   return data.source === DAILY_SOURCE || (typeof data.url === 'string' && data.url.startsWith('/message/'));
 }
