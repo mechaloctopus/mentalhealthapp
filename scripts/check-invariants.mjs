@@ -36,6 +36,10 @@ function fail(message) {
   failures.push(message);
 }
 
+function assertFileExists(path) {
+  if (!existsSync(join(ROOT, path))) fail(`${path} should exist`);
+}
+
 function assertFileMissing(path) {
   if (existsSync(join(ROOT, path))) fail(`${path} should not exist`);
 }
@@ -68,6 +72,9 @@ function assertFileContains(path, pattern, message) {
 
 assertFileMissing('src/components/Companion.tsx');
 assertFileMissing('src/lib/progress.ts');
+assertFileExists('docs/PRIVACY_ARCHITECTURE.md');
+assertFileExists('docs/MANUAL_QA.md');
+assertFileExists('src/lib/dataInventory.ts');
 
 assertNoPatternInSource(/computeProgress|Companion/i, 'obsolete Lumen progression reference found', [
   'scripts/check-invariants.mjs',
