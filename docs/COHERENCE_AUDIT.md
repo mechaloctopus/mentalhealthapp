@@ -2,76 +2,60 @@
 
 This audit reviews MoodSignal as one product rather than a collection of screens.
 
-## Executive assessment
-
-MoodSignal has a strong visual identity and a substantial prototype. Its canonical loop is now:
+## Canonical Product Loop
 
 ```text
-Check in → Understand the signal → Receive one next step → Practice or complete a quest → Gain resonance → Grow skill trees
+Daily word → Check in → Confirm the signal → Receive one wise next step →
+Practice or complete a quest → Gain resonance → Grow skill trees →
+Advance the Inner Path → Review patterns
 ```
 
-The largest product inconsistency was competing growth systems. The core app previously displayed separate Lumen points, levels, and badges while the Inner Path used resonance, mission stages, and skill trees.
+## Canonical Growth Model
 
-The product model is now:
+MoodSignal has one growth system:
 
-- **Resonance** is the only growth currency.
-- **Mission stage** represents the broad developmental arc.
-- **Skill-tree level** represents mastery in a specific area.
-- **Daily quest progress** represents today’s action.
-- **Activity rhythm** represents consistency but is not a currency.
-- **Lumen**, if retained later, is visual decoration that reflects resonance and skill trees. It does not have a separate economy.
+- **Resonance** — the primary growth currency.
+- **Mission stage** — the current Inner Path chapter.
+- **Skill trees** — areas of practiced growth.
+- **Daily quests** — small actions that grant resonance and tree progress.
+- **Wisdom paths** — optional structured practice journeys.
+- **Karma, stewardship, and flow** — specialized contribution counters.
+- **Activity rhythm** — consistency information, not a currency.
 
-The app is not production-ready yet, but the remaining blockers are concentrated and do not require another redesign.
+Lumen must not operate as a second economy. It may remain only as optional visual language that reflects resonance and skill-tree growth.
 
----
+## Completed Coherence Work
 
-## Canonical daily experience
+### One app-wide Inner Path state
 
-1. Read Today’s Word.
-2. Check in by voice or manual emotion selection.
-3. Confirm the feeling and contributing factors.
-4. Receive one recommended practice.
-5. Optionally open a matched Inner Path quest.
-6. Complete the practice or quest.
-7. Gain resonance and skill-tree progress.
-8. Review patterns in Insights.
+`SideProvider` now wraps the entire app.
 
-## Canonical navigation
+This enables:
 
-- **Today:** daily action hub
-- **Insights:** trends, resonance, stages, and skill trees
-- **Practices:** direct practice library
-- **365:** daily message archive
-- **You:** profile, notification preferences, data, and account actions
-- **Inner Path:** quests, mission stages, wisdom paths, skill trees, mentor, and private compassion practice
+- live resonance on Today
+- mission-stage and skill-tree progress in Insights
+- matched quests after both check-in methods
+- practice-to-resonance awards
+- consistent reset behavior
 
----
+### Simplified Today dashboard
 
-## Completed on `chatgpt/coherence-audit`
+Today now follows a clear hierarchy:
 
-### App-wide Inner Path state
-
-`SideProvider` now wraps the complete application rather than only `/side`.
-
-This allows Today, Insights, manual check-in, profile reset, and future practice rewards to share one canonical state.
-
-### Simplified Today
-
-Today now has four sections:
-
-1. Today’s Word
+1. Today’s word
 2. Check in
-3. Inner Path
-4. Explore
+3. Inner Path status and next quest
+4. Explore practices, reflection, journal, and insights
 
-The duplicate Lumen progression card and explanatory daily-flow panel were removed. The Inner Path card displays resonance, mission stage, active skill trees, daily quest progress, and the next quest.
+The separate Lumen progression panel and explanatory daily-flow panel were removed.
 
-### Unified Insights growth display
+### Unified Insights
 
-Insights now displays:
+Insights now shows:
 
 - resonance
-- mission stage and progress to the next stage
+- current mission stage
+- progress to next stage
 - activity rhythm
 - all 11 skill-tree levels
 - emotion distribution
@@ -80,270 +64,229 @@ Insights now displays:
 - calmness trend
 - check-in history
 
-The separate Lumen points/levels/badges display was removed.
+The previous independent points/levels/badges economy was removed from this screen.
 
-### Manual check-in parity
+### Voice and manual check-in parity
 
-Manual emotion selection now produces:
+Both methods now lead to:
 
+- confirmed feeling
 - one recommended practice
 - rationale
 - wisdom card
 - purpose-through-care prompt
-- matched existing Inner Path quest
+- matched Inner Path quest
 
-### Honest account behavior
+### Honest voice-quality handling
 
-- Simulated Google identity is hidden when Firebase/Google is not configured.
-- Local profile mode is the normal fallback.
-- Returning users with a stored baseline skip baseline capture.
+Voice analysis no longer creates synthetic meter data.
+
+Poor samples now:
+
+- return no affect result
+- are not saved as a baseline
+- are not saved as a check-in
+- offer retry or manual emotion selection
+
+### Core practices advance the Inner Path
+
+Core practices now grant resonance and skill-tree progress once per day:
+
+| Practice | Resonance | Skill trees |
+|---|---:|---|
+| Breath | 15 | Mindfulness |
+| Stillness | 15 | Mindfulness, Wisdom |
+| Loving-kindness | 18 | Compassion, Relationships |
+| Sound | 12 | Mindfulness, Flow |
+
+Breath and Stillness fulfill their matching canonical daily quest when it is active. Duplicate awards are blocked for the same day.
+
+### Honest sign-in
+
+- No simulated Google identity is shown.
+- Local profile mode is the default when production auth is unavailable.
 - Copy states that cloud sync is not enabled.
+- Returning users with a baseline skip duplicate baseline capture.
 
 ### Explicit notification consent
 
-Daily notifications now default to disabled. Permission is requested only after the user enables notifications.
+Daily notifications now default to disabled and are enabled from Profile.
 
-### Consistent reset
+### Honest community preview
 
-Profile reset clears both core app state and Inner Path state and accurately lists the erased data categories.
+The community screen no longer shows:
 
-### Honest community scope
+- simulated people present
+- synthetic collective totals
+- seeded anonymous posts
+- fake hearts or engagement
 
-The former simulated community was converted into a private local compassion surface.
+It is now an explicitly private local compassion wall until a real moderated backend exists.
 
-Removed:
+### Reset coherence
 
-- fake live-user counts
-- seeded anonymous posts presented as activity
-- synthetic collective progress
-- fake reactions
+Reset All clears both core state and live Inner Path state.
 
-The current screen explicitly states that notes remain local and private.
+### Accessibility improvements
 
-### Safer practice copy
+Added labels and selected-state metadata to:
 
-The unguided monthly fasting suggestion was removed. Practice copy now emphasizes direct exercises, stable nourishment, sleep environment, and low-risk supportive habits.
+- emotion-wheel choices
+- context-factor choices
+- breathing pattern choices
+- breathing duration choices
+- sound preset choices
+- key icon-only controls
 
-### Core accessibility improvements
+A full device accessibility pass is still required.
 
-- Emotion-wheel nodes now expose radio labels and selected state.
-- Factor chips now expose checkbox labels and checked state.
-- Practice cards expose descriptive button labels.
-- Existing tab and primary-button accessibility remains intact.
+### Practice-content cleanup
 
----
+The generic fasting recommendation was removed. Supportive habits now focus on steady nourishment and sleep/screen boundaries.
 
-## P0 release blockers
+### CI
 
-### 1. Voice low-quality handling
+`.github/workflows/ci.yml` now runs `npm ci` and `npm run lint` on pull requests and pushes to `main`.
 
-`src/lib/voice.ts` currently creates synthetic meter samples when microphone data is insufficient. This can produce a result that is not based on the user’s recording.
+## Current Navigation Model
 
-Required fix:
+### Primary tabs
 
-- validate sample duration, meter count, and audible samples,
-- never synthesize replacement measurements,
-- return an explicit unclear result,
-- ask the user to retry or continue manually,
-- never save an unclear recording as a baseline,
-- test real microphone metering on iOS and Android devices.
+- **Today** — daily orientation and next action
+- **Insights** — patterns, resonance, stages, and skill trees
+- **Practices** — direct practice library
+- **365** — daily message archive
+- **You** — preferences, data, Inner Path access, sign-out, and reset
 
-### 2. Sensitive data storage
+### Secondary flows
 
-Check-ins, screeners, journals, quest reflections, and private compassion notes are stored in AsyncStorage.
+- voice check-in
+- manual check-in
+- baseline
+- guided reflection
+- journal
+- sleep mixer
+- research/screeners
+- individual practices
+- Inner Path routes
 
-Required release decision:
+## Remaining P0 Release Blockers
 
-- encrypted local-only storage,
-- encrypted local database,
-- or explicit optional secure sync.
+These must be resolved before public release.
 
-Required work:
+### 1. Sensitive data storage
 
-- data inventory,
-- encryption,
-- storage migration/versioning,
-- retention policy,
-- tested export,
-- tested complete deletion,
-- privacy policy,
-- terms.
+Check-ins, journal text, screeners, and reflections currently use AsyncStorage.
 
-### 3. Crisis and safety flow
+Required:
 
-The PHQ-9 sensitive item displays US 988 copy, but the app lacks a dedicated safety route and localized resource handling.
+- choose encrypted local storage, encrypted local database, or explicit secure sync
+- define retention and migration strategy
+- test export and deletion
+- publish privacy policy and terms
 
-Required fix:
+### 2. Crisis-support flow
 
-- dedicated safety screen,
-- immediate-danger action,
-- country-appropriate resources,
-- trusted-person action,
-- tested PHQ-9 item 9 behavior,
-- qualified review of safety copy.
+The app has safety copy but no dedicated locale-aware crisis route.
 
-### 4. Typecheck, tests, and release validation
+Required:
 
-The repository has `npm run lint` mapped to `tsc --noEmit`, but no CI workflow or automated test suite.
+- dedicated safety screen
+- immediate-danger action
+- trusted-person action
+- country-appropriate resources
+- tested PHQ-9 item 9 behavior
+- qualified safety/copy review
 
-Required fix:
+### 3. Production authentication decision
 
-- run TypeScript locally,
-- add CI typecheck,
-- add unit tests for pure modules,
-- create iOS and Android release builds,
-- test microphone, notifications, storage, reset, export, and quest completion on devices.
+Choose one:
 
-### 5. Copyright and attribution review
+- intentional local-only launch, or
+- real Firebase authentication and explicit sync consent
 
-The daily message library contains attributed quotations and traditional sayings.
+Do not imply account sync until it exists.
 
-Required fix:
+### 4. Build and device validation
 
-- verify wording and attribution,
-- replace uncertain quotations with original paraphrases,
-- avoid long copyrighted excerpts,
-- keep a content-review record.
+Required:
 
----
-
-## P1 coherence work
-
-### Connect core practices to resonance
-
-Core practice sessions currently update session history but do not consistently advance the Inner Path.
-
-Recommended mapping:
-
-- Breath → Mindfulness
-- Stillness → Mindfulness + Wisdom
-- Loving-kindness → Compassion + Relationships
-- Sound → Mindfulness or Flow
-- Sleep mixer → recovery history, not automatic spiritual progress
-
-Create a typed `practiceGrowth.ts` adapter that:
-
-- rewards qualifying completed sessions once,
-- uses canonical quests or typed grants,
-- explains the reward,
-- prevents double claims.
-
-### Add matched quest to voice results
-
-Manual check-ins now show a matched quest. Voice results should call the same `sideQuestMatcher`.
-
-### Share the check-in result UI
-
-Voice and manual flows now use similar data but duplicate presentation logic. Extract a shared result component so both flows cannot drift.
-
-### Remove dead Lumen economy files
-
-After a local import check, remove or repurpose:
-
-- `src/lib/progress.ts`
-- `src/components/Companion.tsx`
-
-They should not remain as an unused second progression model.
-
-### Finish the identity strategy
-
-For local-only launch:
-
-- treat local profile as the normal mode,
-- remove unnecessary account language,
-- hide Google until secure sync exists.
-
-For a synced launch:
-
-- implement real auth,
-- request explicit sync consent,
-- define exactly what syncs,
-- avoid syncing sensitive freeform text without an intentional encrypted design.
-
-### Add wisdom preferences
-
-Recommended preference options:
-
-- secular/science-forward
-- philosophical
-- contemplative/spiritual
-- Christian contemplative
-- Buddhist/mindfulness
-- show all
-
----
-
-## Technical assessment
-
-### Strengths
-
-- understandable Expo Router structure
-- typed core and Inner Path state
-- storage behind adapters
-- pure recommendation, purpose, wisdom, and quest-matching modules
-- data-driven side quests and wisdom paths
-- established design system
-
-### Risks
-
-- storage writes occur inside state updates,
-- write failures are mostly silent,
-- restored data has no runtime schema validation,
-- no persisted-data migration strategy,
-- no error telemetry,
-- `supportsTablet: true` creates an unverified iPad layout and screenshot obligation,
-- content systems can diverge unless side quests remain the canonical action source.
-
-Recommended technical additions:
-
-- storage version and migration functions
-- encrypted storage adapter
-- `practiceGrowth.ts`
-- shared check-in result component
-- dedicated safety route
-- CI workflow
-
----
-
-## Remaining accessibility work
-
-- practice pattern and duration pills need radio state,
-- icon-only controls need a full label audit,
-- charts need textual summaries,
-- test dynamic text sizing,
-- test screen-reader order,
-- test contrast,
-- verify minimum touch targets,
-- complete VoiceOver and TalkBack smoke tests.
-
----
-
-## External beta acceptance criteria
-
-- [ ] TypeScript passes in CI.
-- [ ] Low-quality voice samples produce retry, never fabricated analysis.
-- [x] Manual and voice check-ins use the same recommendation model.
-- [ ] Voice results display a matched Inner Path quest.
-- [ ] Core practices visibly connect to resonance and skill trees.
+- CI must pass
+- Expo iOS and Android release builds
+- physical-device microphone testing
+- physical-device notification and deep-link testing
+- interrupted audio-session testing
+- offline and corrupted-storage testing
+
+### 5. Accessibility validation
+
+Required:
+
+- VoiceOver and TalkBack smoke tests
+- dynamic text
+- screen-reader order
+- contrast review
+- reduced-motion review
+- 44-point touch targets
+- textual chart summaries
+
+### 6. Copyright and attribution audit
+
+Daily messages and wisdom content need source verification.
+
+Required:
+
+- verify quotations and attribution
+- replace uncertain quotations with original paraphrases
+- avoid long copyrighted passages
+- maintain a content-review record
+
+## Remaining P1 Product Work
+
+- Shared check-in result component to remove duplicated voice/manual result UI
+- Track recommendation accepted, skipped, and completed outcomes
+- Evening reflection and weekly review
+- Configurable wisdom/spiritual preferences
+- Storage schema versioning and migrations
+- Error telemetry and non-sensitive analytics
+- Decide whether the private compassion wall ships or stays hidden
+- Remove or repurpose dead Lumen/progress code after CI confirms no imports
+- Review `supportsTablet: true` against actual tablet layout and App Store obligations
+
+## Production Language Rules
+
+Use:
+
+- signal
+- estimate
+- reflection
+- pattern
+- association
+- practice
+- recommendation
+- resonance
+
+Avoid:
+
+- diagnosis
+- proof
+- treatment claim
+- guaranteed healing
+- simulated social proof
+- sync claims when data is local
+
+## External Beta Acceptance Criteria
+
+- [ ] CI passes.
+- [x] Poor voice samples produce retry, never fabricated analysis.
+- [x] Manual and voice check-ins use the same result model.
+- [x] Core practices visibly connect to resonance and skill trees.
 - [x] Simulated community activity is removed.
-- [x] Notification permission is opt-in.
-- [ ] Local sensitive data is encrypted or otherwise release-approved.
+- [x] Notification permission is explicitly opt-in.
+- [ ] Sensitive local data has a release-approved privacy architecture.
 - [ ] Export and full deletion are tested.
 - [ ] Crisis flow is reviewed and tested.
 - [ ] Accessibility smoke test passes.
 - [ ] iOS and Android release builds pass on physical devices.
-- [ ] App Store copy avoids unsupported claims.
+- [ ] App Store copy avoids clinical and unsupported claims.
 - [ ] Content attribution review is complete.
-
-## Recommended implementation order
-
-1. Run typecheck and fix compile errors.
-2. Implement voice-quality retry handling.
-3. Connect completed practices to resonance and skill trees.
-4. Add matched quest to voice results.
-5. Extract a shared check-in result component.
-6. Remove dead Lumen progression files after import verification.
-7. Complete core accessibility work.
-8. Decide encrypted local vs optional sync architecture.
-9. Add dedicated safety route and policy documents.
-10. Build and test release candidates.
