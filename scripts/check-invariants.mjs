@@ -77,6 +77,7 @@ assertFileExists('docs/MANUAL_QA.md');
 assertFileExists('docs/APK_BUILD.md');
 assertFileExists('.github/workflows/android-apk.yml');
 assertFileExists('src/lib/dataInventory.ts');
+assertFileExists('src/lib/releaseReadiness.ts');
 
 assertNoPatternInSource(/computeProgress|Companion/i, 'obsolete Lumen progression reference found', [
   'scripts/check-invariants.mjs',
@@ -97,6 +98,8 @@ assertFileContains('src/lib/voice.ts', /return null;/, 'voice analyzer should re
 assertFileContains('src/lib/voice.ts', /voiceSampleQuality/, 'voice sample quality function is required');
 assertFileContains('src/side/SideContext.tsx', /CORE_PRACTICE_REWARDS/, 'core practice rewards should be centralized');
 assertFileContains('src/lib/dataInventory.ts', /DATA_INVENTORY/, 'typed data inventory should exist');
+assertFileContains('src/lib/releaseReadiness.ts', /RELEASE_READINESS/, 'typed release readiness model should exist');
+assertFileContains('src/lib/releaseReadiness.ts', /internal-apk/, 'release readiness should distinguish internal APK readiness');
 assertFileContains('docs/PRIVACY_ARCHITECTURE.md', /local-only encrypted/i, 'privacy architecture should document the recommended v1 path');
 assertFileContains('docs/MANUAL_QA.md', /Release build checks/, 'manual QA checklist should include release build checks');
 assertFileContains('docs/APK_BUILD.md', /app-debug\.apk/, 'APK build docs should include the debug APK output path');
