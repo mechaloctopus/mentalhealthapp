@@ -9,7 +9,9 @@
     "web": "expo start --web",
     "lint": "tsc --noEmit",
     "check:invariants": "node scripts/check-invariants.mjs",
-    "check": "npm run lint && npm run check:invariants"
+    "check": "npm run lint && npm run check:invariants",
+    "prebuild:android": "npx expo prebuild --platform android --clean --non-interactive",
+    "build:android:debug": "npm run prebuild:android && cd android && ./gradlew assembleDebug --no-daemon"
   },
   "dependencies": {
     "@expo-google-fonts/alegreya": "^0.4.1",
