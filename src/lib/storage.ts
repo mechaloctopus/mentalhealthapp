@@ -72,4 +72,5 @@ export const KEYS = {
   journal: 'journal',
   screeners: 'screeners',
   researchConsent: 'researchConsent',
+  cosmicBirth: 'cosmicBirth',
 } as const;

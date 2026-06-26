@@ -102,6 +102,7 @@ export default function RootLayout() {
                 <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="sound" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="side" />
+                <Stack.Screen name="cosmic" />
                 <Stack.Screen name="message/[id]" options={{ presentation: 'modal', animation: 'fade' }} />
               </Stack>
             </SideProvider>

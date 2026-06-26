@@ -96,6 +96,9 @@ assertNoPattern(/fake|simulated|seeded/i, 'possible simulated production signal 
   'docs/PRIVACY_ARCHITECTURE.md',
   'docs/ROADMAP.md',
   'docs/REPO_AUDIT.md',
+  'docs/COSMIC_RIM.md',
+  'docs/STATE.md',
+  'docs/ULTRA_PREMIUM_CHECKLIST.md',
   'README.md',
 ]);
 

@@ -48,6 +48,18 @@ on iOS/Android). Two layers:
 - **Community:** a private, local compassion space (presence + sit, weekly challenge, a wall
   the user writes to) — clearly labeled as a preview pending a real backend.
 
+## 4b. Cosmic Rim — status: ✅ new this pass, separate from the Inner Path
+A planetary energy & position guide (`app/cosmic/`, `src/lib/astronomy.ts`,
+`src/data/cosmicRim.ts`) — not gamified, not part of Resonance. Real geocentric
+ecliptic-longitude positions for the 7 classical planets and moon-phase data come
+from `astronomy-engine` (no fake/seeded data — enforced by
+`scripts/check-invariants.mjs`). Includes a live zodiac wheel, per-planet
+myth/Agrippa-correspondence/archangel detail screens, a local-only birth-chart
+"echo" overlay, a moon watcher guide, and a Chaldean planetary-hours guide. A
+moon-phase widget also sits on the main dashboard independent of the module. Full
+scope, sources, and known v1 limitations (no location input yet, midday default
+for birth time) in `docs/COSMIC_RIM.md`.
+
 ## 5. Special effects & visual language — status: ✅ new this pass
 - **Sacred geometry** (`src/components/sacred/Geometry.tsx`): Merkaba (star tetrahedron),
   Flower of Life, toroidal rings, midpoint-displacement lightning.
@@ -79,6 +91,9 @@ on iOS/Android). Two layers:
 ## 8. Documentation index
 - `docs/STATE.md` — this file (overall state).
 - `docs/CONTENT_SOURCES.md` — curriculum bibliography & editorial principles.
+- `docs/COSMIC_RIM.md` — the planetary energy/position module: scope, sources, limitations.
+- `docs/AFFILIATE_MARKETING.md` — Amazon Associates feasibility & implementation plan.
+- `docs/ULTRA_PREMIUM_CHECKLIST.md` — cross-referenced launch checklist + honest quality assessment.
 - `docs/BRANDING.md` — Mended Light brand application.
 - `docs/COHERENCE_AUDIT.md` — product-coherence audit & ordering.
 - `docs/PRIVACY_ARCHITECTURE.md` · `docs/MANUAL_QA.md` · `docs/APK_BUILD.md` — privacy, QA, build.

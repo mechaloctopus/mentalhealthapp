@@ -7,6 +7,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Screen, Display, Title, Body, Muted, Label, GlassCard, Serif, Row } from '../../src/components/ui';
 import { MessageCard } from '../../src/components/MessageCard';
 import { GradientButton } from '../../src/components/GradientButton';
+import { MoonPhaseGlyph } from '../../src/components/MoonPhaseGlyph';
 import { useApp } from '../../src/context/AppContext';
 import { useSide } from '../../src/side/SideContext';
 import { getQuest, missionStageFor } from '../../src/side/content';
@@ -15,6 +16,7 @@ import { todaysMessage } from '../../src/data/messages';
 import { getEmotion } from '../../src/lib/emotions';
 import { initials } from '../../src/lib/auth';
 import { focusLine } from '../../src/lib/focus';
+import { getMoonPhase } from '../../src/lib/astronomy';
 import { colors, font, radius, spacing } from '../../src/theme/theme';
 import { tap } from '../../src/lib/haptics';
 
@@ -23,6 +25,7 @@ const TOOLS = [
   { title: 'Guided reflection', sub: 'Work through one thought clearly', icon: 'chatbubbles' as const, route: '/coach', color: colors.lavender },
   { title: 'Journal', sub: 'Write what is true', icon: 'book' as const, route: '/journal', color: colors.amber },
   { title: 'Insights', sub: 'Patterns, resonance, and skill trees', icon: 'analytics' as const, route: '/voice', color: colors.blue },
+  { title: 'Cosmic Rim', sub: 'Real planetary positions, the zodiac wheel, and planet lore', icon: 'planet' as const, route: '/cosmic', color: colors.indigo },
 ];
 
 function greeting() {
@@ -44,6 +47,7 @@ export default function Today() {
   const nextQuest = nextQuestId ? getQuest(nextQuestId) : undefined;
   const activeTrees = TREES.filter((tree) => treeLevel(side.treeXp[tree.id] ?? 0).level > 0).length;
   const firstName = (user?.name ?? 'Friend').split(' ')[0];
+  const moon = getMoonPhase(new Date());
 
   // Gentle first-run guidance — fades away once each has been tried.
   const steps = [
@@ -143,6 +147,20 @@ export default function Today() {
         </Pressable>
       </Animated.View>
 
+      <Animated.View entering={FadeInDown.delay(150).duration(450)} style={{ marginTop: spacing.xl }}>
+        <Pressable onPress={() => { tap(); router.push('/cosmic'); }} accessibilityRole="button" accessibilityLabel={`Cosmic Rim. Tonight's moon is ${moon.name}`}>
+          <View style={styles.moonCard}>
+            <MoonPhaseGlyph phase={moon} size={44} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Label color={colors.indigo}>TONIGHT'S SKY</Label>
+              <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 15 }}>{moon.name}</Body>
+              <Muted style={{ fontSize: 12 }}>{(moon.illuminatedFraction * 100).toFixed(0)}% illuminated · {moon.waxing ? 'waxing' : 'waning'}</Muted>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+          </View>
+        </Pressable>
+      </Animated.View>
+
       <Animated.View entering={FadeInDown.delay(180).duration(450)} style={{ marginTop: spacing.xl }}>
         <Label style={{ marginBottom: 10 }}>EXPLORE</Label>
         <View style={{ gap: spacing.sm }}>
@@ -175,6 +193,7 @@ const styles = StyleSheet.create({
   textAction: { alignItems: 'center', paddingTop: 2 },
   stepCheck: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   pathCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.lavender + '44', overflow: 'hidden', backgroundColor: colors.panel },
+  moonCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.indigo + '44', backgroundColor: colors.panel },
   pathIcon: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface2, borderWidth: 1 },
   toolRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: spacing.md },
   toolIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },

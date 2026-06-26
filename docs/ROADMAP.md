@@ -165,6 +165,27 @@ Needed integration:
 
 ---
 
+## Phase 3b — Cosmic Rim Module
+
+Goal: a separate, non-gamified planetary energy and position guide. Full detail in
+`docs/COSMIC_RIM.md`.
+
+- [x] Real astronomical computation layer (`src/lib/astronomy.ts`, astronomy-engine).
+- [x] 7-planet positions on a live zodiac wheel (`src/components/ZodiacWheel.tsx`).
+- [x] Moon phase glyph and dashboard widget (`src/components/MoonPhaseGlyph.tsx`).
+- [x] Dominant-planet-of-the-day callout.
+- [x] Chaldean day/hour ruler guide (`app/cosmic/hours.tsx`).
+- [x] Moon watcher guide with full 8-phase folk meanings (`app/cosmic/moon.tsx`).
+- [x] Per-planet myth/Agrippa-correspondence/archangel detail screens.
+- [x] Birth echo: local-only birth chart overlay on today's positions (`app/cosmic/birth.tsx`).
+- [x] Wired into navigation and dashboard (`app/_layout.tsx`, `app/(tabs)/index.tsx`).
+- [ ] Location-aware sunrise/sunset for accurate planetary hours and a real Ascendant.
+- [ ] House system once location input exists.
+- [ ] Sumerian/Babylonian constellation lore beyond the zodiac.
+- [ ] AR "pocket Stellarium" mode (space-only, accurate real-time planet positions; no Earth horizon).
+
+---
+
 ## Phase 4 — Main Dashboard and Insight
 
 Goal: make the app feel unified.
