@@ -70,19 +70,39 @@ export const PATH_CONTEXT: Record<string, PathContext> = {
   },
   bodhisattva: {
     concept:
-      'The bodhisattva is one who vows to seek awakening not for themselves alone but for the benefit of all beings, and who cultivates compassion as the heart of the path. Tonglen — "sending and taking" — breathes in others’ pain and breathes out relief.',
+      'The bodhisattva is one who vows to seek awakening not for themselves alone but for the benefit of all beings, and who cultivates compassion (karuṇā) and the awakened heart-mind (bodhicitta) as the heart of the path. Śāntideva opens his classic with the wish that "all beings everywhere... gain release from every kind of pain, and may they come to taste undying joy." Tonglen — "sending and taking" — breathes in others’ pain and breathes out relief.',
     source:
-      'Mahāyāna Buddhism; Śāntideva, "The Way of the Bodhisattva" (Bodhicaryāvatāra, 8th c.); the Tibetan lojong (mind-training) tradition for tonglen. Entirely optional, and never required.',
+      'Mahāyāna Buddhism; Śāntideva, "The Way of the Bodhisattva" (Bodhicaryāvatāra, 8th c.); the Tibetan lojong (mind-training) tradition, especially Atiśa’s and Chekawa’s root texts, for tonglen and the "widen the circle" practice. Entirely optional, and never required.',
     practice:
-      'A gentle daily vow — "today I will try to be of benefit" — plus small acts of compassion and tonglen breathing, growing a Compassion level rather than an ego.',
+      'A gentle daily vow — "today I will try to be of benefit" — plus tonglen breathing, small concrete acts of compassion, and widening who that compassion includes, growing a Compassion level rather than an ego.',
+    teachings: {
+      'b-vow':
+        'Śāntideva: "For as long as space endures, and for as long as living beings remain, until then may I too abide, to dispel the misery of the world." Bodhicitta is this aspiration made into intention — vowed fresh each morning, not earned once.',
+      'b-tonglen':
+        'Tonglen reverses the ordinary instinct to push pain away and pull comfort toward yourself: on the in-breath you take in another’s suffering as dark smoke; on the out-breath you send back relief as light. Lojong calls this "driving all blames into one" — meeting the world’s pain without flinching, and without needing it to be someone’s fault.',
+      'b-acts':
+        'The six perfections (pāramitās) — generosity, ethics, patience, effort, concentration, wisdom — are the bodhisattva’s training ground, and every one of them can be practiced in something as small as a held door or a hidden kindness. Skillful means (upāya) means the form of the kindness matters less than the intention behind it.',
+      'b-all':
+        'The classic image is the boatman who keeps returning to the shore — awakening is not a private exit but a circuit re-walked for others. "Just as the earth and other elements are serviceable in many ways... so may I be." The circle of who counts as worth helping has, in the end, no edge.',
+    },
   },
   stoic: {
     concept:
-      'The Stoics taught that we suffer not from events but from our judgments about them, and that freedom lies in mastering the one thing truly ours: our own response. Practices include the dichotomy of control, negative visualization, the view from above, and the evening review.',
+      'The Stoics taught that we suffer not from events but from our judgments about them ("Men are disturbed not by things, but by their opinions about things" — Epictetus), and that freedom lies in mastering the one thing truly ours: our own response. Practices include the dichotomy of control, negative visualization, the view from above, voluntary discomfort, and the evening review.',
     source:
-      'Marcus Aurelius, "Meditations" (2nd c.); Epictetus, "Enchiridion" and "Discourses"; Seneca, "Letters to Lucilius."',
+      'Marcus Aurelius, "Meditations" (2nd c.); Epictetus, "Enchiridion" and "Discourses"; Seneca, "Letters to Lucilius." The view-from-above and evening-review practices are drawn directly from Aurelius and Seneca; negative visualization (premeditatio malorum) is discussed across all three.',
     practice:
-      'Small daily exercises — sorting what is and isn’t in your control, rehearsing loss to renew gratitude, an honest evening review — that build a steady mind.',
+      'Small daily exercises — sorting what is and isn’t in your control, rehearsing loss to renew gratitude, practicing a virtue on purpose, an honest evening review — that build a steady mind rather than a hardened one.',
+    teachings: {
+      's-control':
+        'Epictetus opens the Enchiridion with the line the whole path rests on: "Some things are in our control and others not. In our control are opinion, aim, desire, aversion... not in our control are body, property, reputation, command." Nearly every Stoic exercise is this sort applied to a new situation.',
+      's-perspective':
+        'Marcus Aurelius repeatedly zooms out — "Look beneath the surface; let not the several qualities of a thing nor its worth escape thee" — and later Stoic-influenced thought (Holiday) calls a blocked path "the obstacle that is the way": the very thing in front of you can become the practice ground for the virtue you need.',
+      's-virtue':
+        'For the Stoics, virtue is the only true good and vice the only true evil — everything else (health, wealth, reputation) is "indifferent," useful but not essential to a good life. Voluntary discomfort is a small rehearsal: choosing hardship on purpose so involuntary hardship has less power over you.',
+      's-review':
+        'Seneca wrote that he submitted his whole day to a private judge each night. Aurelius, near the end of Meditations, reminds himself that "it is not death that a man should fear, but he should fear never beginning to live" — the review and memento mori are not morbid, but a way of weighing each day rightly.',
+    },
   },
   library: {
     concept:

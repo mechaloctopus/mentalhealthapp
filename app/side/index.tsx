@@ -11,6 +11,7 @@ import { TREES, treeLevel } from '../../src/side/trees';
 import { mentorNudge } from '../../src/side/mentor';
 import { ResonanceMeter } from '../../src/components/effects/ResonanceMeter';
 import { EtherealBar } from '../../src/components/effects/EtherealBar';
+import { InfoButton } from '../../src/components/InfoSheet';
 import { computeStreak } from '../../src/lib/insights';
 import { getEmotion } from '../../src/lib/emotions';
 import { colors, font, radius, spacing } from '../../src/theme/theme';
@@ -67,7 +68,20 @@ export default function SideHome() {
       {/* Resonance forcefield + mission stage */}
       <Animated.View entering={FadeInDown.duration(500)}>
         <GlassCard accent={stage.color} style={{ gap: spacing.md, alignItems: 'center' }}>
-          <Label color={stage.color}>RESONANCE · SIGNAL STRENGTH</Label>
+          <Row gap={6}>
+            <Label color={stage.color}>RESONANCE · SIGNAL STRENGTH</Label>
+            <InfoButton
+              title="What is Resonance?"
+              accent={stage.color}
+              intro="Resonance is the single currency the whole Inner Path runs on — every quest, practice, and act of kindness adds to it."
+              points={[
+                { heading: 'Six mission stages', text: 'As Resonance grows you climb six stages — Stabilize, Heal, Habits, Purpose, Wisdom, Service — each a deeper layer of the work.' },
+                { heading: 'The forcefield', text: 'The glow, rings, and lightning around the meter intensify as you progress — a visual read of how much signal you’ve built.' },
+                { heading: 'Skill trees', text: 'Specific quests also feed Karma, Stewardship, and Flow, and level up the 11 skill trees behind the scenes.' },
+              ]}
+              footer="None of this is a score to optimize — it’s a gentle mirror for consistency over time."
+            />
+          </Row>
           <ResonanceMeter
             value={side.resonance}
             caption={stage.title.split(' ')[0].toUpperCase()}

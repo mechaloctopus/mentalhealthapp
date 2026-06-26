@@ -39,7 +39,9 @@ on iOS/Android). Two layers:
   The Stoic Path, The Wisdom Library.
 - **Mystery-school depth** (`src/side/pathContext.ts`): each path now carries its *concept*,
   *source material* (honestly cited — see `docs/CONTENT_SOURCES.md`), how we practice it, and
-  per-stage teachings. Surfaced in the path detail screen.
+  per-stage teachings. Surfaced in the path detail screen. Five Temples, The Stoic Path, and
+  The Bodhisattva Path are now multi-stage progressions (4–5 stages each) with a teaching per
+  stage; the rest remain single-stage and are next in line to deepen.
 - **Daily quests:** universal pool (coherence, gratitude, metta, breath awareness, self-inquiry,
   impermanence, forgiveness, kindness) + active-path quests.
 - **Mentor:** on-device personalized guidance from the user's own mood + activity.
@@ -65,16 +67,14 @@ on iOS/Android). Two layers:
 - Outstanding: drop the licensed **logo PNG** into the icon/splash + an in-app wordmark
   (the Aire Bold Pro script only exists in the logo art).
 
-## 7. Build & CI — status: ⚠️ see notes
-- `tsc --noEmit` clean; `npm run check` (tsc + repo invariants) passes.
-- **CI** (`.github/workflows`): "TypeScript and invariants" + "Build debug APK".
-  - The invariant check was made precise (no false positives on prose / generated files).
-  - **Architecture:** the app uses the proven old architecture for release builds. The CI
-    builds a **debug** APK; on RN 0.76 the debug `ReactAndroid` prefab is only provided under
-    the New Architecture, so a debug build may need new arch enabled or the job pointed at the
-    release output. This is validated against the real runner once Actions are enabled.
-  - **Runner/billing:** ensure GitHub Actions is enabled and within budget (Settings → Actions,
-    Billing) — otherwise jobs fail instantly with no runner assigned.
+## 7. Build & CI — status: ✅ green on the real runner
+- `tsc --noEmit` clean; `npm run check` (tsc + repo invariants) passes locally and in CI.
+- **CI** (`.github/workflows`): both "TypeScript and invariants" and "Build debug APK" are
+  passing on `chatgpt/coherence-audit` (PR #3) against a real GitHub Actions runner — the
+  earlier CXX1210 prefab concern (debug `ReactAndroid` under old architecture on RN 0.76) was a
+  local-sandbox build-cache artifact, not a real defect; the proven old-architecture config
+  builds the debug APK successfully.
+- The invariant check is precise (no false positives on prose / generated files).
 
 ## 8. Documentation index
 - `docs/STATE.md` — this file (overall state).
@@ -85,9 +85,21 @@ on iOS/Android). Two layers:
 - `docs/AUDIT.md` · `docs/UPGRADE_PLAN.md` — earlier production audit & roadmap.
 
 ## 9. Open work (prioritized)
-1. Confirm the debug-APK CI job on a live runner; finalize arch/release decision.
-2. Real logo art into icon/splash + wordmark.
-3. Deepen remaining paths to the Gospel-of-Mary level of per-stage teaching.
-4. Backend (Supabase): accounts, encrypted sync, live community, Claude-powered mentor.
-5. Onboarding goal personalization & empty/skeleton states (in progress on a parallel branch).
-6. Unit tests for pure logic (emotions, insights, screeners) + expand CI.
+1. Real logo art into icon/splash + wordmark.
+2. Deepen the remaining paths (Habits, Purpose, Flow, Coherence, Wisdom Library) to the
+   multi-stage, per-stage-teaching depth now shared by Five Temples, Stoic, and Bodhisattva.
+3. Backend (Supabase): accounts, encrypted sync, live community, Claude-powered mentor.
+4. Unit tests for pure logic (emotions, insights, screeners) + expand CI.
+
+## 10. Onboarding & polish — status: ✅ new this pass
+- **Goal personalization:** a new `app/goals.tsx` step after the onboarding carousel lets users
+  pick what brought them ("a calmer mind," "better sleep," "find more purpose," …); stored as
+  `prefs.focus` (`src/context/AppContext.tsx`) and surfaced as a one-line tailored greeting on
+  the home screen (`focusLine()` in `src/lib/focus.ts`).
+- **First steps:** the home screen shows a fading checklist (first voice check-in, first
+  practice, first journal entry) for new users — gone once each is tried or after 5 check-ins.
+- **Consistent empty/info affordances:** `src/components/EmptyState.tsx` (gentle empty-list
+  card with optional CTA, now used in Journal) and `src/components/InfoSheet.tsx`'s
+  `InfoButton` (an "i" affordance opening a bottom-sheet explanation — used on the Inner Path's
+  Resonance meter to explain mission stages and the forcefield) replace one-off inline copy.
+- `src/components/PressableCard.tsx` standardizes tap feedback (scale + haptic) for future use.

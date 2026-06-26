@@ -86,6 +86,7 @@ export default function RootLayout() {
               >
                 <Stack.Screen name="index" />
                 <Stack.Screen name="onboarding" />
+                <Stack.Screen name="goals" />
                 <Stack.Screen name="sign-in" />
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="baseline" options={{ animation: 'slide_from_bottom' }} />

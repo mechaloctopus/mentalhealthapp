@@ -11,6 +11,7 @@ import { getFirebaseAuth, getAuthHelpers } from '../lib/firebase';
 interface Prefs {
   notif: NotifPrefs;
   hapticsOn: boolean;
+  focus: string[]; // goals chosen in onboarding (personalizes the home screen & suggestions)
 }
 
 interface SessionLog {
@@ -56,12 +57,13 @@ interface AppActions {
   toggleSaved: (id: number) => Promise<void>;
   updateNotifPrefs: (p: Partial<NotifPrefs>) => Promise<void>;
   setHaptics: (on: boolean) => Promise<void>;
+  setFocus: (focus: string[]) => Promise<void>;
   signOut: () => Promise<void>;
   resetAll: () => Promise<void>;
 }
 
 const Ctx = createContext<(AppState & AppActions) | null>(null);
-const DEFAULT_PREFS: Prefs = { notif: DEFAULT_NOTIF_PREFS, hapticsOn: true };
+const DEFAULT_PREFS: Prefs = { notif: DEFAULT_NOTIF_PREFS, hapticsOn: true, focus: [] };
 
 const EMPTY_STATE: AppState = {
   ready: false,
@@ -202,6 +204,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       },
       async setHaptics(on) {
         const prefs = withPrefsDefaults({ ...stateRef.current.prefs, hapticsOn: on });
+        setState((current) => ({ ...current, prefs }));
+        await setItem(KEYS.prefs, prefs);
+      },
+      async setFocus(focus) {
+        const prefs = withPrefsDefaults({ ...stateRef.current.prefs, focus });
         setState((current) => ({ ...current, prefs }));
         await setItem(KEYS.prefs, prefs);
       },

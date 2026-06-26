@@ -14,6 +14,7 @@ import { TREES, treeLevel } from '../../src/side/trees';
 import { todaysMessage } from '../../src/data/messages';
 import { getEmotion } from '../../src/lib/emotions';
 import { initials } from '../../src/lib/auth';
+import { focusLine } from '../../src/lib/focus';
 import { colors, font, radius, spacing } from '../../src/theme/theme';
 import { tap } from '../../src/lib/haptics';
 
@@ -35,7 +36,7 @@ function greeting() {
 
 export default function Today() {
   const router = useRouter();
-  const { user, checkins, baseline } = useApp();
+  const { user, checkins, sessions, journal, baseline, prefs } = useApp();
   const side = useSide();
   const last = checkins[0];
   const mission = missionStageFor(side.resonance).stage;
@@ -44,12 +45,21 @@ export default function Today() {
   const activeTrees = TREES.filter((tree) => treeLevel(side.treeXp[tree.id] ?? 0).level > 0).length;
   const firstName = (user?.name ?? 'Friend').split(' ')[0];
 
+  // Gentle first-run guidance — fades away once each has been tried.
+  const steps = [
+    { id: 'checkin', label: 'Do your first voice check-in', done: checkins.length > 0, route: '/checkin', icon: 'mic' as const },
+    { id: 'practice', label: 'Try a calming practice', done: sessions.length > 0, route: '/breath', icon: 'leaf' as const },
+    { id: 'journal', label: 'Write one honest line', done: journal.length > 0, route: '/journal-new', icon: 'book' as const },
+  ];
+  const showFirstSteps = steps.some((s) => !s.done) && checkins.length < 5;
+
   return (
     <Screen>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Muted>{greeting()},</Muted>
           <Display style={{ fontSize: 30, marginTop: 2 }}>{firstName}</Display>
+          <Muted style={{ fontSize: 13, marginTop: 2 }}>{focusLine(prefs.focus)}</Muted>
         </View>
         <Pressable onPress={() => router.push('/profile')} accessibilityRole="button" accessibilityLabel="Open profile">
           <View style={[styles.avatar, { backgroundColor: (user?.avatarColor ?? colors.teal) + '33', borderColor: (user?.avatarColor ?? colors.teal) + '88' }]}>
@@ -57,6 +67,28 @@ export default function Today() {
           </View>
         </Pressable>
       </View>
+
+      {showFirstSteps && (
+        <Animated.View entering={FadeInDown.duration(500)} style={{ marginBottom: spacing.lg }}>
+          <GlassCard accent={colors.violet} style={{ gap: spacing.sm }}>
+            <Row style={{ justifyContent: 'space-between' }}>
+              <Label color={colors.violet}>FIRST STEPS</Label>
+              <Muted style={{ fontSize: 12 }}>{steps.filter((s) => s.done).length}/{steps.length}</Muted>
+            </Row>
+            {steps.map((s) => (
+              <Pressable key={s.id} onPress={() => { tap(); router.push(s.route as any); }} disabled={s.done} accessibilityRole="button" accessibilityLabel={s.label}>
+                <Row gap={12} style={{ paddingVertical: 4 }}>
+                  <View style={[styles.stepCheck, s.done ? { backgroundColor: colors.moss, borderColor: colors.moss } : { borderColor: colors.panelBorderStrong }]}>
+                    {s.done ? <Ionicons name="checkmark" size={13} color={colors.black} /> : <Ionicons name={s.icon} size={12} color={colors.textDim} />}
+                  </View>
+                  <Body color={s.done ? colors.textDim : colors.text} style={{ flex: 1, fontSize: 14, textDecorationLine: s.done ? 'line-through' : 'none' }}>{s.label}</Body>
+                  {!s.done ? <Ionicons name="chevron-forward" size={15} color={colors.textDim} /> : null}
+                </Row>
+              </Pressable>
+            ))}
+          </GlassCard>
+        </Animated.View>
+      )}
 
       <Animated.View entering={FadeInDown.duration(450)}>
         <Label style={{ marginBottom: 10 }}>TODAY’S WORD</Label>
@@ -141,6 +173,7 @@ const styles = StyleSheet.create({
   avatar: { width: 46, height: 46, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   emotionDot: { width: 14, height: 14, borderRadius: 7 },
   textAction: { alignItems: 'center', paddingTop: 2 },
+  stepCheck: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   pathCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.lavender + '44', overflow: 'hidden', backgroundColor: colors.panel },
   pathIcon: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface2, borderWidth: 1 },
   toolRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: spacing.md },
