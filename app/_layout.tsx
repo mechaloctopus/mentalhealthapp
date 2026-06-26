@@ -101,6 +101,7 @@ export default function RootLayout() {
                 <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="sound" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="cosmic-rim" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="side" />
                 <Stack.Screen name="message/[id]" options={{ presentation: 'modal', animation: 'fade' }} />
               </Stack>
