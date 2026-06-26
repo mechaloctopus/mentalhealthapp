@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getItem, setItem, removeItem, clearAll, KEYS } from '../lib/storage';
+import { ensureStorageSchema } from '../lib/storageVersion';
 import type { User } from '../lib/auth';
 import type { Baseline, CheckIn } from '../lib/voice';
 import type { ScreenerResult } from '../lib/screeners';
@@ -38,7 +39,7 @@ interface AppState {
   journal: JournalEntry[];
   screeners: ScreenerResult[];
   researchConsent: boolean;
-  saved: number[]; // saved message ids
+  saved: number[];
   prefs: Prefs;
 }
 
@@ -60,34 +61,43 @@ interface AppActions {
 }
 
 const Ctx = createContext<(AppState & AppActions) | null>(null);
-
 const DEFAULT_PREFS: Prefs = { notif: DEFAULT_NOTIF_PREFS, hapticsOn: true };
 
+const EMPTY_STATE: AppState = {
+  ready: false,
+  user: null,
+  onboarded: false,
+  baseline: null,
+  checkins: [],
+  sessions: [],
+  journal: [],
+  screeners: [],
+  researchConsent: false,
+  saved: [],
+  prefs: DEFAULT_PREFS,
+};
+
+function withPrefsDefaults(prefs: Prefs | null | undefined): Prefs {
+  return { ...DEFAULT_PREFS, ...prefs, notif: { ...DEFAULT_NOTIF_PREFS, ...prefs?.notif } };
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>({
-    ready: false,
-    user: null,
-    onboarded: false,
-    baseline: null,
-    checkins: [],
-    sessions: [],
-    journal: [],
-    screeners: [],
-    researchConsent: false,
-    saved: [],
-    prefs: DEFAULT_PREFS,
-  });
+  const [state, setState] = useState<AppState>(EMPTY_STATE);
+  const stateRef = useRef<AppState>(EMPTY_STATE);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     let done = false;
-    // Safety net: never let the app hang on the loading screen — flip ready after 4s
-    // even if storage is unexpectedly slow.
     const safety = setTimeout(() => {
-      if (!done) setState((s) => ({ ...s, ready: true }));
+      if (!done) setState((current) => ({ ...current, ready: true }));
     }, 4000);
 
     (async () => {
       try {
+        await ensureStorageSchema();
         const [user, onboarded, baseline, checkins, sessions, journal, screeners, researchConsent, saved, prefs] = await Promise.all([
           getItem<User | null>(KEYS.user, null),
           getItem<boolean>(KEYS.onboarded, false),
@@ -111,10 +121,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           screeners,
           researchConsent,
           saved,
-          prefs: { ...DEFAULT_PREFS, ...prefs, notif: { ...DEFAULT_NOTIF_PREFS, ...prefs?.notif } },
+          prefs: withPrefsDefaults(prefs),
         });
       } catch {
-        setState((s) => ({ ...s, ready: true }));
+        setState((current) => ({ ...current, ready: true }));
       } finally {
         done = true;
         clearTimeout(safety);
@@ -124,101 +134,80 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(safety);
   }, []);
 
-  // Keep the global haptics flag in sync with preferences.
   useEffect(() => {
     setHapticsEnabled(state.prefs.hapticsOn);
   }, [state.prefs.hapticsOn]);
 
   const actions: AppActions = useMemo(
     () => ({
-      async setUser(u) {
-        setState((s) => ({ ...s, user: u }));
-        if (u) await setItem(KEYS.user, u);
+      async setUser(user) {
+        setState((current) => ({ ...current, user }));
+        if (user) await setItem(KEYS.user, user);
         else await removeItem(KEYS.user);
       },
       async completeOnboarding() {
-        setState((s) => ({ ...s, onboarded: true }));
+        setState((current) => ({ ...current, onboarded: true }));
         await setItem(KEYS.onboarded, true);
       },
-      async setBaseline(b) {
-        setState((s) => ({ ...s, baseline: b }));
-        await setItem(KEYS.baseline, b);
+      async setBaseline(baseline) {
+        setState((current) => ({ ...current, baseline }));
+        await setItem(KEYS.baseline, baseline);
       },
-      async addCheckIn(c) {
-        setState((s) => {
-          const checkins = [c, ...s.checkins].slice(0, 200);
-          setItem(KEYS.checkins, checkins);
-          return { ...s, checkins };
-        });
+      async addCheckIn(checkin) {
+        const checkins = [checkin, ...stateRef.current.checkins].slice(0, 200);
+        setState((current) => ({ ...current, checkins }));
+        await setItem(KEYS.checkins, checkins);
       },
-      async addSession(s0) {
-        const entry: SessionLog = { ...s0, id: Math.random().toString(36).slice(2), at: Date.now() };
-        setState((s) => {
-          const sessions = [entry, ...s.sessions].slice(0, 300);
-          setItem(KEYS.sessions, sessions);
-          return { ...s, sessions };
-        });
+      async addSession(session) {
+        const entry: SessionLog = { ...session, id: Math.random().toString(36).slice(2), at: Date.now() };
+        const sessions = [entry, ...stateRef.current.sessions].slice(0, 300);
+        setState((current) => ({ ...current, sessions }));
+        await setItem(KEYS.sessions, sessions);
       },
-      async addJournal(e0) {
-        const entry: JournalEntry = { ...e0, id: Math.random().toString(36).slice(2), at: Date.now() };
-        setState((s) => {
-          const journal = [entry, ...s.journal].slice(0, 500);
-          setItem(KEYS.journal, journal);
-          return { ...s, journal };
-        });
+      async addJournal(journalEntry) {
+        const entry: JournalEntry = { ...journalEntry, id: Math.random().toString(36).slice(2), at: Date.now() };
+        const journal = [entry, ...stateRef.current.journal].slice(0, 500);
+        setState((current) => ({ ...current, journal }));
+        await setItem(KEYS.journal, journal);
       },
       async deleteJournal(id) {
-        setState((s) => {
-          const journal = s.journal.filter((e) => e.id !== id);
-          setItem(KEYS.journal, journal);
-          return { ...s, journal };
-        });
+        const journal = stateRef.current.journal.filter((entry) => entry.id !== id);
+        setState((current) => ({ ...current, journal }));
+        await setItem(KEYS.journal, journal);
       },
-      async addScreener(r) {
-        setState((s) => {
-          const screeners = [r, ...s.screeners].slice(0, 200);
-          setItem(KEYS.screeners, screeners);
-          return { ...s, screeners };
-        });
+      async addScreener(result) {
+        const screeners = [result, ...stateRef.current.screeners].slice(0, 200);
+        setState((current) => ({ ...current, screeners }));
+        await setItem(KEYS.screeners, screeners);
       },
-      async setResearchConsent(v) {
-        setState((s) => {
-          setItem(KEYS.researchConsent, v);
-          return { ...s, researchConsent: v };
-        });
+      async setResearchConsent(researchConsent) {
+        setState((current) => ({ ...current, researchConsent }));
+        await setItem(KEYS.researchConsent, researchConsent);
       },
       async toggleSaved(id) {
-        setState((s) => {
-          const saved = s.saved.includes(id) ? s.saved.filter((x) => x !== id) : [id, ...s.saved];
-          setItem(KEYS.savedMessages, saved);
-          return { ...s, saved };
-        });
+        const previous = stateRef.current.saved;
+        const saved = previous.includes(id) ? previous.filter((value) => value !== id) : [id, ...previous];
+        setState((current) => ({ ...current, saved }));
+        await setItem(KEYS.savedMessages, saved);
       },
-      async updateNotifPrefs(p) {
-        let nextPrefs!: Prefs;
-        setState((s) => {
-          nextPrefs = { ...s.prefs, notif: { ...s.prefs.notif, ...p } };
-          setItem(KEYS.prefs, nextPrefs);
-          return { ...s, prefs: nextPrefs };
-        });
-        // Reschedule notifications to reflect new prefs.
+      async updateNotifPrefs(partial) {
+        const prefs = withPrefsDefaults({ ...stateRef.current.prefs, notif: { ...stateRef.current.prefs.notif, ...partial } });
+        setState((current) => ({ ...current, prefs }));
+        await setItem(KEYS.prefs, prefs);
         try {
-          await scheduleDailyMessages(nextPrefs.notif);
+          await scheduleDailyMessages(prefs.notif);
         } catch {
           /* permissions / platform issues ignored */
         }
       },
       async setHaptics(on) {
-        setState((s) => {
-          const prefs = { ...s.prefs, hapticsOn: on };
-          setItem(KEYS.prefs, prefs);
-          return { ...s, prefs };
-        });
+        const prefs = withPrefsDefaults({ ...stateRef.current.prefs, hapticsOn: on });
+        setState((current) => ({ ...current, prefs }));
+        await setItem(KEYS.prefs, prefs);
       },
       async signOut() {
-        setState((s) => ({ ...s, user: null }));
+        setState((current) => ({ ...current, user: null }));
         await removeItem(KEYS.user);
-        // Best-effort Firebase sign-out when configured.
         try {
           const fbAuth = getFirebaseAuth();
           const helpers = getAuthHelpers();
@@ -229,19 +218,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       },
       async resetAll() {
         await clearAll();
-        setState({
-          ready: true,
-          user: null,
-          onboarded: false,
-          baseline: null,
-          checkins: [],
-          sessions: [],
-          journal: [],
-          screeners: [],
-          researchConsent: false,
-          saved: [],
-          prefs: DEFAULT_PREFS,
-        });
+        await ensureStorageSchema();
+        setState({ ...EMPTY_STATE, ready: true });
       },
     }),
     []
