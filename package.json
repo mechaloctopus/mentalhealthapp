@@ -9,7 +9,8 @@
     "web": "expo start --web",
     "lint": "tsc --noEmit",
     "check:invariants": "node scripts/check-invariants.mjs",
-    "check": "npm run lint && npm run check:invariants",
+    "test": "tsx --test src/lib/**/*.test.ts",
+    "check": "npm run lint && npm run check:invariants && npm run test",
     "prebuild:android": "npx expo prebuild --platform android --clean --non-interactive",
     "build:android:debug": "npm run prebuild:android && cd android && ./gradlew assembleDebug --no-daemon"
   },
@@ -52,6 +53,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
+    "tsx": "^4.22.4",
     "typescript": "~5.3.3"
   },
   "private": true

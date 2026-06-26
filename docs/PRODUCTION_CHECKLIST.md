@@ -10,7 +10,7 @@ This checklist defines what should be true before MoodSignal is treated as produ
 - [x] Core loop is documented: Signal → Awareness → Wisdom → Practice → Purpose → Growth → Resonance.
 - [x] App has a clear first-session route gate: onboarding → sign-in → baseline → tabs.
 - [x] App has a clear daily-use dashboard.
-- [ ] App has a clear recovery path when users feel distressed.
+- [x] App has a clear recovery path when users feel distressed (`app/crisis.tsx`, reachable from Profile, screener results, and the dashboard's safety surfacing).
 - [ ] App avoids overwhelming users with too many choices.
 
 ---
@@ -21,10 +21,10 @@ This checklist defines what should be true before MoodSignal is treated as produ
 - [x] Voice analysis is described as approximate and reflective in core docs.
 - [x] PHQ-9/GAD-7 are described as self-report screeners, not diagnoses.
 - [x] PHQ-9 item 9 produces centralized care-oriented messaging.
-- [ ] Crisis-resource screen exists.
-- [ ] Emergency copy is direct, accessible, and localized where possible.
+- [x] Crisis-resource screen exists (`app/crisis.tsx`: 988 call/text, Crisis Text Line, 911, findahelpline.com for outside the US).
+- [x] Emergency copy is direct, accessible, and localized where possible (US-specific 988/911; "Outside the US" card links to findahelpline.com).
 - [ ] App Store description does not overclaim clinical benefit.
-- [ ] Disclaimers appear in onboarding, profile/about, and relevant screener flows.
+- [x] Disclaimers appear in onboarding (`app/onboarding.tsx` final slide), profile/about (Privacy policy + Terms links in Profile), and screener flows (`app/research.tsx`).
 
 ---
 
@@ -37,8 +37,8 @@ This checklist defines what should be true before MoodSignal is treated as produ
 - [x] Users can export data through Research & data.
 - [x] Users can reset local app data.
 - [ ] Users can delete account/backend data if backend is enabled.
-- [ ] Privacy policy exists.
-- [ ] Terms of service exists.
+- [x] Privacy policy exists (`docs/PRIVACY_POLICY.md` + in-app `app/privacy-policy.tsx`; still needs a public hosted URL and lawyer review before App Store submission).
+- [x] Terms of service exists (`docs/TERMS_OF_SERVICE.md` + in-app `app/terms.tsx`; same hosting/review caveat).
 - [ ] App Store privacy labels are prepared.
 
 ---
@@ -135,10 +135,10 @@ This checklist defines what should be true before MoodSignal is treated as produ
 
 ## Screeners
 
-- [ ] PHQ-9 scoring verified.
-- [ ] GAD-7 scoring verified.
-- [ ] Severity bands verified.
-- [ ] Sensitive item flagging verified.
+- [x] PHQ-9 scoring verified (`src/lib/screeners.test.ts`).
+- [x] GAD-7 scoring verified (`src/lib/screeners.test.ts`).
+- [x] Severity bands verified (`src/lib/screeners.test.ts`).
+- [x] Sensitive item flagging verified (`src/lib/screeners.test.ts`, `src/lib/safety.test.ts`).
 - [x] Screener history display exists.
 - [x] Screeners are optional.
 - [x] Screeners include reflection/not-diagnosis disclaimers.
@@ -188,22 +188,18 @@ This checklist defines what should be true before MoodSignal is treated as produ
 
 ## Testing
 
-- [ ] TypeScript check passes.
-- [ ] Unit tests added for core pure functions.
+- [x] TypeScript check passes (`npm run lint`, part of `npm run check`).
+- [x] Unit tests added for core pure functions — `src/lib/screeners.ts`, `src/lib/safety.ts`, `src/lib/voice.ts`, `src/lib/recommendationEngine.ts` (27 tests, `npm run test`, run via `node:test` + `tsx`, part of `npm run check`). The targets below not yet covered remain open.
 - [ ] Manual QA checklist completed.
 - [ ] Real-device microphone test completed.
 - [ ] Real-device notification test completed.
 - [ ] Navigation smoke test completed.
 - [ ] Release build smoke test completed.
 
-Recommended test targets:
+Recommended test targets still open:
 
-- `src/lib/voice.ts`
-- `src/lib/screeners.ts`
 - `src/lib/notifications.ts`
-- `src/lib/recommendationEngine.ts`
 - `src/lib/purposeEngine.ts`
-- `src/lib/safety.ts`
 - `src/lib/storage.ts`
 - `src/side/SideContext.tsx`
 - `src/side/content.ts`

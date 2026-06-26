@@ -168,6 +168,9 @@ export default function Profile() {
       <Animated.View entering={FadeInDown.delay(240).duration(500)} style={{ marginTop: spacing.xl, gap: spacing.sm }}>
         <ActionRow icon="clipboard-outline" label="Research & data · screeners, export" color={colors.lavender} onPress={() => { tap(); router.push('/research'); }} />
         <ActionRow icon="refresh-outline" label="Re-take voice baseline" color={colors.teal} onPress={() => { tap(); router.push('/baseline'); }} />
+        <ActionRow icon="heart-outline" label="Crisis support" color={colors.coral} onPress={() => { tap(); router.push('/crisis'); }} />
+        <ActionRow icon="document-text-outline" label="Privacy policy" color={colors.textMuted} onPress={() => { tap(); router.push('/privacy-policy'); }} />
+        <ActionRow icon="document-outline" label="Terms of service" color={colors.textMuted} onPress={() => { tap(); router.push('/terms'); }} />
         <ActionRow icon="log-out-outline" label="Sign out" color={colors.amber} onPress={onSignOut} />
         <ActionRow icon="trash-outline" label="Reset all data" color={colors.coral} onPress={onReset} />
       </Animated.View>

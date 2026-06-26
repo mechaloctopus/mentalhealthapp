@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, Switch, Share, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { AnimatedBackground } from '../src/components/AnimatedBackground';
@@ -15,6 +16,7 @@ import { colors, font, radius, spacing } from '../src/theme/theme';
 import { tap, success, select } from '../src/lib/haptics';
 
 export default function Research() {
+  const router = useRouter();
   const { screeners, researchConsent, setResearchConsent, addScreener } = useApp();
   const [active, setActive] = useState<Screener | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -116,6 +118,9 @@ export default function Research() {
                     <Body color={colors.text} style={{ fontSize: 13, lineHeight: 20 }}>{safety.body}</Body>
                     <Muted>{safety.action}</Muted>
                     <Muted color={colors.coral}>{safety.emergency}</Muted>
+                    <Pressable onPress={() => { tap(); router.push('/crisis'); }} hitSlop={8} style={{ marginTop: 4 }} accessibilityRole="button" accessibilityLabel="Open crisis support resources">
+                      <Body color={colors.coral} style={{ fontFamily: font.sansSemibold, fontSize: 13.5 }}>Open crisis support →</Body>
+                    </Pressable>
                   </View>
                 )}
                 <Muted style={{ fontSize: 12, marginTop: 4 }}>Saved to your private trend below.</Muted>

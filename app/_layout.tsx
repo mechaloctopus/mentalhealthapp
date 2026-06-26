@@ -97,6 +97,9 @@ export default function RootLayout() {
                 <Stack.Screen name="journal-new" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="sleep" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="research" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="crisis" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="privacy-policy" options={{ animation: 'slide_from_bottom' }} />
+                <Stack.Screen name="terms" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="breath" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />

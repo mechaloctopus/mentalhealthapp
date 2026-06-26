@@ -7,10 +7,11 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { AnimatedBackground } from '../src/components/AnimatedBackground';
 import { BrandMark } from '../src/components/BrandMark';
 import { GradientButton } from '../src/components/GradientButton';
-import { Display, Body, Label } from '../src/components/ui';
+import { Display, Body, Label, Muted } from '../src/components/ui';
 import { useApp } from '../src/context/AppContext';
 import { colors, radius, spacing } from '../src/theme/theme';
 import { select } from '../src/lib/haptics';
+import { wellnessDisclaimer } from '../src/lib/safety';
 
 interface Slide {
   kicker: string;
@@ -127,6 +128,7 @@ export default function Onboarding() {
             ))}
           </View>
           <GradientButton label={last ? 'Begin' : 'Continue'} onPress={next} full />
+          {last && <Muted center style={{ fontSize: 11.5, lineHeight: 16 }}>{wellnessDisclaimer()}</Muted>}
         </View>
       </SafeAreaView>
     </View>

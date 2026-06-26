@@ -94,17 +94,27 @@ for birth time) in `docs/COSMIC_RIM.md`.
 - `docs/COSMIC_RIM.md` — the planetary energy/position module: scope, sources, limitations.
 - `docs/AFFILIATE_MARKETING.md` — Amazon Associates feasibility & implementation plan.
 - `docs/ULTRA_PREMIUM_CHECKLIST.md` — cross-referenced launch checklist + honest quality assessment.
+- `docs/PRIVACY_POLICY.md` · `docs/TERMS_OF_SERVICE.md` — draft legal docs (not legal advice; need
+  lawyer review + a public hosted URL before App Store submission), mirrored in-app at
+  `app/privacy-policy.tsx` / `app/terms.tsx`.
 - `docs/BRANDING.md` — Mended Light brand application.
 - `docs/COHERENCE_AUDIT.md` — product-coherence audit & ordering.
 - `docs/PRIVACY_ARCHITECTURE.md` · `docs/MANUAL_QA.md` · `docs/APK_BUILD.md` — privacy, QA, build.
 - `docs/AUDIT.md` · `docs/UPGRADE_PLAN.md` — earlier production audit & roadmap.
 
 ## 9. Open work (prioritized)
-1. Real logo art into icon/splash + wordmark.
-2. Deepen the remaining paths (Habits, Purpose, Flow, Coherence, Wisdom Library) to the
+1. Host the privacy policy + terms at a public URL and get a lawyer's review pass (the docs and
+   in-app screens exist now — see §11 — but App Store submission needs a live URL, not just an
+   in-repo/in-app copy).
+2. Real logo art into icon/splash + wordmark.
+3. Deepen the remaining paths (Habits, Purpose, Flow, Coherence, Wisdom Library) to the
    multi-stage, per-stage-teaching depth now shared by Five Temples, Stoic, and Bodhisattva.
-3. Backend (Supabase): accounts, encrypted sync, live community, Claude-powered mentor.
-4. Unit tests for pure logic (emotions, insights, screeners) + expand CI.
+4. Backend (Supabase): accounts, encrypted sync, live community, Claude-powered mentor.
+5. Expand unit test coverage to `purposeEngine.ts`, `notifications.ts`, `storage.ts`, the
+   side-module state machine, and `astronomy.ts` (the four highest-risk pure-logic modules —
+   screeners, safety, voice, recommendationEngine — are now covered, see §11).
+6. Real-device QA: microphone, notifications, navigation, and release-build smoke tests
+   (`docs/PRODUCTION_CHECKLIST.md` → Testing) — none of this has run on a physical device yet.
 
 ## 10. Onboarding & polish — status: ✅ new this pass
 - **Goal personalization:** a new `app/goals.tsx` step after the onboarding carousel lets users
@@ -118,3 +128,22 @@ for birth time) in `docs/COSMIC_RIM.md`.
   `InfoButton` (an "i" affordance opening a bottom-sheet explanation — used on the Inner Path's
   Resonance meter to explain mission stages and the forcefield) replace one-off inline copy.
 - `src/components/PressableCard.tsx` standardizes tap feedback (scale + haptic) for future use.
+
+## 11. Legal, crisis safety, and test coverage — status: ✅ new this pass
+- **Crisis support screen** (`app/crisis.tsx`): always reachable from Profile, from screener
+  results when the PHQ-9 self-harm item is endorsed, and registered as its own route. Tappable
+  988 call/text, Crisis Text Line (`sms:741741`), 911, and a findahelpline.com link for outside
+  the US.
+- **Privacy policy & terms of service**: `docs/PRIVACY_POLICY.md` and `docs/TERMS_OF_SERVICE.md`
+  (both explicitly marked draft / not legal advice), each mirrored as an in-app screen
+  (`app/privacy-policy.tsx`, `app/terms.tsx`) linked from Profile. Still blocked on a public
+  hosted URL and an actual lawyer review before App Store/Play submission — that's tracked as
+  open work in §9, not done.
+- **Onboarding disclaimer**: the final onboarding slide (`app/onboarding.tsx`) now shows
+  `wellnessDisclaimer()` so the "not a diagnosis" framing appears before a user ever reaches the
+  dashboard, not just inside screener flows.
+- **Unit tests**: `npm run test` (`tsx --test`, Node's built-in `node:test`, no new test
+  framework dependency beyond `tsx`) — 27 passing tests across `src/lib/screeners.test.ts`,
+  `src/lib/safety.test.ts`, `src/lib/voice.test.ts`, `src/lib/recommendationEngine.test.ts`.
+  Wired into `npm run check` alongside `tsc --noEmit` and the invariants script, and runs in CI
+  on Node 20 (the workflow's pinned version) since `tsx` doesn't require a newer runtime.

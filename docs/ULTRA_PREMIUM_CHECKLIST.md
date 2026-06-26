@@ -20,12 +20,12 @@ neither exists yet and it should be created at the path noted.
 
 | Thing | Where | Status |
 |---|---|---|
-| Privacy policy | Tracked: `docs/PRODUCTION_CHECKLIST.md` → Privacy and Data Handling, `docs/ROADMAP.md` Phase 1 → Storage and Privacy. Lives: **nowhere yet.** | **Missing.** Needs an actual `PRIVACY_POLICY.md` (or hosted page, since app stores require a public URL, not just an in-repo doc) once the data model in `docs/PRIVACY_ARCHITECTURE.md` is finalized. This is the single highest-leverage missing legal artifact — App Store/Play submission is blocked without a live URL. |
-| Terms of service | Tracked: same two docs as above. Lives: nowhere yet. | **Missing**, same blocker as privacy policy. |
+| Privacy policy | Tracked: `docs/PRODUCTION_CHECKLIST.md` → Privacy and Data Handling, `docs/ROADMAP.md` Phase 1 → Storage and Privacy. Lives: `docs/PRIVACY_POLICY.md` + in-app `app/privacy-policy.tsx` (Profile → Privacy policy). | **Built.** Still needs a public hosted URL and a lawyer's review before App Store/Play submission — the in-repo doc and in-app screen are not a substitute for a live URL. |
+| Terms of service | Tracked: same two docs as above. Lives: `docs/TERMS_OF_SERVICE.md` + in-app `app/terms.tsx` (Profile → Terms of service). | **Built**, same hosting/legal-review caveat as privacy policy. |
 | App Store privacy "nutrition" labels | Tracked: `docs/ROADMAP.md` Phase 7. | **Missing** — depends on the data inventory in `src/lib/dataInventory.ts` being accurate, which it currently is for what's implemented. |
 | Works cited / content sourcing | Lives: `docs/CONTENT_SOURCES.md` (Inner Path curriculum), `docs/COSMIC_RIM.md` → Sources section, `src/data/cosmicRim.ts` (`source` field per planet). | **Present and current** for everything actually shipped. Extend both as new content (Sumerian constellation lore, affiliate book links) is added — don't start a third citation file. |
 | Affiliate disclosure (FTC) | Lives: plan in `docs/AFFILIATE_MARKETING.md`. | **Planned, not built** — no affiliate links exist yet, so no disclosure is owed yet; the plan requires disclosure be inline wherever a link eventually ships. |
-| Crisis/safety disclaimers | Tracked: `docs/PRODUCTION_CHECKLIST.md` → Safety and Mental Health Language. Lives: partial, in screener flows (PHQ-9 item 9 messaging). | **Partial** — no dedicated crisis-resource screen yet; this is the most safety-relevant open item in the whole checklist family, ahead of anything cosmetic. |
+| Crisis/safety disclaimers | Tracked: `docs/PRODUCTION_CHECKLIST.md` → Safety and Mental Health Language. Lives: dedicated `app/crisis.tsx` (988 call/text, Crisis Text Line, 911, findahelpline.com), reachable from Profile, screener results, and PHQ-9 item 9 messaging. | **Built.** This was the most safety-relevant open item in the whole checklist family; it's now closed at the code level — a human review of the exact copy before public launch is still worthwhile but no longer blocking. |
 
 ### Privacy & data architecture
 
@@ -53,18 +53,21 @@ neither exists yet and it should be created at the path noted.
 | Accessibility | Tracked: `docs/PRODUCTION_CHECKLIST.md` → Accessibility. Lives: partial (haptic preference, some `accessibilityRole`/`accessibilityLabel` use, e.g. throughout the new Cosmic Rim screens). | **Partial** — no VoiceOver/TalkBack pass, contrast check, or dynamic-type test has actually been run on-device yet; this is real, not paperwork, and is the most likely place a reviewer or a real user would find the app's premium-feeling claims thin. |
 | Empty/loading/error states | Tracked: `docs/PRODUCTION_CHECKLIST.md` → Core App Reliability. Lives: `src/components/EmptyState.tsx`, used in Journal; not yet everywhere. | **Partial.** |
 | Onboarding clarity | Lives: `app/goals.tsx`, `focusLine()` personalization (`docs/STATE.md` §10). | **Present** for the core loop; Cosmic Rim has no onboarding/explainer beyond its own `InfoButton` — acceptable for a secondary module, worth a one-line addition later. |
-| Testing | Tracked: `docs/PRODUCTION_CHECKLIST.md` → Testing, with recommended test targets listed. Lives: `npm run check` (tsc + invariants) only — **no unit tests exist yet** for any listed target. | **Weakest structural gap.** Type-checking and an invariant linter are not the same as tests of actual behavior (emotion scoring, screener bands, recommendation selection, astronomy math). |
+| Testing | Tracked: `docs/PRODUCTION_CHECKLIST.md` → Testing. Lives: `npm run check` (tsc + invariants + `npm run test`, 27 `node:test` cases via `tsx` covering `src/lib/screeners.ts`, `src/lib/safety.ts`, `src/lib/voice.ts`, `src/lib/recommendationEngine.ts`). | **Started, not complete.** The highest-risk pure logic (screener scoring/severity bands, crisis flagging, voice-sample quality gating, recommendation routing) now has real behavioral tests, not just type-checking. Still untested: `purposeEngine.ts`, `notifications.ts`, `storage.ts`, the side-module state machine, and the astronomy math in `src/lib/astronomy.ts`. |
 
 ### Where this leaves the roadmap
 
 Nothing above requires a new roadmap — `docs/ROADMAP.md` already sequences
 Phase 1 (legal/safety/reliability) ahead of Phase 4-7 (polish, content
-expansion, launch). The honest summary is: **the legal and safety gaps in
-Phase 1 are the actual blockers**, not feature count. Cosmic Rim, the moon
-widget, and affiliate planning (this session's work) are Phase 3b/5-adjacent —
-real, but not on the critical path to "launchable." If priority ordering
-matters, Phase 1's privacy policy + terms + crisis screen should come before
-any further content modules.
+expansion, launch). The privacy policy, terms of service, and dedicated crisis
+screen — the three biggest Phase 1 legal/safety blockers — are now built at
+the code level. What remains in Phase 1 is no longer "does the artifact
+exist" but operational: hosting the privacy policy and terms at a public URL,
+getting a lawyer's review pass, and a human copy review of the crisis/safety
+language before public launch. Cosmic Rim, the moon widget, and affiliate
+planning are Phase 3b/5-adjacent — real, but not on the critical path to
+"launchable." The remaining critical-path items are now legal/operational
+(hosting, lawyer review) and testing/device validation, not missing features.
 
 ---
 
@@ -73,13 +76,18 @@ any further content modules.
 
 Answering each part directly, not diplomatically:
 
-**Clean.** The codebase itself is clean — typed, invariant-checked, a real
-design system, no dead/duplicate state (the `src/side/content.ts`
+**Clean.** The codebase itself is clean — typed, invariant-checked, now with
+27 real behavioral unit tests on the highest-risk pure logic, a real design
+system, no dead/duplicate state (the `src/side/content.ts`
 single-source-of-truth pattern is genuinely enforced, not just claimed). The
-*product surface* is not yet clean in the App-Store sense: no privacy policy or
-terms exist, so it cannot legally launch today regardless of feature quality.
-"Clean" code and "clean" (compliant, shippable) product are two different
-bars, and only the first is met.
+*product surface* is closer to clean in the App-Store sense than before — a
+privacy policy, terms of service, and crisis-resource screen now exist in
+both doc and in-app form — but it still cannot legally launch today: those
+documents need a public hosted URL and an actual lawyer's review before
+they're submission-ready, and several App Store Launch checklist items
+(screenshots, support URL, release build testing) remain untouched. "Clean"
+code and "clean" (compliant, shippable) product are still two different
+bars; the gap between them has narrowed but not closed.
 
 **Entertaining.** Partially, and unevenly. The Inner Path (resonance, skill
 trees, mission stages) and now Cosmic Rim (a real, accurate planetary wheel
