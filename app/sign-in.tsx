@@ -64,7 +64,7 @@ export default function SignIn() {
 
       <Animated.View entering={FadeInDown.delay(150).duration(600)} style={styles.actions}>
         {isGoogleConfigured ? <RealGoogleButton busy={busy === 'google'} setBusy={setBusy} onUser={onGoogleUser} /> : null}
-        <GradientButton label={busy === 'anon' ? 'Starting…' : 'Continue with a local profile'} variant={isGoogleConfigured ? 'ghost' : 'primary'} onPress={onLocal} loading={busy === 'anon'} full />
+        <GradientButton label={busy === 'anon' ? 'Starting…' : 'Continue with a local profile'} variant={isGoogleConfigured ? 'ghost' : 'brand'} onPress={onLocal} loading={busy === 'anon'} full />
       </Animated.View>
 
       <Muted center style={styles.legal}>
