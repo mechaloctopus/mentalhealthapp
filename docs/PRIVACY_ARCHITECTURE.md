@@ -8,6 +8,8 @@ MoodSignal is currently local-first.
 
 Data is stored on the device using the app storage adapter in `src/lib/storage.ts`, backed by AsyncStorage. The app now also initializes a storage schema marker through `src/lib/storageVersion.ts`.
 
+The code-level inventory lives in `src/lib/dataInventory.ts`. That file should be treated as the source of truth for data categories, sensitivity, current storage, production target storage, export behavior, and reset behavior.
+
 Current local data categories include:
 
 - local profile
@@ -93,23 +95,29 @@ Rationale:
 - better fit for private journals and emotional check-ins
 - easier App Store review narrative
 
+## Data classification
+
+The typed data inventory is now implemented in `src/lib/dataInventory.ts`.
+
+Current classifications:
+
+| Category | Current key | Sensitivity | Current storage | Production target |
+|---|---|---:|---|---|
+| Preferences | `prefs` | low | plain local | plain local |
+| Saved messages | `savedMessages` | low | plain local | plain local |
+| Local profile | `user` | medium | plain local | private local |
+| Baseline metrics | `baseline` | medium | plain local | private local |
+| Check-ins | `checkins` | high | plain local | private local |
+| Practice sessions | `sessions` | medium | plain local | private local |
+| Journal | `journal` | high | plain local | private local |
+| Screeners | `screeners` | high | plain local | private local |
+| Inner Path state | `sideState` | high | plain local | private local |
+
 ## Implementation milestones
 
 ### Milestone 1 — Data classification
 
-Create a typed data inventory:
-
-| Category | Current key | Sensitivity | Production storage |
-|---|---|---:|---|
-| Preferences | `prefs` | low | AsyncStorage or encrypted store |
-| Saved messages | `savedMessages` | low | AsyncStorage |
-| User profile | `user` | medium | encrypted store |
-| Baseline metrics | `baseline` | medium | encrypted store/database |
-| Check-ins | `checkins` | high | encrypted store/database |
-| Journal | `journal` | high | encrypted store/database |
-| Screeners | `screeners` | high | encrypted store/database |
-| Inner Path reflections | `sideState.reflections` | high | encrypted store/database |
-| Inner Path progress | `sideState` | medium | encrypted store/database |
+Completed as `src/lib/dataInventory.ts`. Future privacy UI, export labeling, and storage migration logic should read from that inventory rather than duplicate category lists by hand.
 
 ### Milestone 2 — Storage adapter split
 
@@ -120,6 +128,7 @@ src/lib/storage.ts           generic adapter interface
 src/lib/plainStorage.ts      non-sensitive AsyncStorage implementation
 src/lib/privateStorage.ts    encrypted/private implementation
 src/lib/storageVersion.ts    schema version + migrations
+src/lib/dataInventory.ts     data sensitivity and storage targets
 ```
 
 Screens and contexts should not import AsyncStorage directly.
@@ -180,6 +189,7 @@ Completed:
 - local-first sign-in copy
 - simulated Google identity removed
 - storage schema marker added
+- typed data inventory added
 - reset cancels daily notifications
 - side state included in export/reset
 - obsolete Lumen progression removed
