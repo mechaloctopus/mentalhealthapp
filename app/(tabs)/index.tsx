@@ -119,7 +119,7 @@ export default function Today() {
           {QUICK.map((q) => (
             <Pressable key={q.label} style={{ width: '48%' }} onPress={() => { tap(); router.push(q.route as any); }}>
               <GlassCard style={styles.quickTile} accent={q.color}>
-                <View style={[styles.quickIcon, { backgroundColor: q.color + '22' }]}>
+                <View style={[styles.quickIcon, { backgroundColor: q.color + '22' }]}> 
                   <Ionicons name={q.icon} size={20} color={q.color} />
                 </View>
                 <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 14.5 }}>{q.label}</Body>
@@ -157,7 +157,7 @@ export default function Today() {
       <Animated.View entering={FadeInDown.delay(280).duration(500)} style={{ marginTop: spacing.xl }}>
         <GlassCard style={{ gap: spacing.md }}>
           <Label>THE DAILY FLOW</Label>
-          {['Notification prompt', 'Voice check-in', 'Mood profile', 'Matched practice', 'Trend archive'].map((s, i, arr) => (
+          {['Daily word', 'Check in', 'Wise next step', 'Practice or quest', 'Insight + resonance'].map((s, i, arr) => (
             <View key={s}>
               <Row gap={12}>
                 <View style={styles.flowNum}><Body color={colors.teal} style={{ fontFamily: font.sansBold, fontSize: 12 }}>{i + 1}</Body></View>
@@ -191,7 +191,7 @@ function ToolRow({ icon, color, title, sub, onPress }: { icon: keyof typeof Ioni
   return (
     <Pressable onPress={onPress}>
       <GlassCard style={styles.toolRow}>
-        <View style={[styles.toolIcon, { backgroundColor: color + '1a' }]}>
+        <View style={[styles.toolIcon, { backgroundColor: color + '1a' }]}> 
           <Ionicons name={icon} size={19} color={color} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
