@@ -26,7 +26,7 @@ MoodSignal is a wellness and self-reflection companion. It is not a medical devi
 - **Journal and guided reflection** — private writing and structured thought-reframing surfaces.
 - **PHQ-9 and GAD-7** — optional self-report screeners for reflection and trend history, with sensitive-item safety copy.
 - **Private compassion wall** — an explicitly local reflection surface; no simulated users, posts, engagement, or collective totals.
-- **Local data export and reset** — user data can be exported as JSON and cleared from the device.
+- **Local data export and reset** — user data can be exported as JSON and cleared from the device; reset also cancels scheduled daily messages.
 
 ---
 
@@ -41,7 +41,7 @@ MoodSignal uses a single canonical growth model:
 - **Wisdom paths** provide optional structured journeys.
 - **Activity rhythm** describes consistency but is not a currency.
 
-Lumen may remain as visual language, but it must not create a separate points, levels, or badges economy.
+The previous Lumen companion/points/badges economy has been removed so the product has one progression language.
 
 ### Mission stages
 
@@ -98,7 +98,7 @@ app/
   _layout.tsx              Root providers, including AppProvider and SideProvider
   index.tsx                Boot gate
   onboarding.tsx           First-run introduction
-  sign-in.tsx              Local-first identity; production auth remains optional/future
+  sign-in.tsx              Local-first identity; production auth requires Google + Firebase config
   baseline.tsx             Quality-checked voice baseline
   checkin.tsx              Voice check-in and unified recommendation result
   feel.tsx                 Manual check-in and unified recommendation result
@@ -159,6 +159,7 @@ MoodSignal is a substantial prototype moving toward external-beta readiness.
 
 - One app-wide Inner Path state
 - One canonical resonance/skill-tree growth model
+- Removed obsolete Lumen companion/progress code
 - Simplified Today dashboard
 - Resonance and skill-tree Insights dashboard
 - Manual and voice recommendation parity
@@ -166,9 +167,13 @@ MoodSignal is a substantial prototype moving toward external-beta readiness.
 - Voice sample-quality rejection instead of fabricated fallback data
 - Core practice-to-resonance rewards with duplicate protection
 - Honest local-first sign-in copy
+- Google account sign-in gated behind real Firebase configuration
 - Explicit notification opt-in
+- Notification reset/cancel behavior scoped to daily messages
+- Full reset cancels scheduled daily messages
 - Honest private compassion surface
 - Core emotion/factor/practice accessibility improvements
+- Storage schema-version scaffold
 - CI TypeScript workflow
 
 ### Release blockers
