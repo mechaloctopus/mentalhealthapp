@@ -2,7 +2,7 @@
 
 MoodSignal is a personal emotional calibration and growth companion.
 
-It should help users notice their state, understand their patterns, choose one wise next action, and build a life of steadier presence, purpose, and resilience.
+It should help users notice their state, understand their patterns, choose one wise next action, and build a life of steadier presence, purpose, resilience, and resonance.
 
 The product is not trying to become a clinical diagnostic tool. It is a wellness, reflection, and practice system that can support users before, between, or alongside professional care.
 
@@ -11,7 +11,7 @@ The product is not trying to become a clinical diagnostic tool. It is a wellness
 ## Core Loop
 
 ```text
-Signal → Awareness → Wisdom → Practice → Purpose → Growth
+Signal → Awareness → Wisdom → Practice → Purpose → Growth → Resonance
 ```
 
 ### Signal
@@ -24,6 +24,7 @@ The app receives signals from:
 - Practice history
 - Screeners
 - Sleep and energy inputs
+- Side-module quest completions
 - Future wearable signals such as HRV, resting heart rate, sleep, movement, and breath rate
 
 ### Awareness
@@ -94,18 +95,34 @@ Then it suggests a simple action:
 
 MoodSignal should avoid shallow points-only gamification. Progress should represent identity, virtues, and consistency.
 
-Possible growth dimensions:
+The existing Side Module already turns small actions into growth dimensions through skill trees:
 
-- Presence
-- Courage
+- Mindfulness
 - Compassion
-- Discipline
+- Purpose
 - Wisdom
-- Patience
-- Gratitude
-- Resilience
-- Stewardship
+- Fitness
+- Nutrition
+- Relationships
+- Leadership
 - Service
+- Creativity
+- Flow
+
+### Resonance
+
+Resonance is the already-built growth currency inside the Side Module / Inner Path.
+
+It should represent meaningful practice, integration, and alignment — not user worth, social status, or compulsive grinding.
+
+The existing mission arc is:
+
+1. Stabilize the mind
+2. Heal emotional suffering
+3. Build positive habits
+4. Discover purpose
+5. Develop wisdom
+6. Live in service
 
 ---
 
@@ -118,6 +135,7 @@ MoodSignal should help answer:
 3. What is the wisest next action?
 4. What pattern am I building over time?
 5. Who am I becoming?
+6. What path am I walking through repeated practice?
 
 ---
 
@@ -131,6 +149,7 @@ MoodSignal should not:
 - Push religious material as mandatory
 - Overwhelm users with complex dashboards when they are distressed
 - Reward compulsive app use
+- Make resonance feel like social rank, moral superiority, or spiritual achievement
 
 MoodSignal should:
 
@@ -140,6 +159,7 @@ MoodSignal should:
 - Make spiritual/wisdom layers configurable
 - Keep sensitive data private by default
 - Recommend small actions users can actually do
+- Treat resonance as feedback for practice, not identity or worth
 
 ---
 
@@ -156,6 +176,10 @@ Purpose is not framed as something abstract to discover someday. It is practiced
 ### Wisdom-to-Action Translation
 
 The app should take deep material and compress it into practical guidance.
+
+### Inner Path / Resonance
+
+The app already includes a side-module growth system with quests, wisdom paths, resonance, mentor nudges, mission stages, and skill trees. Production work should make this feel integrated with the main dashboard and check-in recommendations.
 
 ### Baseline-Based Reflection
 
