@@ -8,7 +8,11 @@ import { ModalHeader } from '../../src/components/ModalHeader';
 import { Display, Body, Muted, GlassCard, Row } from '../../src/components/ui';
 import { useSide } from '../../src/side/SideContext';
 import { TREES, treeLevel } from '../../src/side/trees';
+import { EtherealBar, type BarStyle } from '../../src/components/effects/EtherealBar';
 import { colors, font, spacing } from '../../src/theme/theme';
+
+// Each tree's meter renders in a different special-effect style.
+const BAR_STYLES: BarStyle[] = ['plasma', 'crystalline', 'pulse', 'aurora'];
 
 export default function Trees() {
   const side = useSide();
@@ -47,9 +51,13 @@ export default function Trees() {
                         <Muted style={{ fontSize: 10 }}>LEVEL</Muted>
                       </View>
                     </Row>
-                    <View style={styles.track}>
-                      <View style={[styles.fill, { width: `${Math.round((lv.into / lv.span) * 100)}%`, backgroundColor: t.color }]} />
-                    </View>
+                    <EtherealBar
+                      value={lv.into / lv.span}
+                      color={t.color}
+                      variant={BAR_STYLES[i % BAR_STYLES.length]}
+                      height={10}
+                      delay={Math.min(i, 8) * 50}
+                    />
                   </GlassCard>
                 </Animated.View>
               );

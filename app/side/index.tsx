@@ -9,6 +9,8 @@ import { useSide } from '../../src/side/SideContext';
 import { PATHS, getQuest, missionStageFor, MISSION } from '../../src/side/content';
 import { TREES, treeLevel } from '../../src/side/trees';
 import { mentorNudge } from '../../src/side/mentor';
+import { ResonanceMeter } from '../../src/components/effects/ResonanceMeter';
+import { EtherealBar } from '../../src/components/effects/EtherealBar';
 import { computeStreak } from '../../src/lib/insights';
 import { getEmotion } from '../../src/lib/emotions';
 import { colors, font, radius, spacing } from '../../src/theme/theme';
@@ -23,6 +25,9 @@ export default function SideHome() {
   const stageIdx = MISSION.findIndex((m) => m.id === stage.id);
   const toNext = next ? next.threshold - stage.threshold : 1;
   const intoStage = side.resonance - stage.threshold;
+  // Field intensity grows across the whole journey (0..1) — the forcefield glows
+  // and crackles more as the seeker ascends the six stages.
+  const fieldIntensity = Math.min(1, (stageIdx + (toNext ? intoStage / toNext : 1)) / MISSION.length);
 
   const coreStreak = computeStreak([
     ...core.checkins.map((c) => c.at),
@@ -59,26 +64,25 @@ export default function SideHome() {
         An operating system for wisdom & flourishing. Every tradition, turned into small daily practice.
       </Muted>
 
-      {/* Resonance + mission stage */}
+      {/* Resonance forcefield + mission stage */}
       <Animated.View entering={FadeInDown.duration(500)}>
-        <GlassCard accent={stage.color} style={{ gap: spacing.md }}>
-          <Row style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <View>
-              <Label color={stage.color}>RESONANCE</Label>
-              <Display style={{ fontSize: 40, marginTop: 2 }}>{side.resonance}</Display>
-            </View>
-            <View style={[styles.stageBadge, { borderColor: stage.color + '55', backgroundColor: stage.color + '14' }]}>
-              <Ionicons name={stage.icon} size={22} color={stage.color} />
-            </View>
-          </Row>
-          <View>
+        <GlassCard accent={stage.color} style={{ gap: spacing.md, alignItems: 'center' }}>
+          <Label color={stage.color}>RESONANCE · SIGNAL STRENGTH</Label>
+          <ResonanceMeter
+            value={side.resonance}
+            caption={stage.title.split(' ')[0].toUpperCase()}
+            color={stage.color}
+            intensity={fieldIntensity}
+            size={210}
+          />
+          <View style={{ width: '100%' }}>
             <Row style={{ justifyContent: 'space-between' }}>
               <Body color={colors.text} style={{ fontFamily: font.sansSemibold }}>Stage {stageIdx + 1} · {stage.title}</Body>
               {next ? <Muted style={{ fontSize: 12 }}>{next.threshold - side.resonance} to next</Muted> : <Muted style={{ fontSize: 12 }}>Highest stage</Muted>}
             </Row>
             <Muted style={{ fontSize: 12.5, marginTop: 2 }}>{stage.caption}</Muted>
-            <View style={styles.track}>
-              <View style={[styles.fill, { width: `${Math.min(100, Math.round((intoStage / toNext) * 100))}%`, backgroundColor: stage.color }]} />
+            <View style={{ marginTop: 10 }}>
+              <EtherealBar value={toNext ? intoStage / toNext : 1} color={stage.color} variant="plasma" height={10} />
             </View>
           </View>
           <Row gap={spacing.lg}>
