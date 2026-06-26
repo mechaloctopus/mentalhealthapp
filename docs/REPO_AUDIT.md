@@ -52,6 +52,7 @@ This document tracks documentation accuracy, cleanup findings, and production-re
 - `src/lib/screeners.ts`
 - `src/lib/notifications.ts`
 - `src/lib/recommendationEngine.ts`
+- `src/lib/sideQuestMatcher.ts`
 - `src/lib/purposeEngine.ts`
 - `src/lib/safety.ts`
 - `src/data/messages.ts`
@@ -73,7 +74,10 @@ This document tracks documentation accuracy, cleanup findings, and production-re
 - [x] Architecture doc updated to include side-module architecture.
 - [x] Content system doc updated to treat `src/side/content.ts` as the side quest/path source of truth.
 - [x] Production checklist updated with real current progress.
+- [x] Product vision updated to include Resonance / Inner Path.
 - [x] Side module doc added.
+- [x] Onboarding copy updated to mention Inner Path and resonance.
+- [x] Today daily-flow copy updated to mention wisdom, quests, and resonance.
 
 ---
 
@@ -90,6 +94,32 @@ Reason: current notification scheduling uses `expo-notifications` directly and n
 Removed unused `BrandMark` and `Divider` imports from `app/(tabs)/index.tsx`.
 
 Reason: the file did not render either symbol.
+
+### Removed stale Today copy
+
+Updated the Today daily-flow list from:
+
+```text
+Notification prompt → Voice check-in → Mood profile → Matched practice → Trend archive
+```
+
+to:
+
+```text
+Daily word → Check in → Wise next step → Practice or quest → Insight + resonance
+```
+
+Reason: the old copy did not reflect wisdom cards, purpose prompts, or the Side Module.
+
+### Updated onboarding copy
+
+Updated onboarding from “Four gentle pillars” to a clearer five-slide onboarding sequence covering:
+
+- voice signal
+- one wise next step
+- wisdom/purpose/practices
+- Inner Path resonance
+- 365 daily messages
 
 ---
 
@@ -108,7 +138,7 @@ And one richer side content source:
 
 This is acceptable as a transitional architecture, but production should avoid divergence.
 
-Recommended next step: create `src/lib/sideQuestMatcher.ts` so recommendations can point to existing side quests instead of growing a parallel quest/purpose system.
+Mitigation added: `src/lib/sideQuestMatcher.ts` now bridges recommendations to existing side quests instead of growing a parallel quest/purpose system.
 
 ### Stored check-in recommendation vs new recommendation engine
 
@@ -140,16 +170,21 @@ Core state and side state persist locally through AsyncStorage. This is good for
 
 The current Today dashboard uses option 3.
 
+### Dependency audit needed locally
+
+`package.json` includes several font packages. The current root layout imports Alegreya, Alegreya SC, and Open Sans. A local dependency audit should confirm whether the Cinzel, Inter, and Newsreader font packages are still needed before removing them from `package.json` and lockfiles.
+
 ---
 
 ## Recommended Next Cleanup / Refactor Pass
 
-1. Add `src/lib/sideQuestMatcher.ts` to bridge recommendations to existing side quests.
+1. Wire `src/lib/sideQuestMatcher.ts` into `src/lib/recommendationEngine.ts` once side state is readable where recommendations are produced.
 2. Add tests for pure functions before larger refactors.
 3. Decide whether `CheckIn.recommendation` should remain stored.
 4. Add a root-accessible side progress summary if the Today dashboard should show live resonance.
 5. Add CI for `npm run lint` / `tsc --noEmit`.
 6. Run a local TypeScript check and fix any unused imports the compiler reports.
+7. Run a local dependency audit before removing package dependencies.
 
 ---
 
