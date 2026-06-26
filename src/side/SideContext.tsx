@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { getItem, setItem } from '../lib/storage';
 import { dayKey } from '../lib/insights';
-import { DAILY_POOL, PATHS, getQuest, getPath, type Quest } from './content';
+import { DAILY_POOL, getQuest, getPath, type Quest } from './content';
 import type { TreeId } from './trees';
 
 const KEY = 'sideState';
@@ -14,7 +14,7 @@ interface SideData {
   karma: number;
   stewardship: number;
   flow: number;
-  completions: Record<string, number[]>; // questId -> completion timestamps
+  completions: Record<string, number[]>;
   activePaths: string[];
   daily: { date: string; questIds: string[]; done: string[] };
   reflections: Reflection[];
@@ -39,18 +39,46 @@ interface SideCtx extends SideData {
   canComplete: (id: string) => boolean;
   completeQuest: (id: string, reflection?: string) => void;
   startPath: (id: string) => void;
+  resetSide: () => Promise<void>;
   pathProgress: (id: string) => { done: number; total: number };
   nextQuestsForPath: (id: string) => Quest[];
 }
 
 const Ctx = createContext<SideCtx | null>(null);
 
-// Deterministic pick of N daily-pool quests for a given date.
 function dailyPoolFor(date: Date, n: number): string[] {
   const doy = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
   const ids: string[] = [];
   for (let i = 0; i < n; i++) ids.push(DAILY_POOL[(doy + i * 3) % DAILY_POOL.length].id);
   return Array.from(new Set(ids));
+}
+
+function rollDaily(d: SideData): SideData {
+  const today = dayKey(Date.now());
+  if (d.daily.date === today && d.daily.questIds.length) return d;
+
+  const pool = dailyPoolFor(new Date(), 3);
+  const extra: string[] = [];
+  for (const pid of d.activePaths) {
+    const path = getPath(pid);
+    if (!path) continue;
+    for (const stage of path.stages) {
+      for (const quest of stage.quests) {
+        const timestamps = d.completions[quest.id];
+        if (!timestamps || timestamps.length === 0) {
+          extra.push(quest.id);
+          break;
+        }
+      }
+      if (extra.length >= 2) break;
+    }
+    if (extra.length >= 2) break;
+  }
+
+  return {
+    ...d,
+    daily: { date: today, questIds: Array.from(new Set([...pool, ...extra.slice(0, 2)])), done: [] },
+  };
 }
 
 export function SideProvider({ children }: { children: React.ReactNode }) {
@@ -64,76 +92,52 @@ export function SideProvider({ children }: { children: React.ReactNode }) {
       setData(rollDaily(merged));
       setReady(true);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const persist = (next: SideData) => {
-    setData(next);
-    setItem(KEY, next);
-  };
-
-  // Rebuild today's quest set if the day changed.
-  function rollDaily(d: SideData): SideData {
-    const today = dayKey(Date.now());
-    if (d.daily.date === today && d.daily.questIds.length) return d;
-    const pool = dailyPoolFor(new Date(), 3);
-    // add up to 2 next quests from active paths
-    const extra: string[] = [];
-    for (const pid of d.activePaths) {
-      const path = getPath(pid);
-      if (!path) continue;
-      for (const s of path.stages) {
-        for (const q of s.quests) {
-          const ts = d.completions[q.id];
-          if (!ts || ts.length === 0) { extra.push(q.id); break; }
-        }
-        if (extra.length >= 2) break;
-      }
-      if (extra.length >= 2) break;
-    }
-    const questIds = Array.from(new Set([...pool, ...extra.slice(0, 2)]));
-    return { ...d, daily: { date: today, questIds, done: [] } };
-  }
-
   const isDoneToday = (id: string) => {
-    const ts = data.completions[id] ?? [];
-    return ts.some((t) => dayKey(t) === dayKey(Date.now()));
+    const timestamps = data.completions[id] ?? [];
+    return timestamps.some((t) => dayKey(t) === dayKey(Date.now()));
   };
+
   const isCompleted = (id: string) => (data.completions[id]?.length ?? 0) > 0;
 
   const canComplete = (id: string) => {
-    const q = getQuest(id);
-    if (!q) return false;
-    return q.repeatable ? !isDoneToday(id) : !isCompleted(id);
+    const quest = getQuest(id);
+    if (!quest) return false;
+    return quest.repeatable ? !isDoneToday(id) : !isCompleted(id);
   };
 
   const actions = useMemo(
     () => ({
       completeQuest(id: string, reflection?: string) {
-        const q = getQuest(id);
-        if (!q) return;
-        setData((d) => {
-          const repeatable = !!q.repeatable;
-          const alreadyToday = (d.completions[id] ?? []).some((t) => dayKey(t) === dayKey(Date.now()));
-          const everDone = (d.completions[id]?.length ?? 0) > 0;
-          if (repeatable ? alreadyToday : everDone) return d; // no double-claim
+        const quest = getQuest(id);
+        if (!quest) return;
 
-          const treeXp = { ...d.treeXp };
-          for (const t of q.trees) treeXp[t] = (treeXp[t] ?? 0) + q.resonance;
-          const completions = { ...d.completions, [id]: [...(d.completions[id] ?? []), Date.now()] };
-          const daily = d.daily.questIds.includes(id) && !d.daily.done.includes(id)
-            ? { ...d.daily, done: [...d.daily.done, id] }
-            : d.daily;
+        setData((current) => {
+          const alreadyToday = (current.completions[id] ?? []).some((t) => dayKey(t) === dayKey(Date.now()));
+          const everDone = (current.completions[id]?.length ?? 0) > 0;
+          if (quest.repeatable ? alreadyToday : everDone) return current;
+
+          const treeXp = { ...current.treeXp };
+          for (const tree of quest.trees) treeXp[tree] = (treeXp[tree] ?? 0) + quest.resonance;
+
+          const completions = {
+            ...current.completions,
+            [id]: [...(current.completions[id] ?? []), Date.now()],
+          };
+          const daily = current.daily.questIds.includes(id) && !current.daily.done.includes(id)
+            ? { ...current.daily, done: [...current.daily.done, id] }
+            : current.daily;
           const reflections = reflection?.trim()
-            ? [{ id: Math.random().toString(36).slice(2), questId: id, text: reflection.trim(), at: Date.now() }, ...d.reflections].slice(0, 500)
-            : d.reflections;
+            ? [{ id: Math.random().toString(36).slice(2), questId: id, text: reflection.trim(), at: Date.now() }, ...current.reflections].slice(0, 500)
+            : current.reflections;
 
           const next: SideData = {
-            ...d,
-            resonance: d.resonance + q.resonance,
-            karma: d.karma + (q.grants?.karma ?? 0),
-            stewardship: d.stewardship + (q.grants?.stewardship ?? 0),
-            flow: d.flow + (q.grants?.flow ?? 0),
+            ...current,
+            resonance: current.resonance + quest.resonance,
+            karma: current.karma + (quest.grants?.karma ?? 0),
+            stewardship: current.stewardship + (quest.grants?.stewardship ?? 0),
+            flow: current.flow + (quest.grants?.flow ?? 0),
             treeXp,
             completions,
             daily,
@@ -144,12 +148,17 @@ export function SideProvider({ children }: { children: React.ReactNode }) {
         });
       },
       startPath(id: string) {
-        setData((d) => {
-          if (d.activePaths.includes(id)) return d;
-          const next = rollDaily({ ...d, activePaths: [...d.activePaths, id] });
+        setData((current) => {
+          if (current.activePaths.includes(id)) return current;
+          const next = rollDaily({ ...current, activePaths: [...current.activePaths, id] });
           setItem(KEY, next);
           return next;
         });
+      },
+      async resetSide() {
+        const next = rollDaily(EMPTY);
+        setData(next);
+        await setItem(KEY, next);
       },
     }),
     []
@@ -160,9 +169,11 @@ export function SideProvider({ children }: { children: React.ReactNode }) {
     if (!path) return { done: 0, total: 0 };
     let total = 0;
     let done = 0;
-    for (const s of path.stages) for (const q of s.quests) {
-      total++;
-      if ((data.completions[q.id]?.length ?? 0) > 0) done++;
+    for (const stage of path.stages) {
+      for (const quest of stage.quests) {
+        total++;
+        if ((data.completions[quest.id]?.length ?? 0) > 0) done++;
+      }
     }
     return { done, total };
   };
@@ -171,8 +182,10 @@ export function SideProvider({ children }: { children: React.ReactNode }) {
     const path = getPath(id);
     if (!path) return [];
     const out: Quest[] = [];
-    for (const s of path.stages) for (const q of s.quests) {
-      if ((data.completions[q.id]?.length ?? 0) === 0) out.push(q);
+    for (const stage of path.stages) {
+      for (const quest of stage.quests) {
+        if ((data.completions[quest.id]?.length ?? 0) === 0) out.push(quest);
+      }
     }
     return out;
   };
