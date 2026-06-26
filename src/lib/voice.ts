@@ -1,23 +1,27 @@
-// On-device voice "affect" estimation.
-//
-// We do not run clinical ML in Expo Go. From the microphone loudness envelope we
-// derive interpretable features (loudness, variability, pause ratio, a syllable-rate
-// proxy) and estimate a point on the Valence × Arousal map. Arousal is reliable from
-// these features; valence is approximate — so we always report a confidence and fuse
-// with the user's self-reported emotion. This is a reflection aid, not a diagnosis.
+// On-device voice affect estimation from the microphone loudness envelope.
+// This is a reflective wellness signal, not a clinical or diagnostic model.
 import { matchEmotion, getEmotion, type Emotion } from './emotions';
 
 export type StressLevel = 'Low' | 'Mild' | 'Elevated';
+export type VoiceQualityReason = 'ok' | 'too-short' | 'too-few-samples' | 'mostly-silent' | 'flat-signal';
+
+export interface VoiceSampleQuality {
+  usable: boolean;
+  reason: VoiceQualityReason;
+  finiteSamples: number;
+  activeRatio: number;
+  rangeDb: number;
+}
 
 export interface Affect {
-  valence: number; // -1..1
-  arousal: number; // -1..1
-  energy: number; // 0-100
-  calmness: number; // 0-100
-  stability: number; // 0-100
+  valence: number;
+  arousal: number;
+  energy: number;
+  calmness: number;
+  stability: number;
   stress: StressLevel;
-  confidence: number; // 0..1 — voice-only confidence
-  voiceEmotion: string; // emotion id from voice
+  confidence: number;
+  voiceEmotion: string;
   tone: string;
 }
 
@@ -48,7 +52,7 @@ export interface CheckIn {
   confidence: number;
   voiceEmotion: string;
   selfEmotion?: string;
-  emotion: string; // final emotion id (self-report wins when present)
+  emotion: string;
   tone: string;
   baselineShift: number;
   note?: string;
@@ -58,77 +62,79 @@ export interface CheckIn {
 }
 
 const SILENCE_DB = -45;
+const ACTIVITY_DB = -58;
 
 function clamp(n: number, lo = 0, hi = 100): number {
   return Math.max(lo, Math.min(hi, n));
 }
+
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
 }
+
 function norm(db: number): number {
   if (!isFinite(db)) return 0;
   return Math.max(0, Math.min(1, (db + 60) / 60));
 }
+
 function std(values: number[], mean: number): number {
   if (values.length < 2) return 0;
-  const v = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
-  return Math.sqrt(v);
+  const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
+  return Math.sqrt(variance);
 }
 
-// Count loudness-envelope peaks (a rough syllable-rate proxy).
-function countPeaks(loud: number[], thresh: number): number {
+function countPeaks(loud: number[], threshold: number): number {
   let peaks = 0;
-  for (let i = 1; i < loud.length - 1; i++) {
-    if (loud[i] > thresh && loud[i] >= loud[i - 1] && loud[i] > loud[i + 1]) peaks++;
+  for (let index = 1; index < loud.length - 1; index++) {
+    if (loud[index] > threshold && loud[index] >= loud[index - 1] && loud[index] > loud[index + 1]) peaks++;
   }
   return peaks;
 }
 
-/** Estimate affect (valence/arousal + derived signals) from the loudness envelope. */
-export function analyzeVoice(meterDb: number[], durationMs: number): Affect {
-  let samples = meterDb.filter((d) => isFinite(d));
-  if (samples.length < 4) {
-    const seed = (durationMs % 1000) / 1000;
-    samples = Array.from({ length: 24 }, (_, i) => -30 - Math.sin(i * 0.6 + seed * 6) * 8 - seed * 6);
-  }
+export function voiceSampleQuality(meterDb: number[], durationMs: number): VoiceSampleQuality {
+  const samples = meterDb.filter((value) => isFinite(value));
+  const finiteSamples = samples.length;
+  const activeRatio = finiteSamples ? samples.filter((value) => value > ACTIVITY_DB).length / finiteSamples : 0;
+  const rangeDb = finiteSamples ? Math.max(...samples) - Math.min(...samples) : 0;
 
+  if (durationMs < 3000) return { usable: false, reason: 'too-short', finiteSamples, activeRatio, rangeDb };
+  if (finiteSamples < 8) return { usable: false, reason: 'too-few-samples', finiteSamples, activeRatio, rangeDb };
+  if (activeRatio < 0.12) return { usable: false, reason: 'mostly-silent', finiteSamples, activeRatio, rangeDb };
+  if (rangeDb < 1.5) return { usable: false, reason: 'flat-signal', finiteSamples, activeRatio, rangeDb };
+  return { usable: true, reason: 'ok', finiteSamples, activeRatio, rangeDb };
+}
+
+export function analyzeVoice(meterDb: number[], durationMs: number): Affect | null {
+  const quality = voiceSampleQuality(meterDb, durationMs);
+  if (!quality.usable) return null;
+
+  const samples = meterDb.filter((value) => isFinite(value));
   const loud = samples.map(norm);
-  const mean = loud.reduce((a, b) => a + b, 0) / loud.length;
-  const variability = std(loud, mean); // ~0..0.35
-  const pauseRatio = samples.filter((d) => d < SILENCE_DB).length / samples.length;
-
+  const mean = loud.reduce((sum, value) => sum + value, 0) / loud.length;
+  const variability = std(loud, mean);
+  const pauseRatio = samples.filter((value) => value < SILENCE_DB).length / samples.length;
   const seconds = Math.max(1, durationMs / 1000);
   const peaks = countPeaks(loud, mean + variability * 0.4);
-  const rate = peaks / seconds; // peaks/sec
+  const rate = peaks / seconds;
 
   const meanN = clamp01(mean);
   const varN = clamp01(variability / 0.35);
   const rateN = clamp01(rate / 4);
   const engagement = 1 - pauseRatio;
   const steadiness = 1 - varN;
-
-  // Arousal: activation from loudness, variability, and speech rate (reliable).
   const arousal01 = clamp01(0.5 * meanN + 0.3 * varN + 0.2 * rateN);
   const arousal = arousal01 * 2 - 1;
-
-  // Valence: approximate — steadier, engaged speech reads positive; jittery/activated
-  // or very flat/low reads negative. Low confidence on its own.
   const agitation = varN * arousal01;
   const flatLow = Math.max(0, 0.4 - meanN);
-  const valence01 = clamp01(
-    0.5 + 0.3 * (steadiness - 0.5) + 0.18 * (engagement - 0.5) - 0.45 * agitation - 0.3 * flatLow
-  );
+  const valence01 = clamp01(0.5 + 0.3 * (steadiness - 0.5) + 0.18 * (engagement - 0.5) - 0.45 * agitation - 0.3 * flatLow);
   const valence = valence01 * 2 - 1;
-
-  // Derived continuity signals.
   const energy = Math.round(clamp(50 + arousal * 45 + meanN * 8 - 4));
   const calmness = Math.round(clamp(52 - arousal * 38 + valence * 22));
   const stability = Math.round(clamp(100 - varN * 72));
   const stressScore = Math.max(0, arousal) * 0.6 + Math.max(0, -valence) * 0.5;
   const stress: StressLevel = stressScore > 0.55 ? 'Elevated' : stressScore > 0.3 ? 'Mild' : 'Low';
-
-  // Voice confidence: arousal trustworthy, valence weak → moderate overall.
-  const baseConfidence = 0.5 + 0.18 * Math.abs(arousal); // 0.5..0.68
+  const sampleStrength = clamp01((quality.finiteSamples / 30) * 0.45 + quality.activeRatio * 0.35 + clamp01(quality.rangeDb / 18) * 0.2);
+  const baseConfidence = (0.42 + 0.16 * Math.abs(arousal)) * (0.65 + sampleStrength * 0.35);
   const match = matchEmotion(valence, arousal, baseConfidence);
 
   return {
@@ -146,8 +152,8 @@ export function analyzeVoice(meterDb: number[], durationMs: number): Affect {
 
 export function recommendFor(emotion: Emotion): Recommendation {
   const reasons: Record<string, string> = {
-    overwhelmed: 'A longer exhale tells your system it is safe to slow down.',
-    anxious: 'Paced breathing can settle an activated nervous system.',
+    overwhelmed: 'A longer exhale creates room to slow down.',
+    anxious: 'Paced breathing can support a steadier rhythm.',
     frustrated: 'A few slow breaths create space before the next response.',
     sad: 'A warm, gentle practice can meet sadness with kindness.',
     lonely: 'Loving-kindness widens the circle and softens disconnection.',
@@ -168,15 +174,11 @@ export function recommendFor(emotion: Emotion): Recommendation {
 
 export function baselineShift(now: { valence: number; arousal: number }, baseline?: Baseline | null): number {
   if (!baseline) return 0;
-  // Movement toward pleasant + calm vs baseline, on a -100..100 scale.
-  const bv = baseline.valence ?? 0;
-  const ba = baseline.arousal ?? 0;
   const nowScore = now.valence * 0.6 - Math.max(0, now.arousal) * 0.4;
-  const baseScore = bv * 0.6 - Math.max(0, ba) * 0.4;
+  const baseScore = (baseline.valence ?? 0) * 0.6 - Math.max(0, baseline.arousal ?? 0) * 0.4;
   return Math.round(clamp((nowScore - baseScore) * 100, -100, 100));
 }
 
-/** Fuse the voice affect with an optional self-report into a saved check-in. */
 export function buildCheckIn(opts: {
   affect: Affect;
   baseline?: Baseline | null;
@@ -209,27 +211,26 @@ export function buildCheckIn(opts: {
   };
 }
 
-/** A self-report-only check-in (no voice), e.g. the quick "how do you feel" wheel. */
 export function buildSelfCheckIn(emotionId: string, note?: string, factors?: string[]): CheckIn {
-  const e = getEmotion(emotionId);
+  const emotion = getEmotion(emotionId);
   return {
     id: Math.random().toString(36).slice(2),
     at: Date.now(),
-    valence: e.valence,
-    arousal: e.arousal,
-    energy: Math.round(clamp(50 + e.arousal * 45)),
-    calmness: Math.round(clamp(52 - e.arousal * 38 + e.valence * 22)),
+    valence: emotion.valence,
+    arousal: emotion.arousal,
+    energy: Math.round(clamp(50 + emotion.arousal * 45)),
+    calmness: Math.round(clamp(52 - emotion.arousal * 38 + emotion.valence * 22)),
     stability: 70,
-    stress: e.valence < -0.3 && e.arousal > 0.3 ? 'Elevated' : e.arousal > 0.3 ? 'Mild' : 'Low',
-    confidence: 1, // self-report is ground truth
-    voiceEmotion: e.id,
-    selfEmotion: e.id,
-    emotion: e.id,
-    tone: e.label,
+    stress: emotion.valence < -0.3 && emotion.arousal > 0.3 ? 'Elevated' : emotion.arousal > 0.3 ? 'Mild' : 'Low',
+    confidence: 1,
+    voiceEmotion: emotion.id,
+    selfEmotion: emotion.id,
+    emotion: emotion.id,
+    tone: emotion.label,
     baselineShift: 0,
     note,
     factors,
     source: 'self',
-    recommendation: recommendFor(e),
+    recommendation: recommendFor(emotion),
   };
 }
