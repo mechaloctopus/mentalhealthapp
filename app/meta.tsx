@@ -8,37 +8,40 @@ import { ModalHeader } from '../src/components/ModalHeader';
 import { GradientButton } from '../src/components/GradientButton';
 import { Body, Muted, Serif, Display, GlassCard, Label } from '../src/components/ui';
 import { useApp } from '../src/context/AppContext';
+import { CORE_PRACTICE_REWARDS, useSide } from '../src/side/SideContext';
 import { colors, spacing } from '../src/theme/theme';
 import { select, success, tap } from '../src/lib/haptics';
 
 const PHRASES = ['May you be safe.', 'May you be peaceful.', 'May you be healthy.', 'May you live with ease.'];
-
 const STAGES = [
   { who: 'Yourself', hint: 'Begin where you are. Offer these wishes inward.' },
-  { who: 'Someone you love', hint: 'Picture core family or a dear friend.' },
+  { who: 'Someone you love', hint: 'Picture a person whose presence feels warm or steady.' },
   { who: 'A friend or helper', hint: 'Someone who has supported you.' },
-  { who: 'A difficult person', hint: 'Someone who has wounded you, held gently.' },
-  { who: 'A stranger', hint: 'Someone you passed today, unknown to you.' },
-  { who: 'All beings', hint: 'Widen the circle to include everyone, everywhere.' },
+  { who: 'A neutral person', hint: 'Someone familiar whom you do not know well.' },
+  { who: 'Someone difficult', hint: 'Only if it feels safe. Otherwise stay with a neutral person.' },
+  { who: 'All beings', hint: 'Widen the circle in whatever way feels sincere.' },
 ];
 const STAGE_SECONDS = 18;
 
 export default function Meta() {
   const { addSession } = useApp();
+  const side = useSide();
   const [phase, setPhase] = useState<'intro' | 'running' | 'done'>('intro');
   const [index, setIndex] = useState(0);
   const [secs, setSecs] = useState(STAGE_SECONDS);
+  const [reward, setReward] = useState<'earned' | 'already' | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     if (phase !== 'running') return;
     tickRef.current = setInterval(() => {
-      setSecs((s) => {
-        if (s <= 1) {
+      setSecs((value) => {
+        if (value <= 1) {
           advance();
           return STAGE_SECONDS;
         }
-        return s - 1;
+        return value - 1;
       });
     }, 1000);
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
@@ -46,22 +49,39 @@ export default function Meta() {
   }, [phase]);
 
   const advance = () => {
-    setIndex((i) => {
-      if (i >= STAGES.length - 1) { complete(); return i; }
+    setIndex((current) => {
+      if (current >= STAGES.length - 1) {
+        complete();
+        return current;
+      }
       select();
-      return i + 1;
+      return current + 1;
     });
   };
 
   const complete = () => {
+    if (completedRef.current) return;
+    completedRef.current = true;
     if (tickRef.current) clearInterval(tickRef.current);
+    const canAward = side.canAwardPractice('meta');
     success();
-    addSession({ kind: 'meta', minutes: Math.round((STAGES.length * STAGE_SECONDS) / 60) });
+    addSession({ kind: 'meta', minutes: Math.max(1, Math.round((STAGES.length * STAGE_SECONDS) / 60)) });
+    side.completePractice('meta');
+    setReward(canAward ? 'earned' : 'already');
     setPhase('done');
   };
 
-  const start = () => { tap(); setIndex(0); setSecs(STAGE_SECONDS); setPhase('running'); };
+  const start = () => {
+    tap();
+    completedRef.current = false;
+    setReward(null);
+    setIndex(0);
+    setSecs(STAGE_SECONDS);
+    setPhase('running');
+  };
+
   const phrase = PHRASES[(STAGE_SECONDS - secs) % PHRASES.length];
+  const practiceReward = CORE_PRACTICE_REWARDS.meta;
 
   return (
     <View style={{ flex: 1 }}>
@@ -74,15 +94,11 @@ export default function Meta() {
             <View style={[styles.badge, { borderColor: colors.coral + '55', backgroundColor: colors.coral + '14' }]}>
               <Ionicons name="heart" size={34} color={colors.coral} />
             </View>
-            <Display center style={{ fontSize: 28, marginTop: spacing.lg }}>Meta meditation</Display>
+            <Display center style={{ fontSize: 28, marginTop: spacing.lg }}>Loving-kindness practice</Display>
             <GlassCard accent={colors.coral} style={{ marginTop: spacing.lg }}>
-              <Serif center style={{ fontSize: 19, lineHeight: 28 }}>
-                “I forgive all who have trespassed against me, and I ask forgiveness from all whom I have trespassed.”
-              </Serif>
+              <Serif center style={{ fontSize: 19, lineHeight: 28 }}>“May I meet myself and others with safety, honesty, and goodwill.”</Serif>
             </GlassCard>
-            <Body center style={{ maxWidth: 320, marginTop: spacing.lg }}>
-              We’ll move through six circles of goodwill — from yourself outward to all beings.
-            </Body>
+            <Body center style={{ maxWidth: 320, marginTop: spacing.lg }}>Move through six circles of goodwill. Skip or change any stage that does not feel appropriate.</Body>
           </Animated.View>
         )}
 
@@ -97,9 +113,9 @@ export default function Meta() {
             <Animated.View key={phrase} entering={FadeIn.duration(600)} style={{ marginTop: spacing.xxl }}>
               <Display center style={{ fontSize: 26 }}>{phrase}</Display>
             </Animated.View>
-            <View style={styles.rings}>
-              {STAGES.map((_, i) => (
-                <View key={i} style={[styles.ring, { width: 30 + i * 26, height: 30 + i * 26, borderRadius: 200, opacity: i <= index ? 0.7 : 0.15, borderColor: colors.coral }]} />
+            <View style={styles.rings} accessible accessibilityLabel={`Circle ${index + 1} of ${STAGES.length}`}>
+              {STAGES.map((_, ringIndex) => (
+                <View key={ringIndex} style={[styles.ring, { width: 30 + ringIndex * 26, height: 30 + ringIndex * 26, borderRadius: 200, opacity: ringIndex <= index ? 0.7 : 0.15, borderColor: colors.coral }]} />
               ))}
             </View>
           </View>
@@ -111,9 +127,13 @@ export default function Meta() {
               <Ionicons name="checkmark" size={34} color={colors.moss} />
             </View>
             <Display center style={{ fontSize: 28, marginTop: spacing.lg }}>The circle is complete</Display>
-            <Body center style={{ maxWidth: 300, marginTop: spacing.md }}>
-              You can bless your life without needing it to be perfect.
-            </Body>
+            <Body center style={{ maxWidth: 300, marginTop: spacing.md }}>Carry one sincere wish of goodwill into your next interaction.</Body>
+            {reward ? (
+              <GlassCard accent={reward === 'earned' ? colors.moss : colors.coral} style={styles.rewardCard}>
+                <Label color={reward === 'earned' ? colors.moss : colors.coral}>{reward === 'earned' ? 'INNER PATH ADVANCED' : 'TODAY’S GROWTH RECORDED'}</Label>
+                <Body color={colors.text}>{reward === 'earned' ? `+${practiceReward.resonance} resonance · ${practiceReward.label}` : 'This session is saved. Resonance for Loving-kindness is awarded once each day.'}</Body>
+              </GlassCard>
+            ) : null}
           </Animated.View>
         )}
 
@@ -125,7 +145,7 @@ export default function Meta() {
               <GradientButton label="End" variant="solid" onPress={complete} style={{ flex: 1 }} />
             </View>
           )}
-          {phase === 'done' && <GradientButton label="Done" onPress={() => { tap(); setPhase('intro'); }} full />}
+          {phase === 'done' && <GradientButton label="Practice again" onPress={start} full />}
         </View>
       </SafeAreaView>
     </View>
@@ -138,5 +158,6 @@ const styles = StyleSheet.create({
   who: { fontSize: 32, lineHeight: 40, marginTop: 8 },
   rings: { position: 'absolute', alignItems: 'center', justifyContent: 'center', bottom: -10, opacity: 0.5 },
   ring: { position: 'absolute', borderWidth: 1 },
+  rewardCard: { width: '100%', gap: 5, marginTop: spacing.lg },
   footer: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, paddingTop: spacing.lg },
 });
