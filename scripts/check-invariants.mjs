@@ -72,7 +72,9 @@ assertFileMissing('src/lib/progress.ts');
 assertNoPatternInSource(/computeProgress|Companion/i, 'obsolete Lumen progression reference found', [
   'scripts/check-invariants.mjs',
 ]);
-assertNoPattern(/cancelAllScheduledNotificationsAsync/, 'broad notification cancellation found');
+assertNoPattern(/cancelAllScheduledNotificationsAsync/, 'broad notification cancellation found', [
+  'scripts/check-invariants.mjs',
+]);
 assertNoPattern(/fake|simulated|seeded/i, 'possible simulated production signal found', [
   'scripts/check-invariants.mjs',
   'docs/COHERENCE_AUDIT.md',
