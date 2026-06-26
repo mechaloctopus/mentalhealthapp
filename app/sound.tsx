@@ -98,8 +98,8 @@ export default function Sound() {
 
   const choose = async (preset: SoundPreset) => {
     select();
+    if (playing) await stop();
     setActive(preset);
-    if (playing) await play(preset);
   };
 
   const practiceReward = CORE_PRACTICE_REWARDS.sound;
@@ -151,7 +151,7 @@ export default function Sound() {
                 accessibilityLabel={`${preset.name}, ${preset.hz}. ${preset.copy}`}
                 accessibilityState={{ selected }}
               >
-                <GlassCard style={[styles.presetRow, selected && { borderColor: preset.color + '88' }]}>
+                <GlassCard style={[styles.presetRow, selected && { borderColor: preset.color + '88' }]}> 
                   <View style={[styles.swatch, { backgroundColor: preset.color }]} />
                   <View style={{ flex: 1 }}>
                     <Body color={colors.text} style={{ fontFamily: font.sansSemibold, fontSize: 14.5 }}>{preset.name} · {preset.hz}</Body>
