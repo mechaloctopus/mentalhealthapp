@@ -24,22 +24,24 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
   }),
 });
+
+function isAppRoute(url: string): boolean {
+  return url.startsWith('/') && !url.startsWith('//');
+}
 
 function NotificationRouter() {
   const router = useRouter();
   const response = Notifications.useLastNotificationResponse();
 
   useEffect(() => {
-    const url = response?.notification.request.content.data?.url as string | undefined;
-    if (url) {
-      const t = setTimeout(() => router.push(url as any), 350);
-      return () => clearTimeout(t);
+    const url = response?.notification.request.content.data?.url;
+    if (typeof url === 'string' && isAppRoute(url)) {
+      const timer = setTimeout(() => router.push(url as any), 350);
+      return () => clearTimeout(timer);
     }
   }, [response, router]);
 
@@ -63,8 +65,8 @@ export default function RootLayout() {
   }, [loaded, error]);
 
   useEffect(() => {
-    const t = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 1500);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
