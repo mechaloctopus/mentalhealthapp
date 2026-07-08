@@ -30,7 +30,7 @@ import type { JournalEntry } from '../src/store';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     AlegreyaSC_700Bold,
     AlegreyaSC_900Black,
     Alegreya_500Medium,
@@ -97,11 +97,11 @@ export default function RootLayout() {
         setRecentEntries(entries);
       } finally {
         setLoading(false);
-        if (fontsLoaded) await SplashScreen.hideAsync();
+        try { await SplashScreen.hideAsync(); } catch {}
       }
     }
-    if (fontsLoaded) boot();
-  }, [fontsLoaded]);
+    if (fontsLoaded || fontError) boot();
+  }, [fontsLoaded, fontError]);
 
   return (
     <GestureHandlerRootView style={styles.root}>
