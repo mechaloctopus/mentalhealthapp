@@ -1,148 +1,156 @@
-import React, { useRef, useState } from 'react';
-import { View, StyleSheet, FlatList, useWindowDimensions, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeIn } from 'react-native-reanimated';
-import { AnimatedBackground } from '../src/components/AnimatedBackground';
-import { BrandMark } from '../src/components/BrandMark';
+import { useState } from 'react';
+import {
+  View, Text, StyleSheet, SafeAreaView, ScrollView, Pressable,
+} from 'react-native';
+import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { setOnboarded as markOnboarded, isOnboarded } from '../src/lib/auth';
+import { requestPermission, scheduleDaily } from '../src/lib/notifications';
+import { useStore } from '../src/store';
 import { GradientButton } from '../src/components/GradientButton';
-import { Display, Body, Label } from '../src/components/ui';
-import { useApp } from '../src/context/AppContext';
-import { colors, radius, spacing } from '../src/theme/theme';
-import { select } from '../src/lib/haptics';
+import { colors, font, radius, spacing } from '../src/theme/tokens';
 
-interface Slide {
-  kicker: string;
-  title: string;
-  body: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  accent: string;
-}
-
-const SLIDES: Slide[] = [
-  {
-    kicker: 'Welcome to MoodSignal',
-    title: 'Daily clarity, in 60 seconds',
-    body: 'A research-informed companion for emotional calibration. A short voice check-in, then one clear practice — never an overwhelming list.',
-    icon: 'pulse',
-    accent: colors.teal,
-  },
-  {
-    kicker: 'Listen',
-    title: 'Your voice is a signal',
-    body: 'A 30–60 second check-in estimates energy, calmness, and stress from how you sound — analyzed privately on your device.',
-    icon: 'mic',
-    accent: colors.blue,
-  },
-  {
-    kicker: 'Practice · Wisdom · Purpose',
-    title: 'One wise next step',
-    body: 'Your state connects to breath, stillness, loving-kindness, sound, wisdom cards, and small acts of stewardship.',
-    icon: 'leaf',
-    accent: colors.moss,
-  },
-  {
-    kicker: 'The Inner Path',
-    title: 'Grow through resonance',
-    body: 'Daily quests, wisdom paths, mentor nudges, and skill trees help turn small meaningful actions into long-term growth.',
-    icon: 'planet',
-    accent: colors.lavender,
-  },
-  {
-    kicker: '365 days of light',
-    title: 'A thoughtful word, every day',
-    body: 'Affirmations, quotes, and devotionals arrive as a daily notification — each opening into a beautiful space to pause and breathe.',
-    icon: 'sparkles',
-    accent: colors.amber,
-  },
-];
+const STEPS = ['welcome', 'how', 'notifications', 'done'] as const;
+type Step = (typeof STEPS)[number];
 
 export default function Onboarding() {
-  const { width } = useWindowDimensions();
-  const router = useRouter();
-  const { completeOnboarding } = useApp();
-  const [index, setIndex] = useState(0);
-  const ref = useRef<FlatList>(null);
+  const [step, setStep] = useState<Step>('welcome');
+  const [reminderHour, setReminderHour] = useState(8);
+  const [notifGranted, setNotifGranted] = useState<boolean | null>(null);
+  const setOnboarded = useStore((s) => s.setOnboarded);
+  const setStoreReminderHour = useStore((s) => s.setReminderHour);
 
-  const last = index === SLIDES.length - 1;
+  const next = () => {
+    const idx = STEPS.indexOf(step);
+    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]!);
+  };
 
-  const next = async () => {
-    select();
-    if (last) {
-      router.replace('/goals');
+  async function handleNotifications(enable: boolean) {
+    if (enable) {
+      const granted = await requestPermission();
+      setNotifGranted(granted);
+      if (granted) {
+        await scheduleDaily(reminderHour);
+        setStoreReminderHour(reminderHour);
+      }
     } else {
-      ref.current?.scrollToIndex({ index: index + 1, animated: true });
+      setNotifGranted(false);
     }
-  };
+    next();
+  }
 
-  const skip = async () => {
-    await completeOnboarding();
-    router.replace('/sign-in');
-  };
+  async function handleFinish() {
+    await markOnboarded();
+    setOnboarded(true);
+    router.replace('/dashboard');
+  }
 
   return (
-    <View style={{ flex: 1 }}>
-      <AnimatedBackground tint={SLIDES[index].accent} />
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.top}>
-          <BrandMark size={34} />
-          <Pressable onPress={skip} hitSlop={10}>
-            <Body color={colors.textDim}>Skip</Body>
-          </Pressable>
-        </View>
+    <SafeAreaView style={styles.root}>
+      <LinearGradient colors={['#0b0e0d', '#090b0b']} style={StyleSheet.absoluteFill} />
 
-        <FlatList
-          ref={ref}
-          data={SLIDES}
-          keyExtractor={(s) => s.title}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
-          renderItem={({ item }) => (
-            <View style={[styles.slide, { width }]}> 
-              <Animated.View entering={FadeIn.duration(500)} style={styles.iconWrap}>
-                <View style={[styles.iconHalo, { backgroundColor: item.accent + '22', borderColor: item.accent + '55' }]}> 
-                  <Ionicons name={item.icon} size={46} color={item.accent} />
-                </View>
-              </Animated.View>
-              <Label color={item.accent} style={{ marginBottom: 10 }}>{item.kicker.toUpperCase()}</Label>
-              <Display style={styles.title}>{item.title}</Display>
-              <Body style={styles.body}>{item.body}</Body>
-            </View>
-          )}
-        />
+      <View style={styles.indicator}>
+        {STEPS.map((s, i) => (
+          <View
+            key={s}
+            style={[styles.dot, STEPS.indexOf(step) >= i && styles.dotActive]}
+          />
+        ))}
+      </View>
 
-        <View style={styles.bottom}>
-          <View style={styles.dots}>
-            {SLIDES.map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  i === index && { width: 26, backgroundColor: SLIDES[index].accent },
-                ]}
-              />
-            ))}
-          </View>
-          <GradientButton label={last ? 'Begin' : 'Continue'} onPress={next} full />
-        </View>
-      </SafeAreaView>
+      <ScrollView contentContainerStyle={styles.content} bounces={false}>
+        {step === 'welcome' && (
+          <StepView
+            title="Welcome to MoodSignal"
+            body="Each day starts with a brief check-in — your voice or a simple tap — that tells the app how you're doing. The rest follows from there."
+            action={<GradientButton label="Next" onPress={next} />}
+          />
+        )}
+
+        {step === 'how' && (
+          <StepView
+            title="How it works"
+            body="Speak a few sentences into the mic. MoodSignal reads the energy and rhythm in your voice to estimate your mood — entirely on your device, never sent anywhere."
+            body2="Or skip voice and tap how you feel. Both work."
+            action={<GradientButton label="Got it" onPress={next} />}
+          />
+        )}
+
+        {step === 'notifications' && (
+          <StepView
+            title="Daily reminder?"
+            body="A gentle nudge each morning helps build the habit. You can change or cancel this any time in Settings."
+            action={
+              <View style={styles.notifActions}>
+                <GradientButton label="Yes, remind me" onPress={() => handleNotifications(true)} />
+                <GradientButton label="Skip for now" variant="ghost" onPress={() => handleNotifications(false)} />
+              </View>
+            }
+          />
+        )}
+
+        {step === 'done' && (
+          <StepView
+            title="You're all set"
+            body="Check in each morning, explore your patterns, and let the practices meet you where you are."
+            action={<GradientButton label="Start" onPress={handleFinish} />}
+          />
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function StepView({
+  title, body, body2, action,
+}: { title: string; body: string; body2?: string; action: React.ReactNode }) {
+  return (
+    <View style={styles.step}>
+      <View style={styles.text}>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.body}>{body}</Text>
+        {body2 && <Text style={[styles.body, { marginTop: spacing.sm }]}>{body2}</Text>}
+      </View>
+      <View style={styles.actionWrap}>{action}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  slide: { paddingHorizontal: spacing.xl, justifyContent: 'center', flex: 1 },
-  iconWrap: { marginBottom: spacing.xl },
-  iconHalo: {
-    width: 108, height: 108, borderRadius: 34, alignItems: 'center', justifyContent: 'center', borderWidth: 1,
+  root: { flex: 1, backgroundColor: colors.bg },
+  indicator: {
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    paddingTop: spacing.xl,
   },
-  title: { fontSize: 40, lineHeight: 46, marginBottom: spacing.md },
-  body: { fontSize: 16.5, lineHeight: 26, maxWidth: 360 },
-  bottom: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.lg },
-  dots: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
-  dot: { width: 8, height: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.18)' },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.surface3,
+  },
+  dotActive: { backgroundColor: colors.teal },
+  content: { flexGrow: 1, paddingHorizontal: spacing.xl },
+  step: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingTop: spacing.xxl * 1.5,
+    paddingBottom: spacing.xxl,
+  },
+  text: { gap: spacing.lg },
+  title: {
+    fontFamily: font.display,
+    fontSize: 30,
+    color: colors.text,
+    letterSpacing: 0.3,
+  },
+  body: {
+    fontFamily: font.serif,
+    fontSize: 17,
+    color: colors.textMuted,
+    lineHeight: 27,
+  },
+  actionWrap: { gap: spacing.md },
+  notifActions: { gap: spacing.sm },
 });

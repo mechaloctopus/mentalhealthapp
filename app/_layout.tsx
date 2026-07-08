@@ -1,113 +1,122 @@
-import React, { useEffect } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Stack, useRouter } from 'expo-router';
-import * as Notifications from 'expo-notifications';
-import * as SplashScreen from 'expo-splash-screen';
-import { useFonts } from 'expo-font';
-import { AlegreyaSC_700Bold, AlegreyaSC_900Black } from '@expo-google-fonts/alegreya-sc';
-import { Alegreya_500Medium, Alegreya_600SemiBold } from '@expo-google-fonts/alegreya';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
+import {
+  useFonts,
+  AlegreyaSC_700Bold,
+  AlegreyaSC_900Black,
+} from '@expo-google-fonts/alegreya-sc';
+import {
+  Alegreya_500Medium,
+  Alegreya_700Bold,
+} from '@expo-google-fonts/alegreya';
 import {
   OpenSans_400Regular,
   OpenSans_500Medium,
   OpenSans_600SemiBold,
   OpenSans_700Bold,
 } from '@expo-google-fonts/open-sans';
-import { AppProvider } from '../src/context/AppContext';
-import { SideProvider } from '../src/side/SideContext';
-import { ErrorBoundary } from '../src/components/ErrorBoundary';
-import { colors } from '../src/theme/theme';
+import * as SplashScreen from 'expo-splash-screen';
+import { initDb } from '../src/db';
+import { getStoredUser, isOnboarded } from '../src/lib/auth';
+import { useStore } from '../src/store';
+import { getReminderHour } from '../src/lib/notifications';
+import { getRecentCheckIns, getRecentJournalEntries } from '../src/db';
+import type { CheckIn } from '../src/engine/voice';
+import type { JournalEntry } from '../src/store';
 
-SplashScreen.preventAutoHideAsync().catch(() => {});
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
-function isAppRoute(url: string): boolean {
-  return url.startsWith('/') && !url.startsWith('//');
-}
-
-function NotificationRouter() {
-  const router = useRouter();
-  const response = Notifications.useLastNotificationResponse();
-
-  useEffect(() => {
-    const url = response?.notification.request.content.data?.url;
-    if (typeof url === 'string' && isAppRoute(url)) {
-      const timer = setTimeout(() => router.push(url as any), 350);
-      return () => clearTimeout(timer);
-    }
-  }, [response, router]);
-
-  return null;
-}
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
+  const [fontsLoaded] = useFonts({
     AlegreyaSC_700Bold,
     AlegreyaSC_900Black,
     Alegreya_500Medium,
-    Alegreya_600SemiBold,
+    Alegreya_700Bold,
     OpenSans_400Regular,
     OpenSans_500Medium,
     OpenSans_600SemiBold,
     OpenSans_700Bold,
   });
 
-  useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync().catch(() => {});
-  }, [loaded, error]);
+  const setUser = useStore((s) => s.setUser);
+  const setLoading = useStore((s) => s.setLoading);
+  const setOnboarded = useStore((s) => s.setOnboarded);
+  const setReminderHour = useStore((s) => s.setReminderHour);
+  const setRecentCheckIns = useStore((s) => s.setRecentCheckIns);
+  const setRecentEntries = useStore((s) => s.setRecentEntries);
 
   useEffect(() => {
-    const timer = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    async function boot() {
+      try {
+        await initDb();
+        const [user, onboarded, reminderHour, rawCheckins, rawEntries] = await Promise.all([
+          getStoredUser(),
+          isOnboarded(),
+          getReminderHour(),
+          getRecentCheckIns(90),
+          getRecentJournalEntries(60),
+        ]);
+
+        setUser(user);
+        setOnboarded(onboarded);
+        setReminderHour(reminderHour);
+
+        // Map db rows to engine types
+        const checkins: CheckIn[] = rawCheckins.map((r) => ({
+          id: r.id,
+          at: r.at,
+          emotion: r.emotion,
+          valence: r.valence,
+          arousal: r.arousal,
+          energy: r.energy ?? 50,
+          calmness: r.calmness ?? 50,
+          stability: r.stability ?? 70,
+          stress: (r.stress as CheckIn['stress']) ?? 'Low',
+          confidence: r.confidence ?? 1,
+          voiceEmotion: r.voice_emotion ?? r.emotion,
+          selfEmotion: r.self_emotion ?? undefined,
+          tone: r.emotion,
+          baselineShift: r.baseline_shift,
+          note: r.note ?? undefined,
+          factors: typeof r.factors === 'string' ? JSON.parse(r.factors) : undefined,
+          source: r.source,
+        }));
+        setRecentCheckIns(checkins);
+
+        const entries: JournalEntry[] = rawEntries.map((r) => ({
+          id: r.id,
+          at: r.at,
+          prompt: r.prompt,
+          body: r.body,
+          emotion: r.emotion,
+          type: r.type,
+        }));
+        setRecentEntries(entries);
+      } finally {
+        setLoading(false);
+        if (fontsLoaded) await SplashScreen.hideAsync();
+      }
+    }
+    if (fontsLoaded) boot();
+  }, [fontsLoaded]);
 
   return (
-    <ErrorBoundary>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <AppProvider>
-            <SideProvider>
-              <StatusBar style="light" />
-              <NotificationRouter />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: colors.bg },
-                  animation: 'fade',
-                }}
-              >
-                <Stack.Screen name="index" />
-                <Stack.Screen name="onboarding" />
-                <Stack.Screen name="goals" />
-                <Stack.Screen name="sign-in" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="baseline" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="checkin" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="feel" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="coach" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="journal" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="journal-new" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="sleep" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="research" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="breath" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="stillness" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="meta" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="sound" options={{ animation: 'slide_from_bottom' }} />
-                <Stack.Screen name="side" />
-                <Stack.Screen name="message/[id]" options={{ presentation: 'modal', animation: 'fade' }} />
-              </Stack>
-            </SideProvider>
-          </AppProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={styles.root}>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="dashboard" />
+        <Stack.Screen name="(branches)" />
+      </Stack>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});

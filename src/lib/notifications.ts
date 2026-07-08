@@ -1,128 +1,47 @@
-// Rolling local daily messages. iOS caps pending local notifications, so the app
-// schedules a 60-day window and refreshes it when preferences change.
+// Notification service for MoodSignal v2 — daily check-in reminders.
+
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
-import { dayOfYear, messageForDay, TYPE_META } from '../data/messages';
+import * as SecureStore from 'expo-secure-store';
 
-const WINDOW_DAYS = 60;
-const CHANNEL_ID = 'daily-messages';
-const DAILY_SOURCE = 'moodsignal.daily-message';
+const REMINDER_KEY = 'moodsignal_reminder_hour_v2';
 
-type ScheduledNotification = Awaited<ReturnType<typeof Notifications.getAllScheduledNotificationsAsync>>[number];
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
-export interface NotifPrefs {
-  enabled: boolean;
-  hour: number;
-  minute: number;
-}
-
-// Notifications are opt-in. Enabling them from Profile triggers the permission request.
-export const DEFAULT_NOTIF_PREFS: NotifPrefs = { enabled: false, hour: 9, minute: 0 };
-
-export async function ensureAndroidChannel(): Promise<void> {
-  if (Platform.OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-    name: 'Daily messages',
-    importance: Notifications.AndroidImportance.DEFAULT,
-    lightColor: '#66e0ca',
-    vibrationPattern: [0, 120, 80, 120],
-    sound: undefined,
-  });
-}
-
-export async function requestPermissions(): Promise<boolean> {
-  const current = await Notifications.getPermissionsAsync();
-  let status = current.status;
-  if (status !== 'granted') {
-    const request = await Notifications.requestPermissionsAsync({
-      ios: { allowAlert: true, allowBadge: true, allowSound: true },
-    });
-    status = request.status;
-  }
+export async function requestPermission(): Promise<boolean> {
+  const { status } = await Notifications.requestPermissionsAsync();
   return status === 'granted';
 }
 
-function nextOccurrence(daysAhead: number, hour: number, minute: number): Date {
-  const date = new Date();
-  date.setHours(hour, minute, 0, 0);
-  date.setDate(date.getDate() + daysAhead);
-  return date;
-}
-
-function isDailyMessageNotification(notification: ScheduledNotification): boolean {
-  const data = notification.content.data ?? {};
-  return data.source === DAILY_SOURCE || (typeof data.url === 'string' && data.url.startsWith('/message/'));
-}
-
-export async function cancelDailyMessages(): Promise<void> {
-  const pending = await Notifications.getAllScheduledNotificationsAsync();
-  await Promise.all(
-    pending
-      .filter(isDailyMessageNotification)
-      .map((notification) => Notifications.cancelScheduledNotificationAsync(notification.identifier))
-  );
-}
-
-export async function scheduleDailyMessages(prefs: NotifPrefs): Promise<number> {
-  await cancelDailyMessages();
-  if (!prefs.enabled) return 0;
-
-  const granted = await requestPermissions();
-  if (!granted) return 0;
-  await ensureAndroidChannel();
-
-  const now = new Date();
-  const todayTime = new Date();
-  todayTime.setHours(prefs.hour, prefs.minute, 0, 0);
-  const startOffset = now.getTime() >= todayTime.getTime() ? 1 : 0;
-
-  let scheduled = 0;
-  for (let index = startOffset; index < startOffset + WINDOW_DAYS; index++) {
-    const when = nextOccurrence(index, prefs.hour, prefs.minute);
-    const message = messageForDay(dayOfYear(when));
-    const meta = TYPE_META[message.type];
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: `${meta.label} · MoodSignal`,
-        body: message.body,
-        data: { source: DAILY_SOURCE, messageId: message.id, url: `/message/${message.id}` },
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: when,
-        ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
-      },
-    });
-    scheduled++;
-  }
-  return scheduled;
-}
-
-export async function cancelAll(): Promise<void> {
-  await cancelDailyMessages();
-}
-
-export async function pendingCount(): Promise<number> {
-  const list = await Notifications.getAllScheduledNotificationsAsync();
-  return list.filter(isDailyMessageNotification).length;
-}
-
-export async function sendPreview(): Promise<void> {
-  const granted = await requestPermissions();
-  if (!granted) return;
-  await ensureAndroidChannel();
-  const message = messageForDay(dayOfYear());
-  const meta = TYPE_META[message.type];
+export async function scheduleDaily(hour = 8): Promise<void> {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+  await SecureStore.setItemAsync(REMINDER_KEY, String(hour));
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: `${meta.label} · MoodSignal`,
-      body: message.body,
-      data: { source: DAILY_SOURCE, messageId: message.id, url: `/message/${message.id}` },
+      title: 'How are you feeling?',
+      body: 'Take a moment for your daily check-in.',
     },
     trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: 4,
-      ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour,
+      minute: 0,
     },
   });
+}
+
+export async function cancelReminders(): Promise<void> {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+  await SecureStore.deleteItemAsync(REMINDER_KEY);
+}
+
+export async function getReminderHour(): Promise<number | null> {
+  const val = await SecureStore.getItemAsync(REMINDER_KEY);
+  if (!val) return null;
+  const n = parseInt(val, 10);
+  return isNaN(n) ? null : n;
 }
