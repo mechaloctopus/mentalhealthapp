@@ -33,7 +33,6 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-sqlite",
       [
         "expo-av",
         { "microphonePermission": "MoodSignal uses your microphone for voice check-ins analyzed privately on your device." }
@@ -42,8 +41,7 @@
         "expo-notifications",
         { "color": "#66e0ca" }
       ],
-      "expo-asset",
-      "expo-secure-store"
+      "expo-asset"
     ],
     "experiments": { "typedRoutes": false }
   }
