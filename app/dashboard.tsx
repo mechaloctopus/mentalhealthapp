@@ -150,6 +150,7 @@ export default function Dashboard() {
         factors: checkin.factors ?? null,
         source: checkin.source,
         baseline_shift: checkin.baselineShift,
+        voice_features: checkin.voiceFeatures ? JSON.stringify(checkin.voiceFeatures) : null,
       });
       setMode('results');
     } finally {
@@ -171,6 +172,7 @@ export default function Dashboard() {
       stress: checkin.stress, confidence: checkin.confidence,
       voice_emotion: checkin.voiceEmotion, self_emotion: checkin.selfEmotion ?? null,
       note: null, factors: null, source: 'self', baseline_shift: 0,
+      voice_features: null,
     });
     setMode('idle');
     setSelectedEmotion(undefined);

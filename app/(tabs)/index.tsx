@@ -130,6 +130,7 @@ export default function HomeTab() {
           valence: affect.valence,
           arousal: affect.arousal,
           capturedAt: Date.now(),
+          voiceFeatures: affect.voiceFeatures,
         };
         await saveBaseline(b);
         setBaseline(b);
@@ -148,6 +149,7 @@ export default function HomeTab() {
         voice_emotion: checkin.voiceEmotion, self_emotion: checkin.selfEmotion ?? null,
         note: checkin.note ?? null, factors: checkin.factors ?? null,
         source: checkin.source, baseline_shift: checkin.baselineShift,
+        voice_features: checkin.voiceFeatures ? JSON.stringify(checkin.voiceFeatures) : null,
       });
       await awardResonance('CHECKIN_VOICE');
       setMode('results');
@@ -168,6 +170,7 @@ export default function HomeTab() {
       stress: checkin.stress, confidence: checkin.confidence,
       voice_emotion: checkin.voiceEmotion, self_emotion: checkin.selfEmotion ?? null,
       note: null, factors: null, source: 'self', baseline_shift: 0,
+      voice_features: null,
     });
     await awardResonance('CHECKIN_SELF');
     setMode('idle');

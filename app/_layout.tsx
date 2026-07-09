@@ -100,6 +100,7 @@ export default function RootLayout() {
           note: r.note ?? undefined,
           factors: typeof r.factors === 'string' ? JSON.parse(r.factors) : undefined,
           source: r.source,
+          voiceFeatures: typeof r.voice_features === 'string' ? JSON.parse(r.voice_features) : undefined,
         }));
         setRecentCheckIns(checkins);
 

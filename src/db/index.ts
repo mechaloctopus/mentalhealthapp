@@ -1,8 +1,8 @@
 // expo-sqlite database layer for MoodSignal v2.
-// NOTE: imports from '../engine/voice' are safe — no circular dependency.
 // Single file: schema definition, migrations, and typed query helpers.
 
 import * as SQLite from 'expo-sqlite';
+import type { VoiceFeatures } from '../engine/voice';
 
 let _db: SQLite.SQLiteDatabase | null = null;
 
@@ -59,6 +59,9 @@ const MIGRATIONS: string[] = [
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
   )`,
+
+  // v6 — voice biomarker features stored as JSON blob
+  `ALTER TABLE checkins ADD COLUMN voice_features TEXT`,
 ];
 
 export async function initDb(): Promise<void> {
@@ -97,6 +100,7 @@ export interface DbCheckIn {
   factors: string | string[] | null;
   source: 'voice' | 'self';
   baseline_shift: number;
+  voice_features: string | null;
 }
 
 export async function saveCheckIn(c: DbCheckIn): Promise<void> {
@@ -105,13 +109,14 @@ export async function saveCheckIn(c: DbCheckIn): Promise<void> {
     `INSERT OR REPLACE INTO checkins
       (id, at, emotion, valence, arousal, energy, calmness, stability,
        stress, confidence, voice_emotion, self_emotion, note, factors,
-       source, baseline_shift)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+       source, baseline_shift, voice_features)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     c.id, c.at, c.emotion, c.valence, c.arousal,
     c.energy, c.calmness, c.stability, c.stress, c.confidence,
     c.voice_emotion, c.self_emotion, c.note,
     Array.isArray(c.factors) ? JSON.stringify(c.factors) : (c.factors ?? null),
     c.source, c.baseline_shift,
+    c.voice_features ?? null,
   );
 }
 
@@ -290,6 +295,7 @@ export interface StoredBaseline {
   valence: number;
   arousal: number;
   capturedAt: number;
+  voiceFeatures?: VoiceFeatures;
 }
 
 export async function saveBaseline(b: StoredBaseline): Promise<void> {
