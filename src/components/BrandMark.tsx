@@ -1,23 +1,22 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { colors, font } from '../theme/tokens';
+import { Image, StyleSheet, View } from 'react-native';
 
 interface Props {
   size?: 'sm' | 'md' | 'lg';
 }
 
-const SIZES = {
-  sm: { title: 18, sub: 10 },
-  md: { title: 26, sub: 13 },
-  lg: { title: 36, sub: 16 },
-};
+// Approximate aspect ratio of the Mended Light horizontal reversed logo (~4.8:1)
+const HEIGHTS = { sm: 22, md: 30, lg: 42 };
 
 export function BrandMark({ size = 'md' }: Props) {
-  const s = SIZES[size];
+  const h = HEIGHTS[size];
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { fontSize: s.title }]}>MoodSignal</Text>
-      <Text style={[styles.sub, { fontSize: s.sub }]}>v2</Text>
+      <Image
+        source={require('../../assets/mended-light-logo.png')}
+        style={{ height: h, width: h * 4.8 }}
+        resizeMode="contain"
+      />
     </View>
   );
 }
@@ -25,18 +24,6 @@ export function BrandMark({ size = 'md' }: Props) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 6,
-  },
-  title: {
-    fontFamily: font.display,
-    color: colors.text,
-    letterSpacing: 0.5,
-  },
-  sub: {
-    fontFamily: font.sansSemibold,
-    color: colors.teal,
-    letterSpacing: 0.2,
-    marginBottom: 2,
+    alignItems: 'center',
   },
 });

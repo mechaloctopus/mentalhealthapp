@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert,
+  View, Text, StyleSheet, SafeAreaView, Pressable, TextInput,
+  KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -42,21 +43,20 @@ export default function JournalWrite() {
       <LinearGradient colors={['#0b0e0d', '#090b0b']} style={StyleSheet.absoluteFill} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 24 : 0}
       >
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
             <Text style={styles.cancel}>Cancel</Text>
           </Pressable>
           <Text style={styles.title}>Free write</Text>
-          <Pressable onPress={save} disabled={!body.trim() || saving}>
-            <Text style={[styles.saveBtn, (!body.trim() || saving) && styles.saveBtnDim]}>
-              {saving ? 'Saving…' : 'Save'}
-            </Text>
-          </Pressable>
+          <View style={{ width: 52 }} />
         </View>
 
-        <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
+        <Text style={styles.date}>
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        </Text>
 
         <TextInput
           style={styles.input}
@@ -68,6 +68,15 @@ export default function JournalWrite() {
           autoFocus
           textAlignVertical="top"
         />
+
+        <View style={styles.footer}>
+          <GradientButton
+            label={saving ? 'Saving…' : 'Save Entry'}
+            onPress={save}
+            disabled={!body.trim() || saving}
+            variant="flame"
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -79,10 +88,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md,
   },
-  cancel: { fontFamily: font.sansSemibold, fontSize: 14, color: colors.textFaint },
+  cancel: { fontFamily: font.sansSemibold, fontSize: 14, color: colors.textFaint, minWidth: 52 },
   title: { fontFamily: font.sansSemibold, fontSize: 16, color: colors.text },
-  saveBtn: { fontFamily: font.sansSemibold, fontSize: 14, color: colors.teal },
-  saveBtnDim: { opacity: 0.35 },
   date: {
     fontFamily: font.sansSemibold, fontSize: 12, color: colors.textFaint,
     paddingHorizontal: spacing.xl, paddingBottom: spacing.sm, letterSpacing: 0.3,
@@ -91,5 +98,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: font.serif, fontSize: 17, color: colors.text,
     paddingHorizontal: spacing.xl, lineHeight: 28,
+  },
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+    paddingTop: spacing.sm,
   },
 });

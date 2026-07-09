@@ -57,7 +57,7 @@ export default function JournalReflect() {
             <Text style={styles.backText}>‹ Journal</Text>
           </Pressable>
           <Text style={styles.title}>Guided Reflect</Text>
-          <Text style={styles.sub}>Choose a prompt.</Text>
+          <Text style={styles.sub}>Choose a prompt to begin.</Text>
           <View style={styles.list}>
             {PROMPTS.map((p) => (
               <Pressable key={p.id} onPress={() => setSelectedPrompt(p)}>
@@ -78,18 +78,15 @@ export default function JournalReflect() {
       <LinearGradient colors={['#0b0e0d', '#090b0b']} style={StyleSheet.absoluteFill} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 24 : 0}
       >
         <View style={styles.header}>
           <Pressable onPress={() => setSelectedPrompt(null)}>
             <Text style={styles.cancel}>‹ Back</Text>
           </Pressable>
           <Text style={styles.headerTitle}>{selectedPrompt.label}</Text>
-          <Pressable onPress={save} disabled={!body.trim() || saving}>
-            <Text style={[styles.saveBtn, (!body.trim() || saving) && styles.saveBtnDim]}>
-              {saving ? 'Saving…' : 'Save'}
-            </Text>
-          </Pressable>
+          <View style={{ width: 52 }} />
         </View>
 
         <GlassCard style={styles.promptBanner}>
@@ -106,6 +103,15 @@ export default function JournalReflect() {
           autoFocus
           textAlignVertical="top"
         />
+
+        <View style={styles.footer}>
+          <GradientButton
+            label={saving ? 'Saving…' : 'Save Entry'}
+            onPress={save}
+            disabled={!body.trim() || saving}
+            variant="flame"
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -126,10 +132,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md,
   },
-  cancel: { fontFamily: font.sansSemibold, fontSize: 14, color: colors.textFaint },
+  cancel: { fontFamily: font.sansSemibold, fontSize: 14, color: colors.textFaint, minWidth: 52 },
   headerTitle: { fontFamily: font.sansSemibold, fontSize: 16, color: colors.text },
-  saveBtn: { fontFamily: font.sansSemibold, fontSize: 14, color: colors.teal },
-  saveBtnDim: { opacity: 0.35 },
   promptBanner: {
     margin: spacing.lg, padding: spacing.lg,
   },
@@ -137,5 +141,10 @@ const styles = StyleSheet.create({
   input: {
     flex: 1, fontFamily: font.serif, fontSize: 17, color: colors.text,
     paddingHorizontal: spacing.xl, lineHeight: 28,
+  },
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+    paddingTop: spacing.sm,
   },
 });

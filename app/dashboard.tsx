@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, Pressable, SafeAreaView,
   Alert,
@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [recordStart, setRecordStart] = useState(0);
   const [processing, setProcessing] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   const todayMsg = todaysMessage();
   const currentEmotion = todayCheckIn ? getEmotion(todayCheckIn.emotion) : null;
@@ -43,13 +44,27 @@ export default function Dashboard() {
   // ── Voice check-in ─────────────────────────────────────────────────────
 
   async function startVoice() {
-    const perm = await Audio.requestPermissionsAsync();
-    if (perm.status !== 'granted') {
-      Alert.alert('Microphone needed', 'Please allow microphone access to use voice check-in.');
-      return;
+    try {
+      const perm = await Audio.requestPermissionsAsync();
+      if (perm.status !== 'granted') {
+        Alert.alert(
+          'Microphone needed',
+          'Please allow microphone access in your device settings to use voice check-in.',
+        );
+        return;
+      }
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+      setMode('voice-ready');
+      // Scroll so the voice card is visible
+      setTimeout(() => scrollRef.current?.scrollTo({ y: 220, animated: true }), 80);
+    } catch (e) {
+      Alert.alert('Microphone error', 'Could not access the microphone. Please try again.');
     }
-    await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-    setMode('voice-ready');
   }
 
   async function startRecording() {
@@ -148,6 +163,7 @@ export default function Dashboard() {
       <LinearGradient colors={[...gradients.canvas]} style={StyleSheet.absoluteFill} />
 
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >

@@ -5,7 +5,11 @@ import { useStore } from '../../../src/store';
 import { SCHOOLS } from '../../../src/content/schools';
 import { GlassCard } from '../../../src/components/GlassCard';
 import { PressableCard } from '../../../src/components/PressableCard';
-import { colors, font, spacing } from '../../../src/theme/tokens';
+import { GradientButton } from '../../../src/components/GradientButton';
+import { colors, font, spacing, gradients } from '../../../src/theme/tokens';
+
+const fiveTemples = SCHOOLS.find((s) => s.id === 'five-temples')!;
+const otherPaths = SCHOOLS.filter((s) => s.id !== 'five-temples');
 
 export default function JourneyIndex() {
   const activeSchoolId = useStore((s) => s.activeSchoolId);
@@ -15,35 +19,64 @@ export default function JourneyIndex() {
 
   return (
     <SafeAreaView style={styles.root}>
-      <LinearGradient colors={['#0b0e0d', '#090b0b']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={[...gradients.canvas]} style={StyleSheet.absoluteFill} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Pressable onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>‹ Dashboard</Text>
         </Pressable>
         <Text style={styles.title}>Journey</Text>
         <Text style={styles.sub}>
-          Choose a school of thought. Explore its lessons and complete quests to build lasting habits.
+          Choose an inner way and follow its daily lessons. Return each day to deepen the practice.
         </Text>
 
+        {/* Active path card */}
         {activeSchool && (
           <GlassCard strong style={styles.activeCard}>
-            <Text style={styles.activeLabel}>Current school</Text>
+            <Text style={styles.activeLabel}>Your current path</Text>
             <Text style={[styles.activeName, { color: activeSchool.color }]}>{activeSchool.name}</Text>
             <Text style={styles.activeTagline}>{activeSchool.tagline}</Text>
             <Pressable onPress={() => router.push('/(branches)/journey/quest')}>
-              <Text style={styles.questLink}>Today's quest ›</Text>
+              <Text style={styles.questLink}>Today's lesson ›</Text>
             </Pressable>
           </GlassCard>
         )}
 
-        <Text style={styles.sectionTitle}>Schools of Thought</Text>
+        {/* Five Temples — primary featured path */}
+        <Text style={styles.sectionTitle}>The Primary Path</Text>
+        <PressableCard
+          onPress={() => {
+            setActiveSchool(fiveTemples.id);
+            router.push('/(branches)/journey/quest');
+          }}
+          style={styles.featuredCard}
+        >
+          <LinearGradient
+            colors={['rgba(128,35,123,0.28)', 'rgba(31,50,119,0.18)']}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={[styles.featuredBar, { backgroundColor: fiveTemples.color }]} />
+          <View style={styles.featuredText}>
+            <Text style={[styles.featuredName, { color: fiveTemples.color }]}>{fiveTemples.name}</Text>
+            <Text style={styles.featuredTagline}>{fiveTemples.tagline}</Text>
+            <Text style={styles.featuredDesc}>{fiveTemples.description}</Text>
+            <View style={styles.virtueRow}>
+              {fiveTemples.coreVirtues.map((v) => (
+                <Text key={v} style={[styles.virtue, styles.virtueFeatured]}>{v}</Text>
+              ))}
+            </View>
+          </View>
+          {activeSchoolId === fiveTemples.id && <Text style={styles.activeCheck}>✓</Text>}
+        </PressableCard>
+
+        {/* Other inner ways */}
+        <Text style={styles.sectionTitle}>The Inner Ways</Text>
         <View style={styles.schools}>
-          {SCHOOLS.map((school) => (
+          {otherPaths.map((school) => (
             <PressableCard
               key={school.id}
               onPress={() => {
                 setActiveSchool(school.id);
-                router.push(`/(branches)/journey/school/${school.id}` as any);
+                router.push('/(branches)/journey/quest');
               }}
               style={styles.schoolCard}
             >
@@ -61,6 +94,17 @@ export default function JourneyIndex() {
             </PressableCard>
           ))}
         </View>
+
+        {!activeSchool && (
+          <GradientButton
+            label="Begin with The Five Temples"
+            variant="flame"
+            onPress={() => {
+              setActiveSchool(fiveTemples.id);
+              router.push('/(branches)/journey/quest');
+            }}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -79,6 +123,15 @@ const styles = StyleSheet.create({
   activeTagline: { fontFamily: font.serif, fontSize: 14, color: colors.textMuted },
   questLink: { fontFamily: font.sansSemibold, fontSize: 13, color: colors.amber, marginTop: spacing.sm },
   sectionTitle: { fontFamily: font.sansSemibold, fontSize: 11, color: colors.textFaint, letterSpacing: 1.2, textTransform: 'uppercase' },
+
+  featuredCard: { flexDirection: 'row', alignItems: 'center', overflow: 'hidden', borderRadius: 18 },
+  featuredBar: { width: 5, alignSelf: 'stretch' },
+  featuredText: { flex: 1, padding: spacing.xl, gap: spacing.xs },
+  featuredName: { fontFamily: font.display, fontSize: 20 },
+  featuredTagline: { fontFamily: font.serif, fontSize: 14, color: colors.textMuted, fontStyle: 'italic' },
+  featuredDesc: { fontFamily: font.serif, fontSize: 13, color: colors.textFaint, lineHeight: 20, marginTop: spacing.xs },
+  virtueFeatured: { borderColor: 'rgba(177,95,176,0.30)', borderWidth: 1 },
+
   schools: { gap: spacing.sm },
   schoolCard: { flexDirection: 'row', alignItems: 'center', overflow: 'hidden' },
   schoolBar: { width: 4, alignSelf: 'stretch' },
