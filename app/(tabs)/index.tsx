@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, Pressable, SafeAreaView, Alert,
+  View, Text, ScrollView, StyleSheet, Pressable, SafeAreaView, Alert, Animated,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -62,8 +62,33 @@ export default function HomeTab() {
   const [pendingCheckin, setPendingCheckin] = useState<CheckIn | null>(null);
   const [pendingIsVoice, setPendingIsVoice] = useState(false);
   const [selectedFactors, setSelectedFactors] = useState<string[]>([]);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const scrollRef = useRef<ScrollView>(null);
+  const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scrollRef    = useRef<ScrollView>(null);
+  const pulseScale   = useRef(new Animated.Value(1)).current;
+  const pulseOpacity = useRef(new Animated.Value(1)).current;
+
+  // Recording dot pulse
+  useEffect(() => {
+    if (mode !== 'recording') {
+      pulseScale.setValue(1);
+      pulseOpacity.setValue(1);
+      return;
+    }
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(pulseScale,   { toValue: 1.65, duration: 720, useNativeDriver: true }),
+          Animated.timing(pulseOpacity, { toValue: 0.28, duration: 720, useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(pulseScale,   { toValue: 1.0,  duration: 720, useNativeDriver: true }),
+          Animated.timing(pulseOpacity, { toValue: 1.0,  duration: 720, useNativeDriver: true }),
+        ]),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [mode]);
 
   const todayMsg = todaysMessage();
   const needsBaseline = !baseline;
@@ -269,7 +294,10 @@ export default function HomeTab() {
       return (
         <GlassCard style={styles.actionCard}>
           <View style={styles.recordRow}>
-            <View style={styles.recordDot} />
+            <Animated.View style={[styles.recordDot, {
+              transform: [{ scale: pulseScale }],
+              opacity: pulseOpacity,
+            }]} />
             <Text style={styles.actionHeading}>Recording…</Text>
           </View>
           <Text style={styles.actionSub}>Speak naturally. Tap Done when finished.</Text>
@@ -385,6 +413,13 @@ export default function HomeTab() {
   return (
     <SafeAreaView style={styles.root}>
       <LinearGradient colors={[...gradients.canvas]} style={StyleSheet.absoluteFill} />
+      {/* Atmospheric brand glow — very faint violet at top, fades to nothing */}
+      <LinearGradient
+        colors={['rgba(128,35,123,0.18)', 'rgba(48,133,172,0.06)', 'rgba(0,0,0,0)']}
+        style={[StyleSheet.absoluteFill, { height: 340 }]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
       <ResonanceMoment />
 
       <ScrollView

@@ -239,6 +239,12 @@ export default function SignalTab() {
   return (
     <SafeAreaView style={styles.root}>
       <LinearGradient colors={[...gradients.canvas]} style={StyleSheet.absoluteFill} />
+      <LinearGradient
+        colors={['rgba(84,104,196,0.14)', 'rgba(48,133,172,0.06)', 'rgba(0,0,0,0)']}
+        style={[StyleSheet.absoluteFill, { height: 320 }]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* ── Header ── */}

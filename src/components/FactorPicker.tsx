@@ -1,5 +1,8 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { FACTORS } from '../content/factors';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withSpring,
+} from 'react-native-reanimated';
+import { FACTORS, type Factor } from '../content/factors';
 import { colors, font, radius, spacing } from '../theme/tokens';
 
 interface Props {
@@ -7,24 +10,46 @@ interface Props {
   onToggle: (id: string) => void;
 }
 
+interface ChipProps {
+  factor: Factor;
+  active: boolean;
+  onToggle: () => void;
+}
+
+function FactorChip({ factor, active, onToggle }: ChipProps) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animStyle}>
+      <Pressable
+        onPress={onToggle}
+        onPressIn={() => { scale.value = withSpring(0.90, { stiffness: 520, damping: 18 }); }}
+        onPressOut={() => { scale.value = withSpring(1,    { stiffness: 380, damping: 16 }); }}
+        style={[styles.chip, active && styles.chipActive]}
+      >
+        <Text style={styles.emoji}>{factor.emoji}</Text>
+        <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
+          {factor.label}
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 export function FactorPicker({ selected, onToggle }: Props) {
   return (
     <View style={styles.grid}>
-      {FACTORS.map((f) => {
-        const active = selected.includes(f.id);
-        return (
-          <Pressable
-            key={f.id}
-            onPress={() => onToggle(f.id)}
-            style={[styles.chip, active && styles.chipActive]}
-          >
-            <Text style={styles.emoji}>{f.emoji}</Text>
-            <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
-              {f.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+      {FACTORS.map((f) => (
+        <FactorChip
+          key={f.id}
+          factor={f}
+          active={selected.includes(f.id)}
+          onToggle={() => onToggle(f.id)}
+        />
+      ))}
     </View>
   );
 }

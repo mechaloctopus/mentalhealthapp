@@ -1,5 +1,5 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated } from 'react-native';
 import Svg, { Polygon, Line, Circle, Text as SvgText } from 'react-native-svg';
 import type { VoiceFeatures } from '../engine/voice';
 import { colors, font } from '../theme/tokens';
@@ -51,6 +51,17 @@ export function VocalRadar({ today, baseline, size = 220 }: Props) {
   const labelR = size * 0.475;
   const N = AXES.length;
 
+  // Draw-in animation on mount
+  const enterScale   = useRef(new Animated.Value(0.72)).current;
+  const enterOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(enterScale,   { toValue: 1, tension: 55, friction: 10, useNativeDriver: true }),
+      Animated.timing(enterOpacity, { toValue: 1, duration: 520, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
   function angleRad(i: number): number {
     return ((i * 360) / N - 90) * (Math.PI / 180);
   }
@@ -77,7 +88,11 @@ export function VocalRadar({ today, baseline, size = 220 }: Props) {
   }
 
   return (
-    <View style={{ width: size, height: size }}>
+    <Animated.View style={{
+      width: size, height: size,
+      opacity: enterOpacity,
+      transform: [{ scale: enterScale }],
+    }}>
       <Svg width={size} height={size}>
         {/* Grid rings at 33 / 66 / 100 % */}
         {[33, 66, 100].map((pct) => (
@@ -85,7 +100,7 @@ export function VocalRadar({ today, baseline, size = 220 }: Props) {
             stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
         ))}
 
-        {/* Axis lines */}
+        {/* Axis spokes */}
         {AXES.map((_, i) => {
           const { x, y } = pt(i, 100);
           return <Line key={i} x1={cx} y1={cy} x2={x} y2={y}
@@ -127,6 +142,6 @@ export function VocalRadar({ today, baseline, size = 220 }: Props) {
           );
         })}
       </Svg>
-    </View>
+    </Animated.View>
   );
 }

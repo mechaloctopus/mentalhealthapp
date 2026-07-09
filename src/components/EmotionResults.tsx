@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { rankEmotions } from '../content/emotions';
 import { baselineShift } from '../engine/voice';
 import { GlassCard } from './GlassCard';
@@ -32,22 +32,50 @@ export function EmotionResults({ affect, baseline, isBaselineResult = false, onD
     : affect.stress === 'Mild' ? colors.amber
     : colors.teal;
 
+  // ── Entrance animations ──────────────────────────────────────────────
+  const nameOpacity  = useRef(new Animated.Value(0)).current;
+  const nameSlide    = useRef(new Animated.Value(10)).current;
+  const barAnims     = useRef(ranked.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      // Primary emotion name fades + slides up
+      Animated.timing(nameOpacity, { toValue: 1, duration: 380, useNativeDriver: true }),
+      Animated.spring(nameSlide,   { toValue: 0, tension: 80, friction: 12, useNativeDriver: true }),
+      // Bars stagger in from 0 → target width
+      Animated.stagger(45,
+        barAnims.map((anim) =>
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 480,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+          })
+        )
+      ),
+    ]).start();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <GlassCard strong style={styles.card}>
+    <GlassCard strong blur style={styles.card}>
       {isBaselineResult ? (
         <Text style={styles.headerLabel}>BASELINE CAPTURED</Text>
       ) : (
         <Text style={styles.headerLabel}>TODAY'S SIGNAL</Text>
       )}
 
-      {/* Primary emotion */}
-      <View style={styles.primaryRow}>
+      {/* Primary emotion — animated entrance */}
+      <Animated.View style={[styles.primaryRow, {
+        opacity: nameOpacity,
+        transform: [{ translateY: nameSlide }],
+      }]}>
         <View style={[styles.primaryDot, { backgroundColor: primary.color }]} />
         <Text style={[styles.primaryName, { color: primary.color }]}>{primary.label}</Text>
-      </View>
+      </Animated.View>
       <Text style={styles.blurb}>{primary.blurb}</Text>
 
-      {/* Meta row: confidence · stress · baseline shift */}
+      {/* Meta row */}
       <View style={styles.metaRow}>
         <Text style={styles.metaChip}>{confidenceLabel}</Text>
         <Text style={[styles.metaChip, { color: stressColor }]}>
@@ -66,27 +94,25 @@ export function EmotionResults({ affect, baseline, isBaselineResult = false, onD
         </Text>
       )}
 
-      {/* 12-emotion signal bars */}
+      {/* 12-emotion signal bars — staggered entrance */}
       <Text style={styles.sectionLabel}>Signal across all 12 tones</Text>
       <View style={styles.bars}>
         {ranked.map(({ emotion, score }, i) => {
           const isPrimary = i === 0;
-          const barWidth = topScore > 0 ? (score / topScore) * 100 : 0;
+          const barWidth  = topScore > 0 ? (score / topScore) * 100 : 0;
           return (
             <View key={emotion.id} style={styles.barRow}>
               <Text style={[styles.barLabel, isPrimary && { color: emotion.color }]}>
                 {emotion.label}
               </Text>
               <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      width: `${barWidth}%`,
-                      backgroundColor: isPrimary ? emotion.color : `${emotion.color}55`,
-                    },
-                  ]}
-                />
+                <Animated.View style={[styles.barFill, {
+                  width: barAnims[i]!.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0%', `${barWidth}%`],
+                  }),
+                  backgroundColor: isPrimary ? emotion.color : `${emotion.color}55`,
+                }]} />
               </View>
               <Text style={styles.barScore}>{score}</Text>
             </View>
