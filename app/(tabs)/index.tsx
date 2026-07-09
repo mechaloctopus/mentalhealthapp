@@ -9,7 +9,7 @@ import { useStore } from '../../src/store';
 import { getEmotion } from '../../src/content/emotions';
 import { todaysMessage } from '../../src/content/messages';
 import { analyzeVoice, buildCheckIn, buildSelfCheckIn } from '../../src/engine/voice';
-import type { Affect } from '../../src/engine/voice';
+import type { Affect, CheckIn } from '../../src/engine/voice';
 import { recommend } from '../../src/engine/recommend';
 import { saveCheckIn, saveBaseline } from '../../src/db';
 import { awardResonance } from '../../src/lib/resonance';
@@ -20,6 +20,7 @@ import { EmotionWheel } from '../../src/components/EmotionWheel';
 import { BreathingGuide } from '../../src/components/BreathingGuide';
 import { EmotionResults } from '../../src/components/EmotionResults';
 import { ResonanceMoment } from '../../src/components/ResonanceMoment';
+import { FactorPicker } from '../../src/components/FactorPicker';
 import { colors, font, radius, spacing, gradients } from '../../src/theme/tokens';
 
 type CheckInMode =
@@ -29,6 +30,7 @@ type CheckInMode =
   | 'voice-ready'
   | 'recording'
   | 'self'
+  | 'factors'
   | 'results';
 
 const PRACTICES = [
@@ -57,6 +59,9 @@ export default function HomeTab() {
   const [recordStart, setRecordStart] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [lastAffect, setLastAffect] = useState<Affect | null>(null);
+  const [pendingCheckin, setPendingCheckin] = useState<CheckIn | null>(null);
+  const [pendingIsVoice, setPendingIsVoice] = useState(false);
+  const [selectedFactors, setSelectedFactors] = useState<string[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -140,28 +145,31 @@ export default function HomeTab() {
       }
 
       const checkin = buildCheckIn({ affect, baseline });
-      addCheckIn(checkin);
-      await saveCheckIn({
-        id: checkin.id, at: checkin.at, emotion: checkin.emotion,
-        valence: checkin.valence, arousal: checkin.arousal,
-        energy: checkin.energy, calmness: checkin.calmness, stability: checkin.stability,
-        stress: checkin.stress, confidence: checkin.confidence,
-        voice_emotion: checkin.voiceEmotion, self_emotion: checkin.selfEmotion ?? null,
-        note: checkin.note ?? null, factors: checkin.factors ?? null,
-        source: checkin.source, baseline_shift: checkin.baselineShift,
-        voice_features: checkin.voiceFeatures ? JSON.stringify(checkin.voiceFeatures) : null,
-      });
-      await awardResonance('CHECKIN_VOICE');
-      setMode('results');
+      setPendingCheckin(checkin);
+      setPendingIsVoice(true);
+      setSelectedFactors([]);
+      setMode('factors');
     } finally {
       setProcessing(false);
       setRecording(null);
     }
   }
 
-  async function confirmSelf() {
+  function confirmSelf() {
     if (!selectedEmotion) return;
     const checkin = buildSelfCheckIn(selectedEmotion);
+    setPendingCheckin(checkin);
+    setPendingIsVoice(false);
+    setSelectedFactors([]);
+    setSelectedEmotion(undefined);
+    setMode('factors');
+  }
+
+  async function confirmFactors() {
+    if (!pendingCheckin) return;
+    const checkin: CheckIn = selectedFactors.length > 0
+      ? { ...pendingCheckin, factors: selectedFactors }
+      : pendingCheckin;
     addCheckIn(checkin);
     await saveCheckIn({
       id: checkin.id, at: checkin.at, emotion: checkin.emotion,
@@ -169,12 +177,14 @@ export default function HomeTab() {
       energy: checkin.energy, calmness: checkin.calmness, stability: checkin.stability,
       stress: checkin.stress, confidence: checkin.confidence,
       voice_emotion: checkin.voiceEmotion, self_emotion: checkin.selfEmotion ?? null,
-      note: null, factors: null, source: 'self', baseline_shift: 0,
-      voice_features: null,
+      note: checkin.note ?? null, factors: checkin.factors ?? null,
+      source: checkin.source, baseline_shift: checkin.baselineShift,
+      voice_features: checkin.voiceFeatures ? JSON.stringify(checkin.voiceFeatures) : null,
     });
-    await awardResonance('CHECKIN_SELF');
-    setMode('idle');
-    setSelectedEmotion(undefined);
+    await awardResonance(pendingIsVoice ? 'CHECKIN_VOICE' : 'CHECKIN_SELF');
+    setPendingCheckin(null);
+    setSelectedFactors([]);
+    setMode(pendingIsVoice ? 'results' : 'idle');
   }
 
   const handleBreathingComplete = useCallback(() => {
@@ -220,6 +230,37 @@ export default function HomeTab() {
           </Text>
           <GradientButton label="Tap to Record" variant="flame" onPress={startRecording} />
           <GradientButton label="Cancel" variant="ghost" onPress={() => setMode('idle')} />
+        </GlassCard>
+      );
+    }
+
+    if (mode === 'factors' && pendingCheckin) {
+      const emotion = getEmotion(pendingCheckin.emotion);
+      return (
+        <GlassCard style={styles.actionCard}>
+          <View style={styles.factorHeader}>
+            <View style={[styles.emotionDot, { backgroundColor: emotion.color }]} />
+            <Text style={[styles.emotionName, { color: emotion.color, fontSize: 20 }]}>
+              {emotion.label}
+            </Text>
+          </View>
+          <Text style={styles.actionHeading}>What shaped this?</Text>
+          <Text style={styles.actionSub}>
+            Tag what came before. Over time, patterns emerge.
+          </Text>
+          <FactorPicker
+            selected={selectedFactors}
+            onToggle={(id) => setSelectedFactors((prev) =>
+              prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id],
+            )}
+          />
+          <GradientButton
+            label={selectedFactors.length > 0
+              ? `Done · ${selectedFactors.length} tagged`
+              : 'Skip for now'}
+            variant={selectedFactors.length > 0 ? 'teal' : 'ghost'}
+            onPress={confirmFactors}
+          />
         </GlassCard>
       );
     }
@@ -450,6 +491,7 @@ const styles = StyleSheet.create({
   },
 
   actionCard: { padding: spacing.xl, gap: spacing.md, overflow: 'hidden' },
+  factorHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   baselineTag: {
     fontFamily: font.sansSemibold, fontSize: 10,
     color: colors.violet, letterSpacing: 1.6,
