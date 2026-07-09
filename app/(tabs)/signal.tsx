@@ -235,13 +235,6 @@ export default function SignalTab() {
   // Voice-only for biomarker averages
   const voiceCheckins = last30.filter((c) => c.source === 'voice');
 
-  // Voice-vs-self agreement
-  const agreementRate = useMemo(() => {
-    const voice = recentCheckIns.filter((c) => c.source === 'voice' && c.selfEmotion);
-    if (voice.length < 3) return null;
-    const agree = voice.filter((c) => c.voiceEmotion === c.selfEmotion).length;
-    return Math.round((agree / voice.length) * 100);
-  }, [recentCheckIns]);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -320,12 +313,6 @@ export default function SignalTab() {
                       <MiniStat label="Entropy" value={todayCheckIn.voiceFeatures.temporalEntropy} />
                       <MiniStat label="Pause" value={todayCheckIn.voiceFeatures.pauseIndex} />
                       <MiniStat label="Slope" value={todayCheckIn.voiceFeatures.prosodicSlope} />
-                    </>
-                  )}
-                  {agreementRate !== null && (
-                    <>
-                      <View style={styles.miniDivider} />
-                      <MiniStat label="V↔S agree" value={agreementRate} unit="%" />
                     </>
                   )}
                 </View>

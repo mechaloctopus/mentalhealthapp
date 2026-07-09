@@ -98,9 +98,15 @@ export default function RootLayout() {
           tone: r.emotion,
           baselineShift: r.baseline_shift,
           note: r.note ?? undefined,
-          factors: typeof r.factors === 'string' ? JSON.parse(r.factors) : undefined,
+          factors: (() => {
+            if (typeof r.factors !== 'string') return undefined;
+            try { return JSON.parse(r.factors) as string[]; } catch { return undefined; }
+          })(),
           source: r.source,
-          voiceFeatures: typeof r.voice_features === 'string' ? JSON.parse(r.voice_features) : undefined,
+          voiceFeatures: (() => {
+            if (typeof r.voice_features !== 'string') return undefined;
+            try { return JSON.parse(r.voice_features); } catch { return undefined; }
+          })(),
         }));
         setRecentCheckIns(checkins);
 
