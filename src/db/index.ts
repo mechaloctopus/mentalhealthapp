@@ -1,4 +1,5 @@
 // expo-sqlite database layer for MoodSignal v2.
+// NOTE: imports from '../engine/voice' are safe — no circular dependency.
 // Single file: schema definition, migrations, and typed query helpers.
 
 import * as SQLite from 'expo-sqlite';
@@ -203,4 +204,25 @@ export async function getMeta(key: string): Promise<string | null> {
     key,
   );
   return row?.value ?? null;
+}
+
+// ── Baseline helpers ───────────────────────────────────────────────────────
+
+export interface StoredBaseline {
+  energy: number;
+  calmness: number;
+  stability: number;
+  valence: number;
+  arousal: number;
+  capturedAt: number;
+}
+
+export async function saveBaseline(b: StoredBaseline): Promise<void> {
+  await setMeta('baseline', JSON.stringify(b));
+}
+
+export async function getBaseline(): Promise<StoredBaseline | null> {
+  const raw = await getMeta('baseline');
+  if (!raw) return null;
+  try { return JSON.parse(raw) as StoredBaseline; } catch { return null; }
 }

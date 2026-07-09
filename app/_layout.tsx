@@ -19,7 +19,7 @@ import {
   OpenSans_700Bold,
 } from '@expo-google-fonts/open-sans';
 import * as SplashScreen from 'expo-splash-screen';
-import { initDb } from '../src/db';
+import { initDb, getBaseline } from '../src/db';
 import { getStoredUser, isOnboarded } from '../src/lib/auth';
 import { useStore } from '../src/store';
 import { getReminderHour } from '../src/lib/notifications';
@@ -45,6 +45,7 @@ export default function RootLayout() {
   const setLoading = useStore((s) => s.setLoading);
   const setOnboarded = useStore((s) => s.setOnboarded);
   const setReminderHour = useStore((s) => s.setReminderHour);
+  const setBaseline = useStore((s) => s.setBaseline);
   const setRecentCheckIns = useStore((s) => s.setRecentCheckIns);
   const setRecentEntries = useStore((s) => s.setRecentEntries);
 
@@ -52,10 +53,11 @@ export default function RootLayout() {
     async function boot() {
       try {
         await initDb();
-        const [user, onboarded, reminderHour, rawCheckins, rawEntries] = await Promise.all([
+        const [user, onboarded, reminderHour, storedBaseline, rawCheckins, rawEntries] = await Promise.all([
           getStoredUser(),
           isOnboarded(),
           getReminderHour(),
+          getBaseline(),
           getRecentCheckIns(90),
           getRecentJournalEntries(60),
         ]);
@@ -63,8 +65,8 @@ export default function RootLayout() {
         setUser(user);
         setOnboarded(onboarded);
         setReminderHour(reminderHour);
+        setBaseline(storedBaseline);
 
-        // Map db rows to engine types
         const checkins: CheckIn[] = rawCheckins.map((r) => ({
           id: r.id,
           at: r.at,

@@ -240,3 +240,13 @@ export function matchEmotion(valence: number, arousal: number, baseConfidence = 
   const confidence = Math.max(0.1, Math.min(1, baseConfidence * (0.55 * closeness + 0.45 * separation)));
   return { primary, secondary, confidence };
 }
+
+// Returns all 12 emotions ranked by proximity to the voice analysis point,
+// with a 0–100 score where 100 = exact match.
+export function rankEmotions(valence: number, arousal: number): Array<{ emotion: Emotion; score: number }> {
+  const MAX_DIST = Math.sqrt(8); // max possible distance in a −1..1 × −1..1 space
+  return EMOTIONS
+    .map((e) => ({ emotion: e, d: dist({ valence, arousal }, e) }))
+    .sort((a, b) => a.d - b.d)
+    .map(({ emotion, d }) => ({ emotion, score: Math.max(0, Math.round((1 - d / MAX_DIST) * 100)) }));
+}
