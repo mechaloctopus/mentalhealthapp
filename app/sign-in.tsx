@@ -21,7 +21,7 @@ export default function SignIn() {
       setUser(user);
       const onboarded = await isOnboarded();
       setOnboarded(onboarded);
-      router.replace(onboarded ? '/dashboard' : '/onboarding');
+      router.replace(onboarded ? '/(tabs)/' : '/onboarding');
     } finally {
       setLoading(false);
     }

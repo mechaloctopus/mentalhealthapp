@@ -42,7 +42,7 @@ export default function Onboarding() {
   async function handleFinish() {
     await markOnboarded();
     setOnboarded(true);
-    router.replace('/dashboard');
+    router.replace('/(tabs)/');
   }
 
   return (

@@ -36,10 +36,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['happy', 'delighted', 'playful', 'elated'],
     inverse: false,
     activities: [
-      a('savor', 'Savoring practice', '/(branches)/practices/stillness', 10, ['Mindfulness']),
-      a('gratitude-joy', 'Gratitude capture', '/(branches)/journal/reflect', 10, ['Wisdom']),
-      a('share-win', 'Share-a-win journal', '/(branches)/journal/write', 8, ['Relationships']),
-      a('sound-joy', 'Uplift soundscape', '/(branches)/practices/sound', 8, ['Flow']),
+      a('savor', 'Savoring practice', '/practices/stillness', 10, ['Mindfulness']),
+      a('gratitude-joy', 'Gratitude capture', '/(tabs)/journal/reflect', 10, ['Wisdom']),
+      a('share-win', 'Share-a-win journal', '/(tabs)/journal/write', 8, ['Relationships']),
+      a('sound-joy', 'Uplift soundscape', '/practices/sound', 8, ['Flow']),
     ],
   },
   {
@@ -51,10 +51,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['relaxed', 'peaceful', 'grounded', 'serene'],
     inverse: false,
     activities: [
-      a('body-scan', 'Body scan', '/(branches)/practices/stillness', 10, ['Mindfulness']),
-      a('exhale-calm', 'Extended exhale', '/(branches)/practices/breath', 8, ['Mindfulness']),
-      a('sleep-sound', 'Sleep soundscape', '/(branches)/practices/sleep', 8, ['Flow']),
-      a('journal-calm', 'Still reflection', '/(branches)/journal/write', 8, ['Wisdom']),
+      a('body-scan', 'Body scan', '/practices/stillness', 10, ['Mindfulness']),
+      a('exhale-calm', 'Extended exhale', '/practices/breath', 8, ['Mindfulness']),
+      a('sleep-sound', 'Sleep soundscape', '/practices/sleep', 8, ['Flow']),
+      a('journal-calm', 'Still reflection', '/(tabs)/journal/write', 8, ['Wisdom']),
     ],
   },
   {
@@ -66,10 +66,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['alive', 'energized', 'motivated', 'ready'],
     inverse: false,
     activities: [
-      a('movement', 'Movement quest', '/(branches)/journey/quest', 12, ['Fitness']),
-      a('activation-breath', 'Activation breath', '/(branches)/practices/breath', 10, ['Fitness']),
-      a('flow-sprint', 'Single-task sprint', '/(branches)/journey/quest', 10, ['Flow']),
-      a('sound-energy', 'Energizing sound', '/(branches)/practices/sound', 8, ['Flow']),
+      a('movement', 'Movement quest', '/(tabs)/journey/quest', 12, ['Fitness']),
+      a('activation-breath', 'Activation breath', '/practices/breath', 10, ['Fitness']),
+      a('flow-sprint', 'Single-task sprint', '/(tabs)/journey/quest', 10, ['Flow']),
+      a('sound-energy', 'Energizing sound', '/practices/sound', 8, ['Flow']),
     ],
   },
   {
@@ -81,10 +81,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['capable', 'strong', 'assured', 'grounded'],
     inverse: false,
     activities: [
-      a('strengths', 'Strengths reflection', '/(branches)/journal/reflect', 10, ['Wisdom', 'Leadership']),
-      a('small-win', 'Small-win quest', '/(branches)/journey/quest', 10, ['Purpose']),
-      a('power-posture', 'Power posture practice', '/(branches)/practices/stillness', 8, ['Fitness']),
-      a('meta-conf', 'Loving-kindness', '/(branches)/practices/loving-kindness', 8, ['Compassion']),
+      a('strengths', 'Strengths reflection', '/(tabs)/journal/reflect', 10, ['Wisdom', 'Leadership']),
+      a('small-win', 'Small-win quest', '/(tabs)/journey/quest', 10, ['Purpose']),
+      a('power-posture', 'Power posture practice', '/practices/stillness', 8, ['Fitness']),
+      a('meta-conf', 'Loving-kindness', '/practices/loving-kindness', 8, ['Compassion']),
     ],
   },
   {
@@ -96,10 +96,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['thankful', 'moved', 'blessed', 'tender'],
     inverse: false,
     activities: [
-      a('three-good', 'Three good things', '/(branches)/journal/reflect', 10, ['Wisdom']),
-      a('thanks-letter', 'Letter of thanks', '/(branches)/journal/write', 12, ['Relationships', 'Compassion']),
-      a('appreciation-quest', 'Appreciation quest', '/(branches)/journey/quest', 10, ['Service']),
-      a('meta-grat', 'Loving-kindness', '/(branches)/practices/loving-kindness', 10, ['Compassion']),
+      a('three-good', 'Three good things', '/(tabs)/journal/reflect', 10, ['Wisdom']),
+      a('thanks-letter', 'Letter of thanks', '/(tabs)/journal/write', 12, ['Relationships', 'Compassion']),
+      a('appreciation-quest', 'Appreciation quest', '/(tabs)/journey/quest', 10, ['Service']),
+      a('meta-grat', 'Loving-kindness', '/practices/loving-kindness', 10, ['Compassion']),
     ],
   },
   {
@@ -111,10 +111,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['loved', 'seen', 'belonging', 'close'],
     inverse: false,
     activities: [
-      a('meta-conn', 'Loving-kindness practice', '/(branches)/practices/loving-kindness', 12, ['Compassion', 'Relationships']),
-      a('reach-out', 'Reach-out quest', '/(branches)/journey/quest', 10, ['Relationships', 'Service']),
-      a('compassion-j', 'Compassion journal', '/(branches)/journal/reflect', 10, ['Compassion']),
-      a('sound-conn', 'Warm soundscape', '/(branches)/practices/sound', 8, ['Flow']),
+      a('meta-conn', 'Loving-kindness practice', '/practices/loving-kindness', 12, ['Compassion', 'Relationships']),
+      a('reach-out', 'Reach-out quest', '/(tabs)/journey/quest', 10, ['Relationships', 'Service']),
+      a('compassion-j', 'Compassion journal', '/(tabs)/journal/reflect', 10, ['Compassion']),
+      a('sound-conn', 'Warm soundscape', '/practices/sound', 8, ['Flow']),
     ],
   },
   {
@@ -126,10 +126,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['sharp', 'absorbed', 'clear', 'present'],
     inverse: false,
     activities: [
-      a('sprint', 'Single-task sprint', '/(branches)/journey/quest', 10, ['Flow', 'Leadership']),
-      a('sound-focus', 'Focus soundscape', '/(branches)/practices/sound', 8, ['Flow']),
-      a('flow-quest', 'Flow-state quest', '/(branches)/journey/quest', 12, ['Flow', 'Creativity']),
-      a('breath-focus', 'Breath anchor', '/(branches)/practices/breath', 8, ['Mindfulness']),
+      a('sprint', 'Single-task sprint', '/(tabs)/journey/quest', 10, ['Flow', 'Leadership']),
+      a('sound-focus', 'Focus soundscape', '/practices/sound', 8, ['Flow']),
+      a('flow-quest', 'Flow-state quest', '/(tabs)/journey/quest', 12, ['Flow', 'Creativity']),
+      a('breath-focus', 'Breath anchor', '/practices/breath', 8, ['Mindfulness']),
     ],
   },
   {
@@ -141,10 +141,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['expectant', 'purposeful', 'optimistic', 'inspired'],
     inverse: false,
     activities: [
-      a('purpose-prompt', 'Purpose-through-care prompt', '/(branches)/journal/reflect', 12, ['Purpose', 'Wisdom']),
-      a('wisdom-step', 'Wisdom path step', '/(branches)/journey', 10, ['Wisdom']),
-      a('mission-review', 'Mission review', '/(branches)/journey', 10, ['Purpose', 'Leadership']),
-      a('meta-hope', 'Loving-kindness', '/(branches)/practices/loving-kindness', 8, ['Compassion']),
+      a('purpose-prompt', 'Purpose-through-care prompt', '/(tabs)/journal/reflect', 12, ['Purpose', 'Wisdom']),
+      a('wisdom-step', 'Wisdom path step', '/(tabs)/journey', 10, ['Wisdom']),
+      a('mission-review', 'Mission review', '/(tabs)/journey', 10, ['Purpose', 'Leadership']),
+      a('meta-hope', 'Loving-kindness', '/practices/loving-kindness', 8, ['Compassion']),
     ],
   },
   {
@@ -156,10 +156,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['pressured', 'flooded', 'frazzled', 'tightly wound'],
     inverse: true,
     activities: [
-      a('box-breath', 'Box breathing', '/(branches)/practices/breath', 10, ['Mindfulness']),
-      a('brain-dump', 'Brain-dump journal', '/(branches)/journal/write', 8, ['Wisdom']),
-      a('stillness-stress', 'Stillness', '/(branches)/practices/stillness', 10, ['Mindfulness']),
-      a('sound-stress', 'Calming sound', '/(branches)/practices/sound', 8, ['Flow']),
+      a('box-breath', 'Box breathing', '/practices/breath', 10, ['Mindfulness']),
+      a('brain-dump', 'Brain-dump journal', '/(tabs)/journal/write', 8, ['Wisdom']),
+      a('stillness-stress', 'Stillness', '/practices/stillness', 10, ['Mindfulness']),
+      a('sound-stress', 'Calming sound', '/practices/sound', 8, ['Flow']),
     ],
   },
   {
@@ -171,10 +171,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['down', 'blue', 'disappointed', 'hurt', 'grief'],
     inverse: true,
     activities: [
-      a('activation', 'Behavioral-activation quest', '/(branches)/journey/quest', 10, ['Fitness', 'Purpose']),
-      a('reflection-sad', 'Guided reflection', '/(branches)/journal/reflect', 10, ['Wisdom']),
-      a('movement-sad', 'Gentle movement', '/(branches)/journey/quest', 8, ['Fitness']),
-      a('meta-sad', 'Loving-kindness', '/(branches)/practices/loving-kindness', 12, ['Compassion']),
+      a('activation', 'Behavioral-activation quest', '/(tabs)/journey/quest', 10, ['Fitness', 'Purpose']),
+      a('reflection-sad', 'Guided reflection', '/(tabs)/journal/reflect', 10, ['Wisdom']),
+      a('movement-sad', 'Gentle movement', '/(tabs)/journey/quest', 8, ['Fitness']),
+      a('meta-sad', 'Loving-kindness', '/practices/loving-kindness', 12, ['Compassion']),
     ],
   },
   {
@@ -186,10 +186,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['nervous', 'worried', 'restless', 'uneasy', 'apprehensive'],
     inverse: true,
     activities: [
-      a('grounding', 'Grounding 5-4-3-2-1', '/(branches)/practices/stillness', 10, ['Mindfulness']),
-      a('paced-breath', 'Paced breathing', '/(branches)/practices/breath', 10, ['Mindfulness']),
-      a('reframe', 'Worry-reframe coach', '/(branches)/journal/reflect', 10, ['Wisdom']),
-      a('sound-anxiety', 'Calming sound', '/(branches)/practices/sound', 8, ['Flow']),
+      a('grounding', 'Grounding 5-4-3-2-1', '/practices/stillness', 10, ['Mindfulness']),
+      a('paced-breath', 'Paced breathing', '/practices/breath', 10, ['Mindfulness']),
+      a('reframe', 'Worry-reframe coach', '/(tabs)/journal/reflect', 10, ['Wisdom']),
+      a('sound-anxiety', 'Calming sound', '/practices/sound', 8, ['Flow']),
     ],
   },
   {
@@ -201,10 +201,10 @@ export const EMOTIONS: Emotion[] = [
     nuance: ['annoyed', 'irritated', 'furious', 'resentful'],
     inverse: true,
     activities: [
-      a('discharge', 'Physical discharge quest', '/(branches)/journey/quest', 10, ['Fitness']),
-      a('cool-breath', 'Cooling breath', '/(branches)/practices/breath', 10, ['Mindfulness']),
-      a('reframe-anger', 'Reframe reflection', '/(branches)/journal/reflect', 10, ['Wisdom']),
-      a('still-anger', 'Stillness', '/(branches)/practices/stillness', 8, ['Mindfulness']),
+      a('discharge', 'Physical discharge quest', '/(tabs)/journey/quest', 10, ['Fitness']),
+      a('cool-breath', 'Cooling breath', '/practices/breath', 10, ['Mindfulness']),
+      a('reframe-anger', 'Reframe reflection', '/(tabs)/journal/reflect', 10, ['Wisdom']),
+      a('still-anger', 'Stillness', '/practices/stillness', 8, ['Mindfulness']),
     ],
   },
 ];

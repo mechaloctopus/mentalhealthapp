@@ -17,7 +17,7 @@ export default function BootGate() {
     } else if (!onboarded) {
       router.replace('/onboarding');
     } else {
-      router.replace('/dashboard');
+      router.replace('/(tabs)/');
     }
   }, [isLoading, user, onboarded]);
 

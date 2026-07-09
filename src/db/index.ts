@@ -206,6 +206,81 @@ export async function getMeta(key: string): Promise<string | null> {
   return row?.value ?? null;
 }
 
+// ── Quest completion count ─────────────────────────────────────────────────
+
+export async function getAllQuestCompletionsCount(): Promise<number> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM quest_completions',
+  );
+  return row?.count ?? 0;
+}
+
+// ── School progress helpers ────────────────────────────────────────────────
+
+export async function getSchoolProgress(schoolId: string): Promise<string[]> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ lessons_seen: string }>(
+    'SELECT lessons_seen FROM school_progress WHERE school_id = ?',
+    schoolId,
+  );
+  if (!row) return [];
+  try { return JSON.parse(row.lessons_seen) as string[]; } catch { return []; }
+}
+
+export async function markLessonSeen(schoolId: string, lessonId: string): Promise<void> {
+  const db = getDb();
+  const current = await getSchoolProgress(schoolId);
+  if (current.includes(lessonId)) return;
+  const updated = [...current, lessonId];
+  await db.runAsync(
+    `INSERT OR REPLACE INTO school_progress (school_id, lessons_seen, last_seen_at)
+     VALUES (?, ?, ?)`,
+    schoolId, JSON.stringify(updated), Date.now(),
+  );
+}
+
+export async function getAllSchoolProgress(): Promise<Record<string, string[]>> {
+  const db = getDb();
+  const rows = await db.getAllAsync<{ school_id: string; lessons_seen: string }>(
+    'SELECT school_id, lessons_seen FROM school_progress',
+  );
+  const result: Record<string, string[]> = {};
+  for (const row of rows) {
+    try { result[row.school_id] = JSON.parse(row.lessons_seen); } catch { /* skip */ }
+  }
+  return result;
+}
+
+// ── Resonance helpers ──────────────────────────────────────────────────────
+
+export async function getResonanceTotal(): Promise<number> {
+  const raw = await getMeta('resonance_total');
+  return raw ? Number(raw) : 0;
+}
+
+export async function addResonance(amount: number): Promise<number> {
+  const current = await getResonanceTotal();
+  const next = current + amount;
+  await setMeta('resonance_total', String(next));
+  return next;
+}
+
+// ── Milestone helpers ──────────────────────────────────────────────────────
+
+export async function getEarnedMilestoneIds(): Promise<string[]> {
+  const raw = await getMeta('milestones_earned');
+  if (!raw) return [];
+  try { return JSON.parse(raw) as string[]; } catch { return []; }
+}
+
+export async function earnMilestoneById(id: string): Promise<void> {
+  const current = await getEarnedMilestoneIds();
+  if (!current.includes(id)) {
+    await setMeta('milestones_earned', JSON.stringify([...current, id]));
+  }
+}
+
 // ── Baseline helpers ───────────────────────────────────────────────────────
 
 export interface StoredBaseline {

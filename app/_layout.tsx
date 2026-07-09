@@ -19,7 +19,9 @@ import {
   OpenSans_700Bold,
 } from '@expo-google-fonts/open-sans';
 import * as SplashScreen from 'expo-splash-screen';
-import { initDb, getBaseline } from '../src/db';
+import {
+  initDb, getBaseline, getResonanceTotal, getEarnedMilestoneIds, getAllSchoolProgress,
+} from '../src/db';
 import { getStoredUser, isOnboarded } from '../src/lib/auth';
 import { useStore } from '../src/store';
 import { getReminderHour } from '../src/lib/notifications';
@@ -48,24 +50,37 @@ export default function RootLayout() {
   const setBaseline = useStore((s) => s.setBaseline);
   const setRecentCheckIns = useStore((s) => s.setRecentCheckIns);
   const setRecentEntries = useStore((s) => s.setRecentEntries);
+  const setTotalResonance = useStore((s) => s.setTotalResonance);
+  const setEarnedMilestones = useStore((s) => s.setEarnedMilestones);
+  const setSchoolProgress = useStore((s) => s.setSchoolProgress);
 
   useEffect(() => {
     async function boot() {
       try {
         await initDb();
-        const [user, onboarded, reminderHour, storedBaseline, rawCheckins, rawEntries] = await Promise.all([
+        const [
+          user, onboarded, reminderHour, storedBaseline,
+          rawCheckins, rawEntries,
+          resonanceTotal, earnedIds, schoolProgress,
+        ] = await Promise.all([
           getStoredUser(),
           isOnboarded(),
           getReminderHour(),
           getBaseline(),
           getRecentCheckIns(90),
           getRecentJournalEntries(60),
+          getResonanceTotal(),
+          getEarnedMilestoneIds(),
+          getAllSchoolProgress(),
         ]);
 
         setUser(user);
         setOnboarded(onboarded);
         setReminderHour(reminderHour);
         setBaseline(storedBaseline);
+        setTotalResonance(resonanceTotal);
+        setEarnedMilestones(earnedIds);
+        setSchoolProgress(schoolProgress);
 
         const checkins: CheckIn[] = rawCheckins.map((r) => ({
           id: r.id,
@@ -112,8 +127,8 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="sign-in" />
         <Stack.Screen name="onboarding" />
-        <Stack.Screen name="dashboard" />
-        <Stack.Screen name="(branches)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="practices" />
       </Stack>
     </GestureHandlerRootView>
   );
