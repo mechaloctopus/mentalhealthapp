@@ -128,6 +128,14 @@ export async function getRecentCheckIns(limit = 30): Promise<DbCheckIn[]> {
   );
 }
 
+export async function getTotalCheckInsCount(): Promise<number> {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM checkins',
+  );
+  return row?.count ?? 0;
+}
+
 export async function getCheckInsForPeriod(fromAt: number, toAt: number): Promise<DbCheckIn[]> {
   const db = getDb();
   return db.getAllAsync<DbCheckIn>(

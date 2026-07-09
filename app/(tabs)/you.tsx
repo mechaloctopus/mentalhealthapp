@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, SafeAreaView, Pressable, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -5,9 +6,19 @@ import { useStore } from '../../src/store';
 import { MILESTONES } from '../../src/lib/milestones';
 import { signOut } from '../../src/lib/auth';
 import { cancelReminders, scheduleDaily } from '../../src/lib/notifications';
+import { getTotalCheckInsCount } from '../../src/db';
 import { GlassCard } from '../../src/components/GlassCard';
 import { GradientButton } from '../../src/components/GradientButton';
 import { colors, font, spacing, gradients } from '../../src/theme/tokens';
+
+const REMINDER_TIMES = [
+  { label: '7 am',  hour: 7  },
+  { label: '8 am',  hour: 8  },
+  { label: '9 am',  hour: 9  },
+  { label: '12 pm', hour: 12 },
+  { label: '6 pm',  hour: 18 },
+  { label: '9 pm',  hour: 21 },
+];
 
 export default function YouTab() {
   const user = useStore((s) => s.user);
@@ -21,10 +32,16 @@ export default function YouTab() {
   const setOnboarded = useStore((s) => s.setOnboarded);
   const setReminderHour = useStore((s) => s.setReminderHour);
 
+  const [totalCheckIns, setTotalCheckIns] = useState(recentCheckIns.length);
+
+  useEffect(() => {
+    getTotalCheckInsCount().then(setTotalCheckIns).catch(() => {});
+  }, [recentCheckIns.length]);
+
   const earnedMilestones = MILESTONES.filter((m) => earnedMilestoneIds.includes(m.id));
 
   async function handleSignOut() {
-    Alert.alert('Reset app', 'This will clear your session. Local data remains.', [
+    Alert.alert('Reset app', 'This will clear your session. Your local data remains on this device.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Reset', style: 'destructive', onPress: async () => {
@@ -37,13 +54,21 @@ export default function YouTab() {
     ]);
   }
 
-  async function toggleReminder() {
+  async function enableReminder(hour: number) {
+    await scheduleDaily(hour);
+    setReminderHour(hour);
+  }
+
+  async function disableReminder() {
+    await cancelReminders();
+    setReminderHour(null);
+  }
+
+  function toggleReminder() {
     if (reminderHour !== null) {
-      await cancelReminders();
-      setReminderHour(null);
+      disableReminder();
     } else {
-      await scheduleDaily(8);
-      setReminderHour(8);
+      enableReminder(8);
     }
   }
 
@@ -61,12 +86,12 @@ export default function YouTab() {
           />
           <Text style={styles.resonanceLabel}>Total Resonance</Text>
           <Text style={styles.resonanceValue}>{totalResonance.toLocaleString()}</Text>
-          <Text style={styles.resonanceUnit}>resonance</Text>
+          <Text style={styles.resonanceUnit}>resonance points</Text>
         </GlassCard>
 
         {/* Stats row */}
         <View style={styles.statsRow}>
-          <StatBox label="Check-ins" value={recentCheckIns.length} color={colors.teal} />
+          <StatBox label="Check-ins" value={totalCheckIns} color={colors.teal} />
           <StatBox label="Entries" value={recentEntries.length} color={colors.lavender} />
           <StatBox label="Day streak" value={streak} color={colors.amber} />
         </View>
@@ -104,13 +129,14 @@ export default function YouTab() {
             <Text style={styles.avatarLetter}>{user?.displayName?.[0] ?? 'Y'}</Text>
           </View>
           <Text style={styles.displayName}>{user?.displayName ?? 'You'}</Text>
-          <Text style={styles.dataNote}>Your data lives on this device.</Text>
+          <Text style={styles.dataNote}>Your data lives on this device only.</Text>
         </GlassCard>
 
         {/* Settings */}
         <GlassCard style={styles.settingsCard}>
           <Text style={styles.settingsTitle}>Settings</Text>
 
+          {/* Daily reminder row */}
           <Pressable onPress={toggleReminder} style={styles.settingRow}>
             <View style={styles.settingText}>
               <Text style={styles.settingLabel}>Daily reminder</Text>
@@ -122,6 +148,23 @@ export default function YouTab() {
               {reminderHour !== null ? 'ON' : 'OFF'}
             </Text>
           </Pressable>
+
+          {/* Time picker pills — shown when reminder is ON */}
+          {reminderHour !== null && (
+            <View style={styles.timePills}>
+              {REMINDER_TIMES.map((t) => (
+                <Pressable
+                  key={t.hour}
+                  onPress={() => enableReminder(t.hour)}
+                  style={[styles.timePill, t.hour === reminderHour && styles.timePillActive]}
+                >
+                  <Text style={[styles.timePillText, t.hour === reminderHour && styles.timePillTextActive]}>
+                    {t.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </GlassCard>
 
         {/* Crisis resources */}
@@ -130,7 +173,19 @@ export default function YouTab() {
             <Text style={styles.crisisGlyph}>♡</Text>
             <View style={styles.crisisText}>
               <Text style={styles.crisisLabel}>Crisis resources</Text>
-              <Text style={styles.crisisSub}>Immediate support is always available</Text>
+              <Text style={styles.crisisSub}>988, Crisis Text Line, and more</Text>
+            </View>
+            <Text style={styles.crisisArrow}>›</Text>
+          </GlassCard>
+        </Pressable>
+
+        {/* Privacy */}
+        <Pressable onPress={() => router.push('/privacy' as any)}>
+          <GlassCard style={styles.crisisCard}>
+            <Text style={[styles.crisisGlyph, { color: colors.teal }]}>◉</Text>
+            <View style={styles.crisisText}>
+              <Text style={styles.crisisLabel}>Privacy & Data</Text>
+              <Text style={styles.crisisSub}>Local-only · no accounts · no tracking</Text>
             </View>
             <Text style={styles.crisisArrow}>›</Text>
           </GlassCard>
@@ -138,11 +193,15 @@ export default function YouTab() {
 
         {/* About */}
         <GlassCard style={styles.aboutCard}>
-          <Text style={styles.settingsTitle}>About</Text>
-          <Text style={styles.aboutText}>MoodSignal v2</Text>
+          <Text style={styles.settingsTitle}>About MoodSignal</Text>
+          <Text style={styles.aboutText}>Version 2.0</Text>
           <Text style={styles.aboutSub}>
-            Built on Russell's circumplex model. Voice analysis runs entirely on-device.
-            No data leaves your phone without your explicit consent.
+            Built on Russell's circumplex model of affect. Voice analysis runs entirely
+            on-device using acoustic biomarkers — no audio is ever stored or transmitted.
+          </Text>
+          <Text style={styles.disclaimer}>
+            MoodSignal is a personal wellness tool, not a medical device. It does not provide
+            diagnoses and is not a substitute for professional mental health care.
           </Text>
         </GlassCard>
 
@@ -216,6 +275,17 @@ const styles = StyleSheet.create({
   settingToggle: { fontFamily: font.sansBold, fontSize: 12, color: colors.textFaint },
   settingOn: { color: colors.teal },
 
+  timePills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, paddingTop: spacing.xs },
+  timePill: {
+    paddingHorizontal: spacing.md, paddingVertical: 7,
+    borderRadius: 20, borderWidth: 1,
+    borderColor: colors.panelBorder,
+    backgroundColor: colors.surface2,
+  },
+  timePillActive: { borderColor: colors.teal, backgroundColor: 'rgba(102,224,202,0.12)' },
+  timePillText: { fontFamily: font.sansSemibold, fontSize: 12, color: colors.textFaint },
+  timePillTextActive: { color: colors.teal },
+
   crisisCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg },
   crisisGlyph: { fontSize: 20, color: colors.coral },
   crisisText: { flex: 1, gap: 2 },
@@ -226,4 +296,10 @@ const styles = StyleSheet.create({
   aboutCard: { padding: spacing.xl, gap: spacing.sm },
   aboutText: { fontFamily: font.sansSemibold, fontSize: 14, color: colors.text },
   aboutSub: { fontFamily: font.serif, fontSize: 13, color: colors.textFaint, lineHeight: 21 },
+  disclaimer: {
+    fontFamily: font.sans, fontSize: 11, color: colors.textFaint,
+    lineHeight: 18, paddingTop: spacing.xs,
+    borderTopWidth: 1, borderTopColor: colors.panelBorder,
+    marginTop: spacing.xs,
+  },
 });
