@@ -38,7 +38,7 @@ export const SCHOOLS: School[] = [
     tagline: 'Walk the inner way toward wholeness.',
     color: '#b15fb0',
     featured: true,
-    description: 'Drawn from the Gospel of Mary Magdalene and the inner Gnostic tradition: five temples guide the soul's return to itself through truth, self-knowledge, liberation, inner mastery, and union. No creed is required — only honest attention.',
+    description: "Drawn from the Gospel of Mary Magdalene and the inner Gnostic tradition: five temples guide the soul's return to itself through truth, self-knowledge, liberation, inner mastery, and union. No creed is required — only honest attention.",
     coreVirtues: ['truth', 'knowing', 'liberation', 'mastery', 'union'],
     resonantEmotions: ['calm', 'sadness', 'anxiety', 'hope', 'connection', 'gratitude'],
     lessons: [
@@ -493,7 +493,7 @@ export const SCHOOLS: School[] = [
     name: 'The Current',
     tagline: 'Move with what is already flowing.',
     color: '#66e0ca',
-    description: 'Water is the softest substance and carves through stone. The Tao Te Ching's eighty-one short chapters contain one of the most coherent visions of life ever written — a vision of naturalness, simplicity, and the intelligence of yielding.',
+    description: "Water is the softest substance and carves through stone. The Tao Te Ching's eighty-one short chapters contain one of the most coherent visions of life ever written — a vision of naturalness, simplicity, and the intelligence of yielding.",
     coreVirtues: ['simplicity', 'patience', 'humility', 'naturalness'],
     resonantEmotions: ['stress', 'anger', 'calm', 'focus', 'energy'],
     lessons: [

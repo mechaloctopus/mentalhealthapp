@@ -18,6 +18,7 @@ export default function QuestScreen() {
   const recentCheckIns = useStore((s) => s.recentCheckIns);
   const addQuestCompletion = useStore((s) => s.addQuestCompletion);
   const markLessonSeenLocal = useStore((s) => s.markLessonSeenLocal);
+  const schoolProgress = useStore((s) => s.schoolProgress);
 
   const [done, setDone] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -28,7 +29,9 @@ export default function QuestScreen() {
     ? recommend(todayCheckIn, recentCheckIns.slice(0, 5).map((c) => c.emotion))
     : null;
 
-  const lesson = school.lessons[new Date().getDate() % school.lessons.length]!;
+  const seenIds = schoolProgress[school.id] ?? [];
+  const unseenLessons = school.lessons.filter((l) => !seenIds.includes(l.id));
+  const lesson = (unseenLessons.length > 0 ? unseenLessons[0] : school.lessons[0])!;
 
   async function complete() {
     if (completing) return;
@@ -71,6 +74,9 @@ export default function QuestScreen() {
         </Pressable>
 
         <Text style={styles.schoolName}>{school.name}</Text>
+        <Text style={styles.progress}>
+          Lesson {seenIds.length + 1} of {school.lessons.length}
+        </Text>
         <Text style={styles.title}>{lesson.title}</Text>
 
         <GlassCard strong style={styles.lessonCard}>
@@ -109,7 +115,8 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
   back: { paddingTop: spacing.lg },
   backText: { fontFamily: font.sansSemibold, fontSize: 14, color: colors.teal },
-  schoolName: { fontFamily: font.sansSemibold, fontSize: 11, color: colors.textFaint, letterSpacing: 1.2, textTransform: 'uppercase' },
+  schoolName: { fontFamily: font.sansSemibold, fontSize: 11, color: colors.textFaint, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 2 },
+  progress: { fontFamily: font.sans, fontSize: 12, color: colors.textFaint },
   title: { fontFamily: font.display, fontSize: 26, color: colors.text, lineHeight: 34 },
   lessonCard: { padding: spacing.xl },
   lessonBody: { fontFamily: font.serif, fontSize: 16, color: colors.text, lineHeight: 26 },

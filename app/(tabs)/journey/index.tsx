@@ -14,8 +14,11 @@ const otherPaths = SCHOOLS.filter((s) => s.id !== 'five-temples');
 export default function JourneyTab() {
   const activeSchoolId = useStore((s) => s.activeSchoolId);
   const setActiveSchool = useStore((s) => s.setActiveSchool);
+  const schoolProgress = useStore((s) => s.schoolProgress);
 
   const activeSchool = activeSchoolId ? SCHOOLS.find((s) => s.id === activeSchoolId) : null;
+  const activeSeenCount = activeSchoolId ? (schoolProgress[activeSchoolId]?.length ?? 0) : 0;
+  const activeTotalCount = activeSchool?.lessons.length ?? 0;
 
   return (
     <SafeAreaView style={styles.root}>
@@ -31,8 +34,11 @@ export default function JourneyTab() {
             <Text style={styles.activeLabel}>Your current path</Text>
             <Text style={[styles.activeName, { color: activeSchool.color }]}>{activeSchool.name}</Text>
             <Text style={styles.activeTagline}>{activeSchool.tagline}</Text>
+            <Text style={styles.activeProgress}>
+              {activeSeenCount} of {activeTotalCount} lessons completed
+            </Text>
             <Pressable onPress={() => router.push('/(tabs)/journey/quest')}>
-              <Text style={styles.questLink}>Today's lesson ›</Text>
+              <Text style={styles.questLink}>Continue ›</Text>
             </Pressable>
           </GlassCard>
         )}
@@ -54,6 +60,9 @@ export default function JourneyTab() {
             <Text style={[styles.featuredName, { color: fiveTemples.color }]}>{fiveTemples.name}</Text>
             <Text style={styles.featuredTagline}>{fiveTemples.tagline}</Text>
             <Text style={styles.featuredDesc}>{fiveTemples.description}</Text>
+            <Text style={styles.schoolProgressText}>
+              {schoolProgress[fiveTemples.id]?.length ?? 0}/{fiveTemples.lessons.length} lessons
+            </Text>
             <View style={styles.virtueRow}>
               {fiveTemples.coreVirtues.map((v) => (
                 <Text key={v} style={[styles.virtue, styles.virtueFeatured]}>{v}</Text>
@@ -78,6 +87,9 @@ export default function JourneyTab() {
               <View style={styles.schoolText}>
                 <Text style={[styles.schoolName, { color: school.color }]}>{school.name}</Text>
                 <Text style={styles.schoolTagline}>{school.tagline}</Text>
+                <Text style={styles.schoolProgressText}>
+                  {schoolProgress[school.id]?.length ?? 0}/{school.lessons.length} lessons
+                </Text>
                 <View style={styles.virtueRow}>
                   {school.coreVirtues.slice(0, 3).map((v) => (
                     <Text key={v} style={styles.virtue}>{v}</Text>
@@ -137,4 +149,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 2,
   },
   activeCheck: { fontSize: 18, color: colors.teal, paddingRight: spacing.lg },
+  activeProgress: { fontFamily: font.sans, fontSize: 12, color: colors.textFaint },
+  schoolProgressText: { fontFamily: font.sans, fontSize: 11, color: colors.textFaint, marginTop: 2 },
 });
