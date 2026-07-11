@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
 import { useStore } from '../../src/store';
-import { getEmotion } from '../../src/content/emotions';
+import { EMOTIONS, getEmotion } from '../../src/content/emotions';
 import { todaysMessage } from '../../src/content/messages';
 import { analyzeVoice, buildCheckIn, buildSelfCheckIn } from '../../src/engine/voice';
 import type { Affect, CheckIn } from '../../src/engine/voice';
@@ -16,7 +16,6 @@ import { awardResonance } from '../../src/lib/resonance';
 import { GlassCard } from '../../src/components/GlassCard';
 import { GradientButton } from '../../src/components/GradientButton';
 import { BrandMark } from '../../src/components/BrandMark';
-import { EmotionWheel } from '../../src/components/EmotionWheel';
 import { BreathingGuide } from '../../src/components/BreathingGuide';
 import { EmotionResults } from '../../src/components/EmotionResults';
 import { ResonanceMoment } from '../../src/components/ResonanceMoment';
@@ -34,9 +33,9 @@ type CheckInMode =
   | 'results';
 
 const PRACTICES = [
-  { id: 'breath', label: 'Breath', emoji: '💨', color: colors.blue },
-  { id: 'stillness', label: 'Stillness', emoji: '◉', color: colors.teal },
-  { id: 'sound', label: 'Sound', emoji: '♪', color: colors.lavender },
+  { id: 'breath', label: 'Breath', emoji: '≋', color: colors.blue },
+  { id: 'stillness', label: 'Stillness', emoji: '◎', color: colors.teal },
+  { id: 'sound', label: 'Sound', emoji: '♫', color: colors.lavender },
   { id: 'sleep', label: 'Sleep', emoji: '☽', color: colors.indigo },
   { id: 'loving-kindness', label: 'Metta', emoji: '♡', color: colors.coral },
 ];
@@ -118,23 +117,33 @@ export default function HomeTab() {
   }
 
   async function startRecording() {
-    const rec = new Audio.Recording();
-    await rec.prepareToRecordAsync({
-      ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
-      isMeteringEnabled: true,
-    });
-    await rec.startAsync();
-    setRecording(rec);
-    setRecordStart(Date.now());
-    setMeterSamples([]);
-    setMode('recording');
+    try {
+      const rec = new Audio.Recording();
+      await rec.prepareToRecordAsync({
+        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+        isMeteringEnabled: true,
+      });
+      await rec.startAsync();
+      setRecording(rec);
+      setRecordStart(Date.now());
+      setMeterSamples([]);
+      setMode('recording');
 
-    intervalRef.current = setInterval(async () => {
-      const status = await rec.getStatusAsync();
-      if (status.isRecording && status.metering !== undefined) {
-        setMeterSamples((prev) => [...prev, status.metering!]);
-      }
-    }, 150);
+      intervalRef.current = setInterval(async () => {
+        try {
+          const status = await rec.getStatusAsync();
+          if (status.isRecording && status.metering !== undefined) {
+            setMeterSamples((prev) => [...prev, status.metering!]);
+          }
+        } catch { /* metering read failed — skip sample */ }
+      }, 150);
+    } catch {
+      Alert.alert(
+        'Could not start recording',
+        'Make sure no other app is using the microphone, then try again.',
+      );
+      setMode('idle');
+    }
   }
 
   async function stopRecording() {
@@ -246,13 +255,18 @@ export default function HomeTab() {
       return (
         <GlassCard style={styles.actionCard}>
           <Text style={styles.actionHeading}>
-            {isBaselineSession ? 'Record your baseline' : 'Voice check-in'}
+            {isBaselineSession ? 'Baseline recording' : 'Voice check-in'}
           </Text>
           <Text style={styles.actionSub}>
-            {isBaselineSession
-              ? "Speak naturally for 10–20 seconds. Say anything on your mind — how you're feeling, what you're noticing."
-              : 'Speak naturally for 10–20 seconds. No performance needed — just talk.'}
+            Read the passage below aloud at a natural pace — your voice does the rest.
           </Text>
+          <View style={styles.promptBox}>
+            <Text style={styles.promptText}>
+              {isBaselineSession
+                ? 'I arrive in this space, fully present. I notice the rhythm of my breath, the quiet of the room, the feeling of being here right now. There is nothing I need to perform or prove. I am simply here, and that is enough.'
+                : 'I am here, present in this moment. I notice what I feel and I accept it without judgment. I have what it takes to meet today fully and with care. I breathe, I notice, I arrive in what is true for me right now.'}
+            </Text>
+          </View>
           <GradientButton label="Tap to Record" variant="flame" onPress={startRecording} />
           <GradientButton label="Cancel" variant="ghost" onPress={() => setMode('idle')} />
         </GlassCard>
@@ -312,19 +326,37 @@ export default function HomeTab() {
     }
 
     if (mode === 'self') {
+      const selEmotion = selectedEmotion ? getEmotion(selectedEmotion) : null;
       return (
         <GlassCard style={styles.actionCard}>
           <Text style={styles.actionHeading}>What are you feeling?</Text>
-          <Text style={styles.selfHint}>Tap the tone that feels closest right now.</Text>
-          <EmotionWheel selected={selectedEmotion} onSelect={setSelectedEmotion} size={260} />
-          {selectedEmotion && (
-            <View style={styles.selfConfirm}>
-              <Text style={styles.selfChosen}>{getEmotion(selectedEmotion).label}</Text>
+          <Text style={styles.selfHint}>Choose the tone that feels closest right now.</Text>
+          <View style={styles.emotionGrid}>
+            {EMOTIONS.map((e) => {
+              const isSel = selectedEmotion === e.id;
+              return (
+                <Pressable
+                  key={e.id}
+                  onPress={() => setSelectedEmotion(e.id)}
+                  style={[
+                    styles.emotionChip,
+                    isSel && { borderColor: e.color, backgroundColor: `${e.color}18` },
+                  ]}
+                >
+                  <View style={[styles.chipDot, { backgroundColor: e.color }]} />
+                  <Text style={[styles.chipLabel, isSel && { color: e.color }]}>{e.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {selEmotion && (
+            <>
+              <Text style={styles.chipNuance}>{selEmotion.nuance.slice(0, 3).join('  ·  ')}</Text>
               <GradientButton label="Confirm" variant="flame" onPress={confirmSelf} />
-              <GradientButton label="Cancel" variant="ghost"
-                onPress={() => { setMode('idle'); setSelectedEmotion(undefined); }} />
-            </View>
+            </>
           )}
+          <GradientButton label="Cancel" variant="ghost"
+            onPress={() => { setMode('idle'); setSelectedEmotion(undefined); }} />
         </GlassCard>
       );
     }
@@ -462,7 +494,7 @@ export default function HomeTab() {
                   onPress={() => router.push(`/practices/${p.id}` as any)}
                   style={styles.practiceTile}
                 >
-                  <Text style={styles.practiceEmoji}>{p.emoji}</Text>
+                  <Text style={[styles.practiceEmoji, { color: p.color }]}>{p.emoji}</Text>
                   <Text style={[styles.practiceLabel, { color: p.color }]}>{p.label}</Text>
                 </Pressable>
               ))}
@@ -540,8 +572,55 @@ const styles = StyleSheet.create({
   recordRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   recordDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.coral },
   selfHint: { fontFamily: font.serif, fontSize: 13, color: colors.textFaint },
-  selfConfirm: { gap: spacing.sm, alignItems: 'center', width: '100%' },
-  selfChosen: { fontFamily: font.display, fontSize: 22, color: colors.text },
+
+  promptBox: {
+    padding: spacing.lg,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.violet,
+    backgroundColor: 'rgba(177,95,176,0.08)',
+    borderRadius: radius.sm,
+  },
+  promptText: {
+    fontFamily: font.serif,
+    fontSize: 16,
+    color: colors.text,
+    lineHeight: 27,
+    fontStyle: 'italic',
+  },
+
+  emotionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  emotionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 9,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.panelBorder,
+    backgroundColor: colors.surface2,
+  },
+  chipDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  chipLabel: {
+    fontFamily: font.sansSemibold,
+    fontSize: 13,
+    color: colors.text,
+  },
+  chipNuance: {
+    fontFamily: font.sans,
+    fontSize: 12,
+    color: colors.textFaint,
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
 
   checkedCard: { padding: spacing.xl, gap: spacing.sm },
   emotionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
