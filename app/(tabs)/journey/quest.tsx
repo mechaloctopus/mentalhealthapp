@@ -26,15 +26,17 @@ export default function QuestScreen() {
   const school = getSchool(activeSchoolId);
   const emotion = todayCheckIn ? getEmotion(todayCheckIn.emotion) : null;
   const rec = todayCheckIn
-    ? recommend(todayCheckIn, recentCheckIns.slice(0, 5).map((c) => c.emotion))
+    ? recommend(todayCheckIn)
     : null;
+  const recActivity = rec && rec.activity.route !== '/(tabs)/journey/quest' ? rec : null;
 
   const seenIds = schoolProgress[school.id] ?? [];
   const unseenLessons = school.lessons.filter((l) => !seenIds.includes(l.id));
-  const lesson = (unseenLessons.length > 0 ? unseenLessons[0] : school.lessons[0])!;
+  const allComplete = unseenLessons.length === 0;
+  const lesson = (allComplete ? school.lessons[0] : unseenLessons[0])!;
 
   async function complete() {
-    if (completing) return;
+    if (completing || allComplete) return;
     setCompleting(true);
     try {
       addQuestCompletion({ questId: lesson.id, completedAt: Date.now(), emotion: emotion?.id });
@@ -75,36 +77,49 @@ export default function QuestScreen() {
 
         <Text style={styles.schoolName}>{school.name}</Text>
         <Text style={styles.progress}>
-          Lesson {seenIds.length + 1} of {school.lessons.length}
+          {allComplete
+            ? `All ${school.lessons.length} lessons complete`
+            : `Lesson ${seenIds.length + 1} of ${school.lessons.length}`}
         </Text>
-        <Text style={styles.title}>{lesson.title}</Text>
+        <Text style={styles.title}>{allComplete ? 'Path complete' : lesson.title}</Text>
 
-        <GlassCard strong style={styles.lessonCard}>
-          <Text style={styles.lessonBody}>{lesson.body}</Text>
-        </GlassCard>
-
-        <GlassCard style={styles.actionCard}>
-          <Text style={styles.actionLabel}>Your quest</Text>
-          <Text style={styles.action}>{lesson.action}</Text>
-        </GlassCard>
-
-        {rec && (
-          <GlassCard style={styles.recCard}>
-            <Text style={styles.recLabel}>Matched practice</Text>
-            <Pressable onPress={() => router.push(rec.activity.route as any)} style={styles.recRow}>
-              <Text style={styles.recActivity}>{rec.activity.label}</Text>
-              <Text style={styles.recArrow}>›</Text>
-            </Pressable>
+        {allComplete ? (
+          <GlassCard strong style={styles.lessonCard}>
+            <Text style={styles.lessonBody}>
+              You have walked every lesson in this path. The practice belongs to you now — return to
+              any teaching from the Journey screen, or begin another path.
+            </Text>
           </GlassCard>
-        )}
+        ) : (
+          <>
+            <GlassCard strong style={styles.lessonCard}>
+              <Text style={styles.lessonBody}>{lesson.body}</Text>
+            </GlassCard>
 
-        <GradientButton
-          label={completing ? 'Marking…' : 'Mark complete'}
-          onPress={complete}
-          disabled={completing}
-          variant="teal"
-          style={styles.completeBtn}
-        />
+            <GlassCard style={styles.actionCard}>
+              <Text style={styles.actionLabel}>Your quest</Text>
+              <Text style={styles.action}>{lesson.action}</Text>
+            </GlassCard>
+
+            {recActivity && (
+              <GlassCard style={styles.recCard}>
+                <Text style={styles.recLabel}>Matched practice</Text>
+                <Pressable onPress={() => router.push(recActivity.activity.route as any)} style={styles.recRow}>
+                  <Text style={styles.recActivity}>{recActivity.activity.label}</Text>
+                  <Text style={styles.recArrow}>›</Text>
+                </Pressable>
+              </GlassCard>
+            )}
+
+            <GradientButton
+              label={completing ? 'Marking…' : 'Mark complete'}
+              onPress={complete}
+              disabled={completing}
+              variant="teal"
+              style={styles.completeBtn}
+            />
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

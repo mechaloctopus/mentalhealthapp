@@ -93,7 +93,7 @@ export default function HomeTab() {
   const needsBaseline = !baseline;
   const hasTodayCheckIn = !!todayCheckIn;
   const currentEmotion = todayCheckIn ? getEmotion(todayCheckIn.emotion) : null;
-  const rec = todayCheckIn ? recommend(todayCheckIn, recentCheckIns.slice(0, 5).map((c) => c.emotion)) : null;
+  const rec = todayCheckIn ? recommend(todayCheckIn) : null;
 
   async function startVoice(forBaseline = false) {
     try {
@@ -117,8 +117,8 @@ export default function HomeTab() {
   }
 
   async function startRecording() {
+    const rec = new Audio.Recording();
     try {
-      const rec = new Audio.Recording();
       await rec.prepareToRecordAsync({
         ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
         isMeteringEnabled: true,
@@ -138,6 +138,7 @@ export default function HomeTab() {
         } catch { /* metering read failed — skip sample */ }
       }, 150);
     } catch {
+      try { await rec.stopAndUnloadAsync(); } catch { /* ignore cleanup error */ }
       Alert.alert(
         'Could not start recording',
         'Make sure no other app is using the microphone, then try again.',

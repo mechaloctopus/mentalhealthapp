@@ -102,7 +102,7 @@ export default function CrisisScreen() {
         <GlassCard style={styles.intlCard}>
           <Text style={styles.intlTitle}>Outside the US?</Text>
           <Text style={styles.intlSub}>
-            Visit <Text style={styles.intlLink} onPress={() => Linking.openURL('https://findahelpline.com')}>findahelpline.com</Text> for
+            Visit <Text style={styles.intlLink} onPress={() => open('https://findahelpline.com')}>findahelpline.com</Text> for
             crisis centres in over 50 countries.
           </Text>
         </GlassCard>

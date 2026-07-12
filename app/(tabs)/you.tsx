@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, SafeAreaView, Pressable, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -33,6 +33,7 @@ export default function YouTab() {
   const setReminderHour = useStore((s) => s.setReminderHour);
 
   const [totalCheckIns, setTotalCheckIns] = useState(recentCheckIns.length);
+  const reminderBusy = useRef(false);
 
   useEffect(() => {
     getTotalCheckInsCount().then(setTotalCheckIns).catch(() => {});
@@ -55,20 +56,32 @@ export default function YouTab() {
   }
 
   async function enableReminder(hour: number) {
-    await scheduleDaily(hour);
-    setReminderHour(hour);
+    if (reminderBusy.current) return;
+    reminderBusy.current = true;
+    try {
+      await scheduleDaily(hour);
+      setReminderHour(hour);
+    } finally {
+      reminderBusy.current = false;
+    }
   }
 
   async function disableReminder() {
-    await cancelReminders();
-    setReminderHour(null);
+    if (reminderBusy.current) return;
+    reminderBusy.current = true;
+    try {
+      await cancelReminders();
+      setReminderHour(null);
+    } finally {
+      reminderBusy.current = false;
+    }
   }
 
   function toggleReminder() {
     if (reminderHour !== null) {
-      disableReminder();
+      void disableReminder();
     } else {
-      enableReminder(8);
+      void enableReminder(8);
     }
   }
 

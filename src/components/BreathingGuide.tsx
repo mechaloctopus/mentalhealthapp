@@ -78,8 +78,8 @@ export function BreathingGuide({ onComplete }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phaseIdx, cycleIdx]);
 
-  const ring3Opacity = outerGlow.interpolate({ inputRange: [0.2, 1], outputRange: [0, 0.14] });
-  const ring2Opacity = outerGlow.interpolate({ inputRange: [0.2, 1], outputRange: [0.04, 0.28] });
+  const ring3Opacity = outerGlow.interpolate({ inputRange: [0.2, 1], outputRange: [0, 0.14], extrapolate: 'clamp' });
+  const ring2Opacity = outerGlow.interpolate({ inputRange: [0.2, 1], outputRange: [0.04, 0.28], extrapolate: 'clamp' });
 
   const centerOff = (size: number) => ({ top: (AREA - size) / 2, left: (AREA - size) / 2 });
 
