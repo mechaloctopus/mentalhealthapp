@@ -95,11 +95,21 @@ export default function HomeTab() {
   const currentEmotion = todayCheckIn ? getEmotion(todayCheckIn.emotion) : null;
   const rec = todayCheckIn ? recommend(todayCheckIn) : null;
 
-  async function startVoice(forBaseline = false) {
+  function startVoice(forBaseline = false) {
+    setIsBaselineSession(forBaseline);
+    setMode('voice-ready');
+    setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80);
+  }
+
+  async function startRecording() {
+    // Request permission and configure audio session here, right before recording
     try {
       const perm = await Audio.requestPermissionsAsync();
       if (perm.status !== 'granted') {
-        Alert.alert('Microphone needed', 'Please allow microphone access in Settings to use voice check-in.');
+        Alert.alert(
+          'Microphone access needed',
+          'Please allow microphone access in your device Settings to use voice check-in.',
+        );
         return;
       }
       await Audio.setAudioModeAsync({
@@ -108,15 +118,11 @@ export default function HomeTab() {
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
       });
-      setIsBaselineSession(forBaseline);
-      setMode('voice-ready');
-      setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80);
     } catch {
       Alert.alert('Microphone error', 'Could not access the microphone. Please try again.');
+      return;
     }
-  }
 
-  async function startRecording() {
     const rec = new Audio.Recording();
     try {
       await rec.prepareToRecordAsync({
@@ -143,7 +149,7 @@ export default function HomeTab() {
         'Could not start recording',
         'Make sure no other app is using the microphone, then try again.',
       );
-      setMode('idle');
+      setMode('voice-ready');
     }
   }
 
@@ -224,6 +230,8 @@ export default function HomeTab() {
 
   const handleBreathingComplete = useCallback(() => {
     startVoice(true);
+  // startVoice is synchronous and uses only stable state setters
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleResultsDismiss = useCallback(() => {
