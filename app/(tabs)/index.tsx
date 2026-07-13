@@ -235,14 +235,25 @@ export default function HomeTab() {
       );
     }
 
-    if (mode === 'voice-ready') {
+    if (mode === 'voice-ready' || mode === 'recording') {
+      const isRecording = mode === 'recording';
       return (
         <GlassCard style={styles.actionCard}>
-          <Text style={styles.actionHeading}>
-            {isBaselineSession ? 'Baseline recording' : 'Voice check-in'}
-          </Text>
+          <View style={styles.recordRow}>
+            {isRecording && (
+              <Animated.View style={[styles.recordDot, {
+                transform: [{ scale: pulseScale }],
+                opacity: pulseOpacity,
+              }]} />
+            )}
+            <Text style={styles.actionHeading}>
+              {isBaselineSession ? 'Baseline recording' : 'Voice check-in'}
+            </Text>
+          </View>
           <Text style={styles.actionSub}>
-            Read the passage below aloud at a natural pace — your voice does the rest.
+            {isRecording
+              ? 'Read the passage below aloud — tap Done when finished.'
+              : 'Read the passage below aloud at a natural pace — your voice does the rest.'}
           </Text>
           <View style={styles.promptBox}>
             <Text style={styles.promptText}>
@@ -251,13 +262,24 @@ export default function HomeTab() {
                 : 'I am here, present in this moment. I notice what I feel and I accept it without judgment. I have what it takes to meet today fully and with care. I breathe, I notice, I arrive in what is true for me right now.'}
             </Text>
           </View>
-          <GradientButton
-            label={starting ? 'Starting…' : 'Tap to Record'}
-            variant="flame"
-            disabled={starting}
-            onPress={() => void startRecording()}
-          />
-          <GradientButton label="Cancel" variant="ghost" onPress={() => setMode('idle')} />
+          {isRecording ? (
+            <GradientButton
+              label={processing ? 'Analyzing…' : 'Done'}
+              variant="teal"
+              onPress={stopRecording}
+              disabled={processing}
+            />
+          ) : (
+            <>
+              <GradientButton
+                label={starting ? 'Starting…' : 'Tap to Record'}
+                variant="flame"
+                disabled={starting}
+                onPress={() => void startRecording()}
+              />
+              <GradientButton label="Cancel" variant="ghost" onPress={() => setMode('idle')} />
+            </>
+          )}
         </GlassCard>
       );
     }
@@ -293,28 +315,8 @@ export default function HomeTab() {
       );
     }
 
-    if (mode === 'recording') {
-      return (
-        <GlassCard style={styles.actionCard}>
-          <View style={styles.recordRow}>
-            <Animated.View style={[styles.recordDot, {
-              transform: [{ scale: pulseScale }],
-              opacity: pulseOpacity,
-            }]} />
-            <Text style={styles.actionHeading}>Recording…</Text>
-          </View>
-          <Text style={styles.actionSub}>Speak naturally. Tap Done when finished.</Text>
-          <GradientButton
-            label={processing ? 'Analyzing…' : 'Done'}
-            variant="teal"
-            onPress={stopRecording}
-            disabled={processing}
-          />
-        </GlassCard>
-      );
-    }
 
-    if (mode === 'self') {
+if (mode === 'self') {
       const selEmotion = selectedEmotion ? getEmotion(selectedEmotion) : null;
       return (
         <GlassCard style={styles.actionCard}>
