@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, Pressable, SafeAreaView, Alert, Animated,
+  View, Text, ScrollView, StyleSheet, Pressable, SafeAreaView, Alert, Animated, Linking,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,13 +24,14 @@ import { colors, font, radius, spacing, gradients } from '../../src/theme/tokens
 
 type CheckInMode =
   | 'idle'
-  | 'baseline-intro'
   | 'baseline-breathing'
   | 'voice-ready'
   | 'recording'
   | 'self'
   | 'factors'
   | 'results';
+
+type AudioSetup = 'idle' | 'preparing' | 'ready' | 'denied' | 'error';
 
 const PRACTICES = [
   { id: 'breath', label: 'Breath', emoji: '≋', color: colors.blue },
@@ -53,6 +54,7 @@ export default function HomeTab() {
   const [mode, setMode] = useState<CheckInMode>('idle');
   const [isBaselineSession, setIsBaselineSession] = useState(false);
   const [selectedEmotion, setSelectedEmotion] = useState<string | undefined>();
+  const [audioSetup, setAudioSetup] = useState<AudioSetup>('idle');
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [meterSamples, setMeterSamples] = useState<number[]>([]);
   const [recordStart, setRecordStart] = useState(0);
@@ -61,8 +63,7 @@ export default function HomeTab() {
   const [pendingCheckin, setPendingCheckin] = useState<CheckIn | null>(null);
   const [pendingIsVoice, setPendingIsVoice] = useState(false);
   const [selectedFactors, setSelectedFactors] = useState<string[]>([]);
-  const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null);
-  const scrollRef    = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollView>(null);
   const pulseScale   = useRef(new Animated.Value(1)).current;
   const pulseOpacity = useRef(new Animated.Value(1)).current;
 
@@ -89,6 +90,31 @@ export default function HomeTab() {
     return () => anim.stop();
   }, [mode]);
 
+  // When voice-ready screen appears, request permissions + configure audio session
+  // in the background while the user reads the affirmation text.
+  useEffect(() => {
+    if (mode !== 'voice-ready') return;
+    let alive = true;
+    setAudioSetup('preparing');
+    (async () => {
+      try {
+        const { status } = await Audio.requestPermissionsAsync();
+        if (!alive) return;
+        if (status !== 'granted') { setAudioSetup('denied'); return; }
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+        if (alive) setAudioSetup('ready');
+      } catch {
+        if (alive) setAudioSetup('error');
+      }
+    })();
+    return () => { alive = false; };
+  }, [mode]);
+
   const todayMsg = todaysMessage();
   const needsBaseline = !baseline;
   const hasTodayCheckIn = !!todayCheckIn;
@@ -97,64 +123,33 @@ export default function HomeTab() {
 
   function startVoice(forBaseline = false) {
     setIsBaselineSession(forBaseline);
+    setAudioSetup('idle');
     setMode('voice-ready');
     setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80);
   }
 
   async function startRecording() {
-    // Request permission and configure audio session here, right before recording
+    if (audioSetup !== 'ready') return;
     try {
-      const perm = await Audio.requestPermissionsAsync();
-      if (perm.status !== 'granted') {
-        Alert.alert(
-          'Microphone access needed',
-          'Please allow microphone access in your device Settings to use voice check-in.',
-        );
-        return;
-      }
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-      });
-    } catch {
-      Alert.alert('Microphone error', 'Could not access the microphone. Please try again.');
-      return;
-    }
-
-    const rec = new Audio.Recording();
-    try {
-      await rec.prepareToRecordAsync({
-        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
-        isMeteringEnabled: true,
-      });
-      await rec.startAsync();
+      const { recording: rec } = await Audio.Recording.createAsync(
+        { ...Audio.RecordingOptionsPresets.HIGH_QUALITY, isMeteringEnabled: true },
+        (s) => {
+          if (s.isRecording && s.metering !== undefined) {
+            setMeterSamples((prev) => [...prev, s.metering!]);
+          }
+        },
+        150,
+      );
       setRecording(rec);
       setRecordStart(Date.now());
       setMeterSamples([]);
       setMode('recording');
-
-      intervalRef.current = setInterval(async () => {
-        try {
-          const status = await rec.getStatusAsync();
-          if (status.isRecording && status.metering !== undefined) {
-            setMeterSamples((prev) => [...prev, status.metering!]);
-          }
-        } catch { /* metering read failed — skip sample */ }
-      }, 150);
     } catch {
-      try { await rec.stopAndUnloadAsync(); } catch { /* ignore cleanup error */ }
-      Alert.alert(
-        'Could not start recording',
-        'Make sure no other app is using the microphone, then try again.',
-      );
-      setMode('voice-ready');
+      Alert.alert('Could not start recording', 'Make sure no other app is using the microphone, then try again.');
     }
   }
 
   async function stopRecording() {
-    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
     if (!recording) return;
     setProcessing(true);
     try {
@@ -163,7 +158,7 @@ export default function HomeTab() {
       const affect = analyzeVoice(meterSamples, duration);
       if (!affect) {
         Alert.alert('Too short', 'Speak for at least 5 seconds and try again.');
-        setMode('idle');
+        setMode('voice-ready');
         return;
       }
       setLastAffect(affect);
@@ -229,9 +224,10 @@ export default function HomeTab() {
   }
 
   const handleBreathingComplete = useCallback(() => {
-    startVoice(true);
-  // startVoice is synchronous and uses only stable state setters
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    setIsBaselineSession(true);
+    setAudioSetup('idle');
+    setMode('voice-ready');
+    setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80);
   }, []);
 
   const handleResultsDismiss = useCallback(() => {
@@ -261,6 +257,23 @@ export default function HomeTab() {
     }
 
     if (mode === 'voice-ready') {
+      const recBtnLabel =
+        audioSetup === 'ready'    ? 'Tap to Record'
+        : audioSetup === 'denied' ? 'Open Settings'
+        : audioSetup === 'error'  ? 'Retry'
+        : 'Preparing…';
+      const recBtnDisabled = audioSetup === 'idle' || audioSetup === 'preparing';
+
+      function handleRecordPress() {
+        if (audioSetup === 'denied') {
+          Linking.openSettings();
+        } else if (audioSetup === 'error') {
+          startVoice(isBaselineSession);
+        } else {
+          void startRecording();
+        }
+      }
+
       return (
         <GlassCard style={styles.actionCard}>
           <Text style={styles.actionHeading}>
@@ -276,8 +289,23 @@ export default function HomeTab() {
                 : 'I am here, present in this moment. I notice what I feel and I accept it without judgment. I have what it takes to meet today fully and with care. I breathe, I notice, I arrive in what is true for me right now.'}
             </Text>
           </View>
-          <GradientButton label="Tap to Record" variant="flame" onPress={startRecording} />
-          <GradientButton label="Cancel" variant="ghost" onPress={() => setMode('idle')} />
+          {audioSetup === 'denied' && (
+            <Text style={styles.permNote}>
+              Microphone access is required. Tap below to open Settings and enable it.
+            </Text>
+          )}
+          {audioSetup === 'error' && (
+            <Text style={styles.permNote}>
+              Could not access the microphone. Tap Retry to try again.
+            </Text>
+          )}
+          <GradientButton
+            label={recBtnLabel}
+            variant="flame"
+            disabled={recBtnDisabled}
+            onPress={handleRecordPress}
+          />
+          <GradientButton label="Cancel" variant="ghost" onPress={() => { setMode('idle'); setAudioSetup('idle'); }} />
         </GlassCard>
       );
     }
@@ -581,6 +609,10 @@ const styles = StyleSheet.create({
   recordRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   recordDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.coral },
   selfHint: { fontFamily: font.serif, fontSize: 13, color: colors.textFaint },
+  permNote: {
+    fontFamily: font.sans, fontSize: 12, color: colors.amber,
+    textAlign: 'center', lineHeight: 18,
+  },
 
   promptBox: {
     padding: spacing.lg,
