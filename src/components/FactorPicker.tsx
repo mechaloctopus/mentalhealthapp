@@ -1,52 +1,90 @@
-import React from 'react';
-import { View, StyleSheet, Pressable, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { FACTORS } from '../lib/factors';
-import { colors, font, radius } from '../theme/theme';
-import { select } from '../lib/haptics';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withSpring,
+} from 'react-native-reanimated';
+import { FACTORS, type Factor } from '../content/factors';
+import { colors, font, radius, spacing } from '../theme/tokens';
 
-export function FactorPicker({
-  value,
-  onChange,
-  accent = colors.teal,
-}: {
-  value: string[];
-  onChange: (next: string[]) => void;
-  accent?: string;
-}) {
-  const toggle = (id: string) => {
-    select();
-    onChange(value.includes(id) ? value.filter((item) => item !== id) : [...value, id]);
-  };
+interface Props {
+  selected: string[];
+  onToggle: (id: string) => void;
+}
+
+interface ChipProps {
+  factor: Factor;
+  active: boolean;
+  onToggle: () => void;
+}
+
+function FactorChip({ factor, active, onToggle }: ChipProps) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
-    <View style={styles.wrap} accessibilityRole="list" accessibilityLabel="Choose any factors shaping this feeling">
-      {FACTORS.map((factor) => {
-        const selected = value.includes(factor.id);
-        return (
-          <Pressable
-            key={factor.id}
-            onPress={() => toggle(factor.id)}
-            style={[styles.chip, selected && { backgroundColor: accent + '22', borderColor: accent + '88' }]}
-            accessibilityRole="checkbox"
-            accessibilityLabel={factor.label}
-            accessibilityState={{ checked: selected }}
-          >
-            <Ionicons name={factor.icon} size={14} color={selected ? accent : colors.textDim} />
-            <Text style={[styles.label, { color: selected ? colors.text : colors.textMuted }]}>{factor.label}</Text>
-          </Pressable>
-        );
-      })}
+    <Animated.View style={animStyle}>
+      <Pressable
+        onPress={onToggle}
+        onPressIn={() => { scale.value = withSpring(0.90, { stiffness: 520, damping: 18 }); }}
+        onPressOut={() => { scale.value = withSpring(1,    { stiffness: 380, damping: 16 }); }}
+        style={[styles.chip, active && styles.chipActive]}
+      >
+        <Text style={styles.emoji}>{factor.emoji}</Text>
+        <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
+          {factor.label}
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+export function FactorPicker({ selected, onToggle }: Props) {
+  return (
+    <View style={styles.grid}>
+      {FACTORS.map((f) => (
+        <FactorChip
+          key={f.id}
+          factor={f}
+          active={selected.includes(f.id)}
+          onToggle={() => onToggle(f.id)}
+        />
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 9, borderRadius: radius.pill,
-    borderWidth: 1, borderColor: colors.panelBorder, backgroundColor: colors.surface1,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
-  label: { fontFamily: font.sansMedium, fontSize: 12.5 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 7,
+    backgroundColor: colors.surface2,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  chipActive: {
+    backgroundColor: `${colors.violet}1a`,
+    borderColor: `${colors.violet}55`,
+  },
+  emoji: {
+    fontSize: 13,
+  },
+  label: {
+    fontFamily: font.sans,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  labelActive: {
+    color: colors.violet,
+    fontFamily: font.sansSemibold,
+  },
 });
