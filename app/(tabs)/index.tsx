@@ -31,7 +31,6 @@ type CheckInMode =
   | 'factors'
   | 'results';
 
-type AudioSetup = 'idle' | 'preparing' | 'ready' | 'denied' | 'error';
 
 const PRACTICES = [
   { id: 'breath', label: 'Breath', emoji: '≋', color: colors.blue },
@@ -54,7 +53,7 @@ export default function HomeTab() {
   const [mode, setMode] = useState<CheckInMode>('idle');
   const [isBaselineSession, setIsBaselineSession] = useState(false);
   const [selectedEmotion, setSelectedEmotion] = useState<string | undefined>();
-  const [audioSetup, setAudioSetup] = useState<AudioSetup>('idle');
+  const [starting, setStarting] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [meterSamples, setMeterSamples] = useState<number[]>([]);
   const [recordStart, setRecordStart] = useState(0);
@@ -90,31 +89,6 @@ export default function HomeTab() {
     return () => anim.stop();
   }, [mode]);
 
-  // When voice-ready screen appears, request permissions + configure audio session
-  // in the background while the user reads the affirmation text.
-  useEffect(() => {
-    if (mode !== 'voice-ready') return;
-    let alive = true;
-    setAudioSetup('preparing');
-    (async () => {
-      try {
-        const { status } = await Audio.requestPermissionsAsync();
-        if (!alive) return;
-        if (status !== 'granted') { setAudioSetup('denied'); return; }
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: false,
-        });
-        if (alive) setAudioSetup('ready');
-      } catch {
-        if (alive) setAudioSetup('error');
-      }
-    })();
-    return () => { alive = false; };
-  }, [mode]);
-
   const todayMsg = todaysMessage();
   const needsBaseline = !baseline;
   const hasTodayCheckIn = !!todayCheckIn;
@@ -123,13 +97,13 @@ export default function HomeTab() {
 
   function startVoice(forBaseline = false) {
     setIsBaselineSession(forBaseline);
-    setAudioSetup('idle');
     setMode('voice-ready');
     setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80);
   }
 
   async function startRecording() {
-    if (audioSetup !== 'ready') return;
+    if (starting) return;
+    setStarting(true);
     try {
       const { recording: rec } = await Audio.Recording.createAsync(
         { ...Audio.RecordingOptionsPresets.HIGH_QUALITY, isMeteringEnabled: true },
@@ -145,7 +119,13 @@ export default function HomeTab() {
       setMeterSamples([]);
       setMode('recording');
     } catch {
-      Alert.alert('Could not start recording', 'Make sure no other app is using the microphone, then try again.');
+      Alert.alert(
+        'Could not start recording',
+        'Allow microphone access in Settings and make sure no other app is using the mic.',
+        [{ text: 'OK' }, { text: 'Open Settings', onPress: () => Linking.openSettings() }],
+      );
+    } finally {
+      setStarting(false);
     }
   }
 
@@ -225,7 +205,6 @@ export default function HomeTab() {
 
   const handleBreathingComplete = useCallback(() => {
     setIsBaselineSession(true);
-    setAudioSetup('idle');
     setMode('voice-ready');
     setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80);
   }, []);
@@ -257,23 +236,6 @@ export default function HomeTab() {
     }
 
     if (mode === 'voice-ready') {
-      const recBtnLabel =
-        audioSetup === 'ready'    ? 'Tap to Record'
-        : audioSetup === 'denied' ? 'Open Settings'
-        : audioSetup === 'error'  ? 'Retry'
-        : 'Preparing…';
-      const recBtnDisabled = audioSetup === 'idle' || audioSetup === 'preparing';
-
-      function handleRecordPress() {
-        if (audioSetup === 'denied') {
-          Linking.openSettings();
-        } else if (audioSetup === 'error') {
-          startVoice(isBaselineSession);
-        } else {
-          void startRecording();
-        }
-      }
-
       return (
         <GlassCard style={styles.actionCard}>
           <Text style={styles.actionHeading}>
@@ -289,23 +251,13 @@ export default function HomeTab() {
                 : 'I am here, present in this moment. I notice what I feel and I accept it without judgment. I have what it takes to meet today fully and with care. I breathe, I notice, I arrive in what is true for me right now.'}
             </Text>
           </View>
-          {audioSetup === 'denied' && (
-            <Text style={styles.permNote}>
-              Microphone access is required. Tap below to open Settings and enable it.
-            </Text>
-          )}
-          {audioSetup === 'error' && (
-            <Text style={styles.permNote}>
-              Could not access the microphone. Tap Retry to try again.
-            </Text>
-          )}
           <GradientButton
-            label={recBtnLabel}
+            label={starting ? 'Starting…' : 'Tap to Record'}
             variant="flame"
-            disabled={recBtnDisabled}
-            onPress={handleRecordPress}
+            disabled={starting}
+            onPress={() => void startRecording()}
           />
-          <GradientButton label="Cancel" variant="ghost" onPress={() => { setMode('idle'); setAudioSetup('idle'); }} />
+          <GradientButton label="Cancel" variant="ghost" onPress={() => setMode('idle')} />
         </GlassCard>
       );
     }
